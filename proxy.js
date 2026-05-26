@@ -1,26 +1,38 @@
 import { NextResponse } from "next/server";
 
 export function proxy(request) {
-  const url = request.nextUrl.clone();
-  const host = request.headers.get("host") || "";
+  const url = request.nextUrl;
+  const hostname = request.headers
+    .get("host")
+    ?.replace(":3000", "");
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "crtrgo.com";
+  const rootDomain =
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN || "crtgo.com";
 
-  const isLocalhost = host.includes("localhost");
-  const isVercelPreview = host.includes("vercel.app");
+  const isRootDomain =
+    hostname === rootDomain ||
+    hostname === `www.${rootDomain}`;
 
-  if (!isLocalhost && !isVercelPreview) {
-    const subdomain = host.replace(`.${rootDomain}`, "");
+  if (isRootDomain) {
+    return NextResponse.next();
+  }
 
-    if (subdomain && subdomain !== rootDomain && !subdomain.includes(":")) {
-      url.pathname = `/menu/${subdomain}`;
-      return NextResponse.rewrite(url);
-    }
+  if (hostname?.endsWith(`.${rootDomain}`)) {
+    const subdomain = hostname.replace(
+      `.${rootDomain}`,
+      ""
+    );
+
+    url.pathname = `/menu/${subdomain}`;
+
+    return NextResponse.rewrite(url);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    "/((?!api|_next|favicon.ico|.*\\.).*)",
+  ],
 };
