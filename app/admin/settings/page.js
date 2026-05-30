@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SettingsForm from "./settings-form";
+import { ChevronLeft } from "lucide-react";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -21,8 +22,8 @@ export default async function SettingsPage() {
   return (
     <div dir="rtl" className="min-h-screen px-5 py-8">
       <section className="mx-auto max-w-3xl">
-        <Link href="/admin" className="text-sm text-black/50">
-          ← الرجوع للوحة التحكم
+        <Link href="/admin" className="text-left w-full text-sm flex items-center justify-end gap-2 text-black/50">
+           الرجوع للإعدادات <ChevronLeft />
         </Link>
 
         <h1 className="mt-8 text-4xl font-black">إعدادات الحساب</h1>

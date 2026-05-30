@@ -128,7 +128,7 @@ export default function SettingsForm({ user, profile }) {
 
           <button
             disabled={savingProfile}
-            className="w-full rounded-2xl bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
+            className="w-full rounded-2xl cursor-pointer hover:bg-black/80 bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
           >
             {savingProfile ? "جارٍ الحفظ..." : "حفظ معلومات الحساب"}
           </button>
@@ -167,7 +167,7 @@ export default function SettingsForm({ user, profile }) {
 
           <button
             disabled={savingPassword}
-            className="w-full rounded-2xl bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
+            className="w-full rounded-2xl cursor-pointer hover:bg-black/80 bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
           >
             {savingPassword ? "جارٍ التغيير..." : "تغيير كلمة المرور"}
           </button>

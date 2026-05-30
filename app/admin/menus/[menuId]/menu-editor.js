@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { ChevronLeft } from "lucide-react";
 
 export default function MenuEditor({ menu }) {
   const router = useRouter();
@@ -294,25 +295,25 @@ async function deleteMenu() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-black px-5 py-8 text-white">
+    <div dir="rtl" className="min-h-screen px-5 py-8">
       <section className="mx-auto max-w-6xl">
-        <Link href="/admin" className="text-sm text-white/50">
-          ← الرجوع للوحة التحكم
-        </Link>
+        <Link href="/admin" className="text-left w-full text-sm flex items-center justify-end gap-2 text-black/50">
+                   الرجوع للإعدادات <ChevronLeft />
+                </Link>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm text-white/50">محرر القائمة</p>
+            <p className="text-sm text-black/70">محرر القائمة</p>
             <h1 className="mt-2 text-4xl font-black">{menu.name}</h1>
-            <p dir="ltr" className="mt-2 text-left text-sm text-white/40">
-              {menu.subdomain}.crtgo.com
+            <p dir="ltr" className="mt-2 text-left text-sm text-black/60">
+              crtgo.com/m/{menu.subdomain}
             </p>
           </div>
 
 <div className="flex gap-3">
   <button
     onClick={() => setSettingsOpen(true)}
-    className="rounded-full border border-white/15 px-5 py-3 font-bold text-white"
+    className="rounded-full cursor-pointer border border-black/15 px-5 py-3 font-bold text-black"
   >
     ⚙️ الإعدادات
   </button>
@@ -320,7 +321,7 @@ async function deleteMenu() {
   <button
     onClick={saveDetails}
     disabled={saving}
-    className="rounded-full bg-white px-6 py-3 font-bold text-black disabled:opacity-50"
+    className="rounded-full cursor-pointer bg-white px-6 py-3 font-bold text-black disabled:opacity-50"
   >
     {saving ? "جارٍ الحفظ..." : "حفظ المعلومات"}
   </button>
@@ -335,7 +336,7 @@ async function deleteMenu() {
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[380px_1fr]">
           <aside className="space-y-6">
-            <div className="rounded-3xl border border-white/10 p-5">
+            <div className="rounded-3xl border border-black/10 p-5">
               <h2 className="text-xl font-bold">معلومات القائمة</h2>
 
               <div className="mt-5 space-y-4">
@@ -343,7 +344,7 @@ async function deleteMenu() {
                   value={details.name}
                   onChange={(e) => updateDetail("name", e.target.value)}
                   placeholder="اسم القائمة"
-                  className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 outline-none focus:border-white"
+                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 outline-none focus:border-black"
                 />
 
                 <textarea
@@ -353,7 +354,7 @@ async function deleteMenu() {
                   }
                   placeholder="وصف قصير للقائمة"
                   rows={4}
-                  className="w-full resize-none rounded-2xl border border-white/15 bg-white/5 px-4 py-4 outline-none focus:border-white"
+                  className="w-full resize-none rounded-2xl border border-black/15 bg-white/5 px-4 py-4 outline-none focus:border-black"
                 />
 
                 <input
@@ -361,7 +362,7 @@ async function deleteMenu() {
                   onChange={(e) => updateDetail("phone", e.target.value)}
                   placeholder="رقم الهاتف"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-white"
+                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -369,7 +370,7 @@ async function deleteMenu() {
                   onChange={(e) => updateDetail("whatsapp", e.target.value)}
                   placeholder="رابط واتساب"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-white"
+                  className="w-full rounded-2xl border border-black/15 bg-black/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -377,7 +378,7 @@ async function deleteMenu() {
                   onChange={(e) => updateDetail("instagram", e.target.value)}
                   placeholder="رابط إنستغرام"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-white"
+                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -385,7 +386,7 @@ async function deleteMenu() {
                   onChange={(e) => updateDetail("tiktok", e.target.value)}
                   placeholder="رابط تيك توك"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-white"
+                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -393,12 +394,12 @@ async function deleteMenu() {
                   onChange={(e) => updateDetail("facebook", e.target.value)}
                   placeholder="رابط فيسبوك"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-white"
+                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 p-5">
+            <div className="rounded-3xl border border-black/10 p-5">
               <h2 className="text-xl font-bold">الشعار وصورة الغلاف</h2>
 
               <div className="mt-5 space-y-5">
@@ -424,18 +425,18 @@ async function deleteMenu() {
 />
           </aside>
 
-          <section className="rounded-3xl border border-white/10 p-5">
+          <section className="rounded-3xl border-2 border-black/50 p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black">الأقسام والأصناف</h2>
-                <p className="mt-2 text-sm text-white/50">
+                <p className="mt-2 text-sm text-black/50">
                   أنشئ أقسام القائمة، ثم أضف الأصناف داخل كل قسم.
                 </p>
               </div>
 
               <button
                 onClick={addSection}
-                className="rounded-full bg-white px-5 py-3 font-bold text-black"
+                className="rounded-full cursor-pointer hover:bg-white/60 border border-transparent hover:border-black/70 bg-white px-5 py-3 font-bold text-black"
               >
                 قسم جديد
               </button>
@@ -443,7 +444,7 @@ async function deleteMenu() {
 
             <div className="mt-8 space-y-6">
               {!sections.length && (
-                <div className="rounded-2xl border border-white/10 p-6 text-white/50">
+                <div className="rounded-2xl border border-black/70 p-6 text-white/50">
                   لا توجد أقسام بعد.
                 </div>
               )}
@@ -454,7 +455,7 @@ async function deleteMenu() {
                 return (
                   <div
                     key={section.id}
-                    className="rounded-3xl border border-white/10 p-5"
+                    className="rounded-3xl border-2 border-black/50 p-5"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <h3 className="text-xl font-bold">{section.name_ar}</h3>
@@ -462,7 +463,7 @@ async function deleteMenu() {
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => addItem(section.id)}
-                          className="rounded-full border border-white/15 px-4 py-2 text-sm"
+                          className="rounded-full hover:bg-white hover:text-black transition-colors cursor-pointer border border-black/70 px-4 py-2 text-sm"
                         >
                           إضافة صنف
                         </button>
@@ -471,14 +472,14 @@ async function deleteMenu() {
                           onClick={() =>
                             renameSection(section.id, section.name_ar)
                           }
-                          className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/70"
+                          className="rounded-full hover:bg-white hover:text-black transition-colors cursor-pointer border border-black/70 px-4 py-2 text-sm text-black/70"
                         >
                           تعديل الاسم
                         </button>
 
                         <button
                           onClick={() => deleteSection(section.id)}
-                          className="rounded-full cursor-pointer bg-red-600 text-black border border-white/15 px-4 py-2 text-sm"
+                          className="rounded-full cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold border border-black/70 px-4 py-2 text-sm"
                         >
                           حذف القسم
                         </button>
@@ -487,7 +488,7 @@ async function deleteMenu() {
 
                     <div className="mt-5 space-y-4">
                       {!items.length && (
-                        <p className="rounded-2xl bg-white/5 p-4 text-sm text-white/40">
+                        <p className="rounded-2xl bg-black/7 p-4 text-sm text-black/70">
                           لا توجد أصناف في هذا القسم.
                         </p>
                       )}
@@ -497,7 +498,7 @@ async function deleteMenu() {
                           key={item.id}
                           className="grid gap-4 rounded-2xl bg-white/5 p-4 md:grid-cols-[160px_1fr_110px]"
                         >
-                          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                          <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/40">
                             {item.image_url ? (
                               <img
                                 src={item.image_url}
@@ -510,7 +511,7 @@ async function deleteMenu() {
                               </div>
                             )}
 
-                            <label className="block cursor-pointer border-t border-white/10 px-3 py-3 text-center text-sm text-white/70">
+                            <label className="block cursor-pointer font-bold hover:bg-black/20 border-t border-black/10 px-3 py-3 text-center text-sm text-white/70">
                               {item.image_url ? "تغيير الصورة" : "إضافة صورة"}
                               <input
                                 type="file"
@@ -528,14 +529,19 @@ async function deleteMenu() {
                             {item.image_url && (
                               <button
                                 onClick={() => deleteItemImage(item.id)}
-                                className="w-full border-t border-white/10 px-3 py-3 text-sm text-white/40"
+                                className="w-full border-t border-black/10 px-3 py-3 text-sm font-bold text-red-800 hover:text-red-700 hover:bg-red-400/20 cursor-pointer"
                               >
                                 حذف الصورة
                               </button>
                             )}
                           </div>
 
-                          <div className="space-y-3">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <label className="text-md">
+                            <p className="my-1 text-md text-black font-bold">
+
+                            اسم الصنف
+                            </p>
                             <input
                               defaultValue={item.name_ar}
                               onBlur={(e) =>
@@ -544,9 +550,14 @@ async function deleteMenu() {
                                 })
                               }
                               placeholder="اسم الصنف"
-                              className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 outline-none focus:border-white"
+                              className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
                             />
+                            </label>
 
+<label className="w-full">
+<p className="my-1 text-md text-black font-bold">
+وصف الصنف
+</p>
                             <textarea
                               defaultValue={item.description_ar || ""}
                               onBlur={(e) =>
@@ -556,11 +567,15 @@ async function deleteMenu() {
                               }
                               placeholder="وصف الصنف"
                               rows={4}
-                              className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-3 py-3 outline-none focus:border-white"
+                              className="resize-none w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
                             />
-                          </div>
+                            </label>
 
-                          <div className="space-y-3">
+<label className="text-md">
+<p className="my-1 text-md text-black font-bold">
+
+سعر الصنف
+</p>
                             <input
                               defaultValue={item.price || ""}
                               onBlur={(e) =>
@@ -570,18 +585,21 @@ async function deleteMenu() {
                               }
                               placeholder="السعر"
                               type="number"
-                              step="0.01"
-                              className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-left outline-none focus:border-white"
+                              dir="ltr"
+                              step="0.1"
+                            
+                              className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-right outline-none focus:border-black"
                             />
+</label>
+                          </div>
 
                             <button
                               onClick={() => deleteItem(item.id)}
-                              className="w-full rounded-xl font-bold border border-white/10 px-3 py-3 text-sm cursor-pointer bg-red-600 text-black"
+                              className="w-full rounded-xl font-bold border border-black/70 px-3 py-3 text-sm cursor-pointer bg-red-600 text-white hover:bg-red-700"
                             >
                               حذف الصنف
                             </button>
                           </div>
-                        </div>
                       ))}
                     </div>
                   </div>
@@ -610,13 +628,13 @@ async function deleteMenu() {
     onDelete={deleteMenu}
   />
 )}
-    </main>
+    </div>
   );
 }
 
 function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+    <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/5">
       <div className="p-4">
         <h3 className="font-bold">{title}</h3>
       </div>
@@ -628,12 +646,12 @@ function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
           className="h-40 w-full object-cover pointer-events-none"
         />
       ) : (
-        <div className="flex h-40 items-center justify-center bg-black/40 text-sm text-white/30">
+        <div className="flex h-40 items-center justify-center bg-black/40 text-sm text-white/80">
           لا توجد صورة
         </div>
       )}
 
-      <label className="block cursor-pointer border-t border-white/10 px-4 py-3 text-center text-sm text-white/70">
+      <label className="block cursor-pointer border-t border-black/10 font-bold px-4 py-3 text-center text-sm text-black">
         {imageUrl ? "تغيير الصورة" : "رفع صورة"}
         <input
           type="file"
@@ -646,7 +664,7 @@ function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
       {imageUrl && (
         <button
           onClick={onDelete}
-          className="w-full border-t border-white/10 px-4 py-3 text-sm cursor-pointer bg-red-600 text-black"
+          className="w-full border-t border-black/10 px-4 py-3 text-sm cursor-pointer bg-red-600 text-white font-bold hover:bg-red-700"
         >
           حذف الصورة
         </button>
@@ -709,14 +727,14 @@ function WorkingHoursEditor({ menuId, initialHours }) {
   }
 
   return (
-    <div className="rounded-3xl border border-white/10 p-5">
+    <div className="rounded-3xl border border-black/10 p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold">ساعات العمل</h2>
 
         <button
           onClick={saveHours}
           disabled={saving}
-          className="rounded-full bg-white px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
+          className="rounded-full  hover:bg-white/60 border border-transparent hover:border-black/70 transition-colors cursor-pointer bg-white px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
         >
           {saving ? "حفظ..." : "حفظ"}
         </button>
@@ -726,12 +744,12 @@ function WorkingHoursEditor({ menuId, initialHours }) {
         {days.map(([key, label]) => (
           <div
             key={key}
-            className="rounded-2xl border border-white/10 bg-white/5 p-3"
+            className="rounded-2xl border border-black/10 bg-white/5 p-3"
           >
             <div className="flex items-center justify-between gap-3">
               <span className="font-bold">{label}</span>
 
-              <label className="flex items-center gap-2 text-sm text-white/60">
+              <label className="flex items-center cursor-pointer gap-2 text-sm text-black">
                 <input
                   type="checkbox"
                   checked={hours[key]?.closed || false}
@@ -751,7 +769,7 @@ function WorkingHoursEditor({ menuId, initialHours }) {
                   onChange={(e) =>
                     updateDay(key, "open", e.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-left outline-none"
+                  className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-left outline-none"
                 />
 
                 <input
@@ -760,7 +778,7 @@ function WorkingHoursEditor({ menuId, initialHours }) {
                   onChange={(e) =>
                     updateDay(key, "close", e.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-left outline-none"
+                  className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-left outline-none"
                 />
               </div>
             )}
@@ -805,7 +823,7 @@ async function handleSave() {
       role="dialog"
       aria-modal="true"
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-[#080808] p-5 text-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-black/10 bg-[#080808] p-5 text-white shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-white/50">إعدادات القائمة</p>
@@ -814,7 +832,7 @@ async function handleSave() {
 
           <button
             onClick={onClose}
-            className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/60"
+            className="rounded-full cursor-pointer border border-black/15 px-4 py-2 text-sm text-white/60"
           >
             إغلاق
           </button>
@@ -828,7 +846,7 @@ async function handleSave() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 outline-none focus:border-white"
+              className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 outline-none focus:border-black"
             />
           </div>
 
@@ -837,7 +855,7 @@ async function handleSave() {
               الرابط الفرعي
             </label>
 
-            <div className="flex overflow-hidden rounded-2xl border border-white/15 bg-white/5">
+            <div className="flex overflow-hidden rounded-2xl border border-black/15 bg-white/5">
               <input
                 dir="ltr"
                 value={subdomain}
@@ -845,8 +863,8 @@ async function handleSave() {
                 className="min-w-0 flex-1 bg-transparent px-4 py-4 text-left outline-none"
               />
 
-              <span className="border-r border-white/15 px-4 py-4 text-white/40">
-                .crtgo.com
+              <span dir="ltr" className="border-r border-black/15 px-4 py-4 text-white/40">
+                crtgo.com/m/
               </span>
             </div>
           </div>
@@ -854,21 +872,21 @@ async function handleSave() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full rounded-2xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
+            className="w-full cursor-pointer rounded-2xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
           >
             {saving ? "جارٍ الحفظ..." : "حفظ الإعدادات"}
           </button>
         </div>
 
         <div>
-  <label className="mb-2 block text-sm text-white/60">
+  <label className="mb-2 mt-4 block text-sm text-white/60">
     تصميم القائمة
   </label>
 
   <select
     value={templateId}
     onChange={(e) => setTemplateId(e.target.value)}
-    className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-4 outline-none focus:border-white"
+    className="w-full flex items-center justify-between rounded-2xl border border-black/15 bg-white/5 px-2 py-4 outline-none focus:border-black"
   >
     <option value="classic">Classic</option>
     <option value="luxury">Luxury</option>
@@ -876,7 +894,7 @@ async function handleSave() {
   </select>
 </div>
 
-        <div className="mt-8 rounded-2xl border border-white/10 p-4">
+        <div className="mt-8 rounded-2xl border border-black/10 p-4">
           <h3 className="font-bold">حالة القائمة</h3>
 
           <p className="mt-2 text-sm text-white/50">
@@ -886,14 +904,14 @@ async function handleSave() {
           {isArchived ? (
             <button
               onClick={onRestore}
-              className="mt-4 w-full rounded-2xl border border-white/15 px-4 py-4 font-bold"
+              className="mt-4 w-full cursor-pointer rounded-2xl border border-black/15 px-4 py-4 font-bold"
             >
               استعادة القائمة
             </button>
           ) : (
             <button
               onClick={onArchive}
-              className="mt-4 w-full rounded-2xl border border-white/15 px-4 py-4 font-bold"
+              className="mt-4 w-full cursor-pointer rounded-2xl border border-black/15 px-4 py-4 font-bold"
             >
               أرشفة القائمة
             </button>
@@ -911,7 +929,7 @@ async function handleSave() {
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="mt-4 w-full rounded-2xl bg-red-500 px-4 py-4 font-bold text-white"
+              className="mt-4 w-full cursor-pointer rounded-2xl bg-red-500 px-4 py-4 font-bold text-white"
             >
               حذف القائمة
             </button>
@@ -931,7 +949,7 @@ async function handleSave() {
               <button
                 disabled={!canDelete}
                 onClick={onDelete}
-                className="w-full rounded-2xl bg-red-500 px-4 py-4 font-bold text-white disabled:opacity-30"
+                className="w-full cursor-pointer rounded-2xl bg-red-500 px-4 py-4 font-bold text-white disabled:opacity-30"
               >
                 تأكيد الحذف النهائي
               </button>

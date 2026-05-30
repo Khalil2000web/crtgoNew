@@ -6,7 +6,7 @@ import LuxuryTemplate from "@/components/templates/LuxuryTemplate";
 import MinimalTemplate from "@/components/templates/MinimalTemplate";
 
 export default async function PublicMenuPage({ params }) {
-  const { subdomain } = await params;
+  const { handle } = await params;
   const supabase = await createClient();
 
   const { data: menu } = await supabase
@@ -18,7 +18,7 @@ export default async function PublicMenuPage({ params }) {
         items (*)
       )
     `)
-    .eq("subdomain", subdomain)
+    .eq("subdomain", handle)
     .eq("status", "active")
     .single();
 

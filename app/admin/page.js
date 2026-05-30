@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Settings } from "lucide-react";
 
@@ -9,10 +8,6 @@ export default async function AdminPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/start");
-  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -30,14 +25,12 @@ export default async function AdminPage() {
     <div className="min-h-screen px-5 py-8">
       <section className="mx-auto max-w-5xl">
 <div className="flex items-center justify-between">
-        <h1 className="mt-3 text-4xl font-black">
+        <h1 className="hidden mt-3 text-4xl font-black">
           أهلاً {profile?.display_name || "بك"}
         </h1>
 
 
-        <Link href="/admin/settings" className="cursor-pointer text-md">
-  <Settings />
-</Link>
+
 
         <p className="mt-4 hidden">
           خطتك الحالية: {profile?.plan || "basic"}
@@ -71,7 +64,7 @@ export default async function AdminPage() {
             >
               <h3 className="text-lg font-bold uppercase">{menu.name}</h3>
               <div className="text-left flex flex-col items-end gap-1">
-                <p className="text-sm">{menu.subdomain}.crtgo.com</p>
+                <p className="text-sm">crtgo.com/m/{menu.subdomain}</p>
                 <p className="text-sm text-muted-foreground">
                   {new Date(menu.created_at).toLocaleDateString()}
                 </p>
