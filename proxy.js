@@ -6,8 +6,19 @@ export function proxy(request) {
   const hostname = host.split(":")[0];
 
   if (hostname === "dash.crtgo.com") {
-    url.pathname = `/admin${url.pathname === "/" ? "" : url.pathname}`;
-    return NextResponse.rewrite(url);
+    if (url.pathname === "/") {
+      url.pathname = "/admin";
+      return NextResponse.rewrite(url);
+    }
+
+    if (url.pathname.startsWith("/start")) {
+      return NextResponse.next();
+    }
+
+    if (!url.pathname.startsWith("/admin")) {
+      url.pathname = `/admin${url.pathname}`;
+      return NextResponse.rewrite(url);
+    }
   }
 
   return NextResponse.next();
