@@ -26,13 +26,13 @@ body {
         position: absolute;
         inset: 0px;
         border-radius: 50%;
-        border: 5px solid #000000;
+        border: 5px solid #fff;
         animation: prixClipFix 2s linear infinite ;
       }
       .loader::after{
         inset: 8px;
         transform: rotate3d(90, 90, 0, 180deg );
-        border-color: #000000;
+        border-color: #fff;
       }
 
       @keyframes rotate {
