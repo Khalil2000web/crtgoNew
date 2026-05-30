@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronLeft } from "lucide-react";
@@ -9,9 +9,10 @@ import { ChevronLeft } from "lucide-react";
 export default function MenuEditor({ menu }) {
   const router = useRouter();
   const supabase = createClient();
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [actionLoading, setActionLoading] = useState("");
   const [error, setError] = useState("");
 
   const [details, setDetails] = useState({
@@ -24,57 +25,76 @@ export default function MenuEditor({ menu }) {
     facebook: menu.facebook || "",
   });
 
+  useEffect(() => {
+    const targetId = sessionStorage.getItem("scrollTarget");
+    if (!targetId) return;
+
+    sessionStorage.removeItem("scrollTarget");
+
+    setTimeout(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 300);
+  }, [menu]);
+
   function makeSubdomain(value) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[\u064B-\u065F]/g, "")
-    .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-async function updateMenuSettings(updates) {
-  setError("");
-  const { error } = await supabase
-    .from("menus")
-    .update(updates)
-    .eq("id", menu.id);
-
-  if (error) {
-    setError(error.message);
-    return false;
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[\u064B-\u065F]/g, "")
+      .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
   }
 
-  router.refresh();
-  return true;
-}
+  async function updateMenuSettings(updates) {
+    setError("");
 
-async function archiveMenu() {
-  await updateMenuSettings({ status: "archived" });
-}
+    const { error } = await supabase
+      .from("menus")
+      .update(updates)
+      .eq("id", menu.id);
 
-async function restoreMenu() {
-  await updateMenuSettings({ status: "active" });
-}
+    if (error) {
+      setError(error.message);
+      return false;
+    }
 
-async function deleteMenu() {
-  setError("");
-
-  const { error } = await supabase
-    .from("menus")
-    .delete()
-    .eq("id", menu.id);
-
-  if (error) {
-    setError(error.message);
-    return;
+    router.refresh();
+    return true;
   }
 
-  router.push("/admin");
-  router.refresh();
-}
+  async function archiveMenu() {
+    setActionLoading("archive-menu");
+    await updateMenuSettings({ status: "archived" });
+    setActionLoading("");
+  }
+
+  async function restoreMenu() {
+    setActionLoading("restore-menu");
+    await updateMenuSettings({ status: "active" });
+    setActionLoading("");
+  }
+
+  async function deleteMenu() {
+    setError("");
+    setActionLoading("delete-menu");
+
+    const { error } = await supabase.from("menus").delete().eq("id", menu.id);
+
+    setActionLoading("");
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    router.push("/admin");
+    router.refresh();
+  }
 
   const sections = [...(menu.sections || [])].sort(
     (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
@@ -110,6 +130,7 @@ async function deleteMenu() {
     if (!file) return;
 
     setError("");
+    setActionLoading(`upload-menu-${field}`);
 
     const fileExt = file.name.split(".").pop();
     const filePath = `menus/${menu.id}/${field}-${Date.now()}.${fileExt}`;
@@ -119,6 +140,7 @@ async function deleteMenu() {
       .upload(filePath, file);
 
     if (uploadError) {
+      setActionLoading("");
       setError(uploadError.message);
       return;
     }
@@ -132,6 +154,8 @@ async function deleteMenu() {
       .update({ [field]: data.publicUrl })
       .eq("id", menu.id);
 
+    setActionLoading("");
+
     if (error) {
       setError(error.message);
       return;
@@ -144,10 +168,14 @@ async function deleteMenu() {
     const sure = confirm("هل تريد حذف هذه الصورة؟");
     if (!sure) return;
 
+    setActionLoading(`delete-menu-${field}`);
+
     const { error } = await supabase
       .from("menus")
       .update({ [field]: null })
       .eq("id", menu.id);
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
@@ -159,32 +187,44 @@ async function deleteMenu() {
 
   async function addSection() {
     const name = prompt("اسم القسم الجديد");
-
     if (!name?.trim()) return;
 
-    const { error } = await supabase.from("sections").insert({
-      menu_id: menu.id,
-      name_ar: name.trim(),
-      sort_order: sections.length,
-    });
+    setActionLoading("add-section");
+    setError("");
+
+    const { data, error } = await supabase
+      .from("sections")
+      .insert({
+        menu_id: menu.id,
+        name_ar: name.trim(),
+        sort_order: sections.length,
+      })
+      .select("id")
+      .single();
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
       return;
     }
 
+    sessionStorage.setItem("scrollTarget", `section-${data.id}`);
     router.refresh();
   }
 
   async function renameSection(sectionId, currentName) {
     const name = prompt("اسم القسم", currentName);
-
     if (!name?.trim()) return;
+
+    setActionLoading(`rename-section-${sectionId}`);
 
     const { error } = await supabase
       .from("sections")
       .update({ name_ar: name.trim() })
       .eq("id", sectionId);
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
@@ -198,10 +238,14 @@ async function deleteMenu() {
     const sure = confirm("هل تريد حذف هذا القسم وكل الأصناف داخله؟");
     if (!sure) return;
 
+    setActionLoading(`delete-section-${sectionId}`);
+
     const { error } = await supabase
       .from("sections")
       .delete()
       .eq("id", sectionId);
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
@@ -212,27 +256,41 @@ async function deleteMenu() {
   }
 
   async function addItem(sectionId) {
-    const { error } = await supabase.from("items").insert({
-      section_id: sectionId,
-      name_ar: "صنف جديد",
-      description_ar: "",
-      price: 0,
-      is_available: true,
-    });
+    setActionLoading(`add-item-${sectionId}`);
+    setError("");
+
+    const { data, error } = await supabase
+      .from("items")
+      .insert({
+        section_id: sectionId,
+        name_ar: "صنف جديد",
+        description_ar: "",
+        price: 0,
+        is_available: true,
+      })
+      .select("id")
+      .single();
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
       return;
     }
 
+    sessionStorage.setItem("scrollTarget", `item-${data.id}`);
     router.refresh();
   }
 
   async function updateItem(itemId, updates) {
+    setActionLoading(`update-item-${itemId}`);
+
     const { error } = await supabase
       .from("items")
       .update(updates)
       .eq("id", itemId);
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
@@ -246,10 +304,11 @@ async function deleteMenu() {
     const sure = confirm("هل تريد حذف هذا الصنف؟");
     if (!sure) return;
 
-    const { error } = await supabase
-      .from("items")
-      .delete()
-      .eq("id", itemId);
+    setActionLoading(`delete-item-${itemId}`);
+
+    const { error } = await supabase.from("items").delete().eq("id", itemId);
+
+    setActionLoading("");
 
     if (error) {
       setError(error.message);
@@ -263,6 +322,7 @@ async function deleteMenu() {
     if (!file) return;
 
     setError("");
+    setActionLoading(`upload-item-image-${itemId}`);
 
     const fileExt = file.name.split(".").pop();
     const filePath = `items/${menu.id}/${itemId}-${Date.now()}.${fileExt}`;
@@ -272,6 +332,7 @@ async function deleteMenu() {
       .upload(filePath, file);
 
     if (uploadError) {
+      setActionLoading("");
       setError(uploadError.message);
       return;
     }
@@ -283,23 +344,32 @@ async function deleteMenu() {
     await updateItem(itemId, {
       image_url: data.publicUrl,
     });
+
+    setActionLoading("");
   }
 
   async function deleteItemImage(itemId) {
     const sure = confirm("هل تريد حذف صورة هذا الصنف؟");
     if (!sure) return;
 
+    setActionLoading(`delete-item-image-${itemId}`);
+
     await updateItem(itemId, {
       image_url: null,
     });
+
+    setActionLoading("");
   }
 
   return (
     <div dir="rtl" className="min-h-screen px-5 py-8">
       <section className="mx-auto max-w-6xl">
-        <Link href="/admin" className="text-left w-full text-sm flex items-center justify-end gap-2 text-black/50">
-                   الرجوع للإعدادات <ChevronLeft />
-                </Link>
+        <Link
+          href="/admin"
+          className="flex w-full items-center justify-end gap-2 text-left text-sm text-black/50"
+        >
+          الرجوع للإعدادات <ChevronLeft />
+        </Link>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -310,26 +380,26 @@ async function deleteMenu() {
             </p>
           </div>
 
-<div className="flex gap-3">
-  <button
-    onClick={() => setSettingsOpen(true)}
-    className="rounded-full cursor-pointer border border-black/15 px-5 py-3 font-bold text-black"
-  >
-    ⚙️ الإعدادات
-  </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="cursor-pointer rounded-full border border-black/15 px-5 py-3 font-bold text-black"
+            >
+              ⚙️ الإعدادات
+            </button>
 
-  <button
-    onClick={saveDetails}
-    disabled={saving}
-    className="rounded-full cursor-pointer bg-white px-6 py-3 font-bold text-black disabled:opacity-50"
-  >
-    {saving ? "جارٍ الحفظ..." : "حفظ المعلومات"}
-  </button>
-</div>
+            <button
+              onClick={saveDetails}
+              disabled={saving}
+              className="cursor-pointer rounded-full bg-white px-6 py-3 font-bold text-black disabled:opacity-50"
+            >
+              {saving ? "جارٍ الحفظ..." : "حفظ المعلومات"}
+            </button>
+          </div>
         </div>
 
         {error && (
-          <p className="mt-6 rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-300">
+          <p className="mt-6 rounded-2xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-500">
             {error}
           </p>
         )}
@@ -406,6 +476,10 @@ async function deleteMenu() {
                 <ImageUploader
                   title="الشعار"
                   imageUrl={menu.logo_url}
+                  loading={
+                    actionLoading === "upload-menu-logo_url" ||
+                    actionLoading === "delete-menu-logo_url"
+                  }
                   onUpload={(file) => uploadMenuImage("logo_url", file)}
                   onDelete={() => deleteMenuImage("logo_url")}
                 />
@@ -413,16 +487,20 @@ async function deleteMenu() {
                 <ImageUploader
                   title="صورة الغلاف"
                   imageUrl={menu.cover_url}
+                  loading={
+                    actionLoading === "upload-menu-cover_url" ||
+                    actionLoading === "delete-menu-cover_url"
+                  }
                   onUpload={(file) => uploadMenuImage("cover_url", file)}
                   onDelete={() => deleteMenuImage("cover_url")}
                 />
               </div>
             </div>
 
-<WorkingHoursEditor
-  menuId={menu.id}
-  initialHours={menu.working_hours || {}}
-/>
+            <WorkingHoursEditor
+              menuId={menu.id}
+              initialHours={menu.working_hours || {}}
+            />
           </aside>
 
           <section className="rounded-3xl border-2 border-black/50 p-5">
@@ -436,15 +514,18 @@ async function deleteMenu() {
 
               <button
                 onClick={addSection}
-                className="rounded-full cursor-pointer hover:bg-white/60 border border-transparent hover:border-black/70 bg-white px-5 py-3 font-bold text-black"
+                disabled={actionLoading === "add-section"}
+                className="cursor-pointer rounded-full border border-transparent bg-white px-5 py-3 font-bold text-black hover:border-black/70 hover:bg-white/60 disabled:opacity-50"
               >
-                قسم جديد
+                {actionLoading === "add-section"
+                  ? "جارٍ الإضافة..."
+                  : "قسم جديد"}
               </button>
             </div>
 
             <div className="mt-8 space-y-6">
               {!sections.length && (
-                <div className="rounded-2xl border border-black/70 p-6 text-white/50">
+                <div className="rounded-2xl border border-black/70 p-6 text-black/50">
                   لا توجد أقسام بعد.
                 </div>
               )}
@@ -454,8 +535,9 @@ async function deleteMenu() {
 
                 return (
                   <div
+                    id={`section-${section.id}`}
                     key={section.id}
-                    className="rounded-3xl border-2 border-black/50 p-5"
+                    className="scroll-mt-24 rounded-3xl border-2 border-black/50 p-5"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <h3 className="text-xl font-bold">{section.name_ar}</h3>
@@ -463,25 +545,38 @@ async function deleteMenu() {
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => addItem(section.id)}
-                          className="rounded-full hover:bg-white hover:text-black transition-colors cursor-pointer border border-black/70 px-4 py-2 text-sm"
+                          disabled={actionLoading === `add-item-${section.id}`}
+                          className="cursor-pointer rounded-full border border-black/70 px-4 py-2 text-sm transition-colors hover:bg-white hover:text-black disabled:opacity-50"
                         >
-                          إضافة صنف
+                          {actionLoading === `add-item-${section.id}`
+                            ? "جارٍ الإضافة..."
+                            : "إضافة صنف"}
                         </button>
 
                         <button
                           onClick={() =>
                             renameSection(section.id, section.name_ar)
                           }
-                          className="rounded-full hover:bg-white hover:text-black transition-colors cursor-pointer border border-black/70 px-4 py-2 text-sm text-black/70"
+                          disabled={
+                            actionLoading === `rename-section-${section.id}`
+                          }
+                          className="cursor-pointer rounded-full border border-black/70 px-4 py-2 text-sm text-black/70 transition-colors hover:bg-white hover:text-black disabled:opacity-50"
                         >
-                          تعديل الاسم
+                          {actionLoading === `rename-section-${section.id}`
+                            ? "جارٍ التعديل..."
+                            : "تعديل الاسم"}
                         </button>
 
                         <button
                           onClick={() => deleteSection(section.id)}
-                          className="rounded-full cursor-pointer bg-red-600 hover:bg-red-700 text-white font-bold border border-black/70 px-4 py-2 text-sm"
+                          disabled={
+                            actionLoading === `delete-section-${section.id}`
+                          }
+                          className="cursor-pointer rounded-full border border-black/70 bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
                         >
-                          حذف القسم
+                          {actionLoading === `delete-section-${section.id}`
+                            ? "جارٍ الحذف..."
+                            : "حذف القسم"}
                         </button>
                       </div>
                     </div>
@@ -495,15 +590,16 @@ async function deleteMenu() {
 
                       {items.map((item) => (
                         <div
+                          id={`item-${item.id}`}
                           key={item.id}
-                          className="grid gap-4 rounded-2xl bg-white/5 p-4 md:grid-cols-[160px_1fr_110px]"
+                          className="scroll-mt-24 grid gap-4 rounded-2xl bg-white/5 p-4 md:grid-cols-[160px_1fr_110px]"
                         >
                           <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/40">
                             {item.image_url ? (
                               <img
                                 src={item.image_url}
                                 alt={item.name_ar || "صورة الصنف"}
-                                className="h-40 w-full object-cover pointer-events-none"
+                                className="pointer-events-none h-40 w-full object-cover"
                               />
                             ) : (
                               <div className="flex h-40 items-center justify-center text-sm text-white/30">
@@ -511,12 +607,22 @@ async function deleteMenu() {
                               </div>
                             )}
 
-                            <label className="block cursor-pointer font-bold hover:bg-black/20 border-t border-black/10 px-3 py-3 text-center text-sm text-white/70">
-                              {item.image_url ? "تغيير الصورة" : "إضافة صورة"}
+                            <label className="block cursor-pointer border-t border-black/10 px-3 py-3 text-center text-sm font-bold text-white/70 hover:bg-black/20">
+                              {actionLoading ===
+                              `upload-item-image-${item.id}`
+                                ? "جارٍ الرفع..."
+                                : item.image_url
+                                  ? "تغيير الصورة"
+                                  : "إضافة صورة"}
+
                               <input
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
+                                disabled={
+                                  actionLoading ===
+                                  `upload-item-image-${item.id}`
+                                }
                                 onChange={(e) =>
                                   uploadItemImage(
                                     item.id,
@@ -529,77 +635,93 @@ async function deleteMenu() {
                             {item.image_url && (
                               <button
                                 onClick={() => deleteItemImage(item.id)}
-                                className="w-full border-t border-black/10 px-3 py-3 text-sm font-bold text-red-800 hover:text-red-700 hover:bg-red-400/20 cursor-pointer"
+                                disabled={
+                                  actionLoading ===
+                                  `delete-item-image-${item.id}`
+                                }
+                                className="w-full cursor-pointer border-t border-black/10 px-3 py-3 text-sm font-bold text-red-800 hover:bg-red-400/20 hover:text-red-700 disabled:opacity-50"
                               >
-                                حذف الصورة
+                                {actionLoading ===
+                                `delete-item-image-${item.id}`
+                                  ? "جارٍ الحذف..."
+                                  : "حذف الصورة"}
                               </button>
                             )}
                           </div>
 
                           <div className="flex flex-col items-center justify-center gap-2">
-                            <label className="text-md">
-                            <p className="my-1 text-md text-black font-bold">
+                            <label className="text-md w-full">
+                              <p className="my-1 text-md font-bold text-black">
+                                اسم الصنف
+                              </p>
 
-                            اسم الصنف
-                            </p>
-                            <input
-                              defaultValue={item.name_ar}
-                              onBlur={(e) =>
-                                updateItem(item.id, {
-                                  name_ar: e.target.value,
-                                })
-                              }
-                              placeholder="اسم الصنف"
-                              className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
-                            />
+                              <input
+                                defaultValue={item.name_ar}
+                                onBlur={(e) =>
+                                  updateItem(item.id, {
+                                    name_ar: e.target.value,
+                                  })
+                                }
+                                placeholder="اسم الصنف"
+                                className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
+                              />
                             </label>
 
-<label className="w-full">
-<p className="my-1 text-md text-black font-bold">
-وصف الصنف
-</p>
-                            <textarea
-                              defaultValue={item.description_ar || ""}
-                              onBlur={(e) =>
-                                updateItem(item.id, {
-                                  description_ar: e.target.value,
-                                })
-                              }
-                              placeholder="وصف الصنف"
-                              rows={4}
-                              className="resize-none w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
-                            />
+                            <label className="w-full">
+                              <p className="my-1 text-md font-bold text-black">
+                                وصف الصنف
+                              </p>
+
+                              <textarea
+                                defaultValue={item.description_ar || ""}
+                                onBlur={(e) =>
+                                  updateItem(item.id, {
+                                    description_ar: e.target.value,
+                                  })
+                                }
+                                placeholder="وصف الصنف"
+                                rows={4}
+                                className="w-full resize-none rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
+                              />
                             </label>
 
-<label className="text-md">
-<p className="my-1 text-md text-black font-bold">
+                            <label className="text-md w-full">
+                              <p className="my-1 text-md font-bold text-black">
+                                سعر الصنف
+                              </p>
 
-سعر الصنف
-</p>
-                            <input
-                              defaultValue={item.price || ""}
-                              onBlur={(e) =>
-                                updateItem(item.id, {
-                                  price: e.target.value || 0,
-                                })
-                              }
-                              placeholder="السعر"
-                              type="number"
-                              dir="ltr"
-                              step="0.1"
-                            
-                              className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-right outline-none focus:border-black"
-                            />
-</label>
+                              <input
+                                defaultValue={item.price || ""}
+                                onBlur={(e) =>
+                                  updateItem(item.id, {
+                                    price: e.target.value || 0,
+                                  })
+                                }
+                                placeholder="السعر"
+                                type="number"
+                                dir="ltr"
+                                step="0.1"
+                                className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-right outline-none focus:border-black"
+                              />
+                            </label>
+
+                            {actionLoading === `update-item-${item.id}` && (
+                              <p className="text-xs text-black/50">
+                                جارٍ الحفظ...
+                              </p>
+                            )}
                           </div>
 
-                            <button
-                              onClick={() => deleteItem(item.id)}
-                              className="w-full rounded-xl font-bold border border-black/70 px-3 py-3 text-sm cursor-pointer bg-red-600 text-white hover:bg-red-700"
-                            >
-                              حذف الصنف
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => deleteItem(item.id)}
+                            disabled={actionLoading === `delete-item-${item.id}`}
+                            className="w-full cursor-pointer rounded-xl border border-black/70 bg-red-600 px-3 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {actionLoading === `delete-item-${item.id}`
+                              ? "جارٍ الحذف..."
+                              : "حذف الصنف"}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -610,29 +732,30 @@ async function deleteMenu() {
         </div>
       </section>
 
-{settingsOpen && (
-  <MenuSettingsDialog
-    menu={menu}
-    onClose={() => setSettingsOpen(false)}
-    onSave={async (values) => {
-      const saved = await updateMenuSettings({
-  name: values.name,
-  subdomain: makeSubdomain(values.subdomain),
-  template_id: values.template_id,
-});
+      {settingsOpen && (
+        <MenuSettingsDialog
+          menu={menu}
+          actionLoading={actionLoading}
+          onClose={() => setSettingsOpen(false)}
+          onSave={async (values) => {
+            const saved = await updateMenuSettings({
+              name: values.name,
+              subdomain: makeSubdomain(values.subdomain),
+              template_id: values.template_id,
+            });
 
-      if (saved) setSettingsOpen(false);
-    }}
-    onArchive={archiveMenu}
-    onRestore={restoreMenu}
-    onDelete={deleteMenu}
-  />
-)}
+            if (saved) setSettingsOpen(false);
+          }}
+          onArchive={archiveMenu}
+          onRestore={restoreMenu}
+          onDelete={deleteMenu}
+        />
+      )}
     </div>
   );
 }
 
-function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
+function ImageUploader({ title, imageUrl, onUpload, onDelete, loading }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/5">
       <div className="p-4">
@@ -643,7 +766,7 @@ function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
         <img
           src={imageUrl}
           alt={title}
-          className="h-40 w-full object-cover pointer-events-none"
+          className="pointer-events-none h-40 w-full object-cover"
         />
       ) : (
         <div className="flex h-40 items-center justify-center bg-black/40 text-sm text-white/80">
@@ -651,12 +774,14 @@ function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
         </div>
       )}
 
-      <label className="block cursor-pointer border-t border-black/10 font-bold px-4 py-3 text-center text-sm text-black">
-        {imageUrl ? "تغيير الصورة" : "رفع صورة"}
+      <label className="block cursor-pointer border-t border-black/10 px-4 py-3 text-center text-sm font-bold text-black">
+        {loading ? "جارٍ المعالجة..." : imageUrl ? "تغيير الصورة" : "رفع صورة"}
+
         <input
           type="file"
           accept="image/*"
           className="hidden"
+          disabled={loading}
           onChange={(e) => onUpload(e.target.files?.[0])}
         />
       </label>
@@ -664,9 +789,10 @@ function ImageUploader({ title, imageUrl, onUpload, onDelete }) {
       {imageUrl && (
         <button
           onClick={onDelete}
-          className="w-full border-t border-black/10 px-4 py-3 text-sm cursor-pointer bg-red-600 text-white font-bold hover:bg-red-700"
+          disabled={loading}
+          className="w-full cursor-pointer border-t border-black/10 bg-red-600 px-4 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
         >
-          حذف الصورة
+          {loading ? "جارٍ الحذف..." : "حذف الصورة"}
         </button>
       )}
     </div>
@@ -734,7 +860,7 @@ function WorkingHoursEditor({ menuId, initialHours }) {
         <button
           onClick={saveHours}
           disabled={saving}
-          className="rounded-full  hover:bg-white/60 border border-transparent hover:border-black/70 transition-colors cursor-pointer bg-white px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
+          className="cursor-pointer rounded-full border border-transparent bg-white px-4 py-2 text-sm font-bold text-black transition-colors hover:border-black/70 hover:bg-white/60 disabled:opacity-50"
         >
           {saving ? "حفظ..." : "حفظ"}
         </button>
@@ -749,7 +875,7 @@ function WorkingHoursEditor({ menuId, initialHours }) {
             <div className="flex items-center justify-between gap-3">
               <span className="font-bold">{label}</span>
 
-              <label className="flex items-center cursor-pointer gap-2 text-sm text-black">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-black">
                 <input
                   type="checkbox"
                   checked={hours[key]?.closed || false}
@@ -766,18 +892,14 @@ function WorkingHoursEditor({ menuId, initialHours }) {
                 <input
                   type="time"
                   value={hours[key]?.open || "09:00"}
-                  onChange={(e) =>
-                    updateDay(key, "open", e.target.value)
-                  }
+                  onChange={(e) => updateDay(key, "open", e.target.value)}
                   className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-left outline-none"
                 />
 
                 <input
                   type="time"
                   value={hours[key]?.close || "22:00"}
-                  onChange={(e) =>
-                    updateDay(key, "close", e.target.value)
-                  }
+                  onChange={(e) => updateDay(key, "close", e.target.value)}
                   className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-left outline-none"
                 />
               </div>
@@ -796,6 +918,7 @@ function MenuSettingsDialog({
   onArchive,
   onRestore,
   onDelete,
+  actionLoading,
 }) {
   const [name, setName] = useState(menu.name || "");
   const [subdomain, setSubdomain] = useState(menu.subdomain || "");
@@ -807,15 +930,17 @@ function MenuSettingsDialog({
   const isArchived = menu.status === "archived";
   const canDelete = deleteText === menu.name;
 
-async function handleSave() {
-  setSaving(true);
-  await onSave({
-    name,
-    subdomain,
-    template_id: templateId,
-  });
-  setSaving(false);
-}
+  async function handleSave() {
+    setSaving(true);
+
+    await onSave({
+      name,
+      subdomain,
+      template_id: templateId,
+    });
+
+    setSaving(false);
+  }
 
   return (
     <div
@@ -832,7 +957,7 @@ async function handleSave() {
 
           <button
             onClick={onClose}
-            className="rounded-full cursor-pointer border border-black/15 px-4 py-2 text-sm text-white/60"
+            className="cursor-pointer rounded-full border border-black/15 px-4 py-2 text-sm text-white/60"
           >
             إغلاق
           </button>
@@ -843,6 +968,7 @@ async function handleSave() {
             <label className="mb-2 block text-sm text-white/60">
               اسم القائمة
             </label>
+
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -852,7 +978,7 @@ async function handleSave() {
 
           <div>
             <label className="mb-2 block text-sm text-white/60">
-              الرابط الفرعي
+              رابط القائمة
             </label>
 
             <div className="flex overflow-hidden rounded-2xl border border-black/15 bg-white/5">
@@ -863,10 +989,29 @@ async function handleSave() {
                 className="min-w-0 flex-1 bg-transparent px-4 py-4 text-left outline-none"
               />
 
-              <span dir="ltr" className="border-r border-black/15 px-4 py-4 text-white/40">
+              <span
+                dir="ltr"
+                className="border-r border-black/15 px-4 py-4 text-white/40"
+              >
                 crtgo.com/m/
               </span>
             </div>
+          </div>
+
+          <div>
+            <label className="mb-2 mt-4 block text-sm text-white/60">
+              تصميم القائمة
+            </label>
+
+            <select
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value)}
+              className="flex w-full items-center justify-between rounded-2xl border border-black/15 bg-white/5 px-2 py-4 outline-none focus:border-black"
+            >
+              <option value="classic">Classic</option>
+              <option value="luxury">Luxury</option>
+              <option value="minimal">Minimal</option>
+            </select>
           </div>
 
           <button
@@ -878,22 +1023,6 @@ async function handleSave() {
           </button>
         </div>
 
-        <div>
-  <label className="mb-2 mt-4 block text-sm text-white/60">
-    تصميم القائمة
-  </label>
-
-  <select
-    value={templateId}
-    onChange={(e) => setTemplateId(e.target.value)}
-    className="w-full flex items-center justify-between rounded-2xl border border-black/15 bg-white/5 px-2 py-4 outline-none focus:border-black"
-  >
-    <option value="classic">Classic</option>
-    <option value="luxury">Luxury</option>
-    <option value="minimal">Minimal</option>
-  </select>
-</div>
-
         <div className="mt-8 rounded-2xl border border-black/10 p-4">
           <h3 className="font-bold">حالة القائمة</h3>
 
@@ -904,16 +1033,22 @@ async function handleSave() {
           {isArchived ? (
             <button
               onClick={onRestore}
-              className="mt-4 w-full cursor-pointer rounded-2xl border border-black/15 px-4 py-4 font-bold"
+              disabled={actionLoading === "restore-menu"}
+              className="mt-4 w-full cursor-pointer rounded-2xl border border-black/15 px-4 py-4 font-bold disabled:opacity-50"
             >
-              استعادة القائمة
+              {actionLoading === "restore-menu"
+                ? "جارٍ الاستعادة..."
+                : "استعادة القائمة"}
             </button>
           ) : (
             <button
               onClick={onArchive}
-              className="mt-4 w-full cursor-pointer rounded-2xl border border-black/15 px-4 py-4 font-bold"
+              disabled={actionLoading === "archive-menu"}
+              className="mt-4 w-full cursor-pointer rounded-2xl border border-black/15 px-4 py-4 font-bold disabled:opacity-50"
             >
-              أرشفة القائمة
+              {actionLoading === "archive-menu"
+                ? "جارٍ الأرشفة..."
+                : "أرشفة القائمة"}
             </button>
           )}
         </div>
@@ -947,11 +1082,13 @@ async function handleSave() {
               />
 
               <button
-                disabled={!canDelete}
+                disabled={!canDelete || actionLoading === "delete-menu"}
                 onClick={onDelete}
                 className="w-full cursor-pointer rounded-2xl bg-red-500 px-4 py-4 font-bold text-white disabled:opacity-30"
               >
-                تأكيد الحذف النهائي
+                {actionLoading === "delete-menu"
+                  ? "جارٍ الحذف..."
+                  : "تأكيد الحذف النهائي"}
               </button>
             </div>
           )}
