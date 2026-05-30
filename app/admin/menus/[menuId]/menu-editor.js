@@ -9,11 +9,13 @@ import { ChevronLeft } from "lucide-react";
 export default function MenuEditor({ menu }) {
   const router = useRouter();
   const supabase = createClient();
-
+  
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
   const [error, setError] = useState("");
+  
+  const pageProcessing = saving || actionLoading;
 
   const [details, setDetails] = useState({
     name: menu.name || "",
@@ -751,6 +753,12 @@ export default function MenuEditor({ menu }) {
           onDelete={deleteMenu}
         />
       )}
+      
+      {pageProcessing && (
+  <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+    <span className="loader"></span>
+  </div>
+)}
     </div>
   );
 }
@@ -1094,6 +1102,11 @@ function MenuSettingsDialog({
           )}
         </div>
       </div>
+      {pageProcessing && (
+  <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-white/40 backdrop-blur-[1px]">
+    <span className="loader"></span>
+  </div>
+)}
     </div>
   );
 }
