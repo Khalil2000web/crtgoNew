@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Settings } from "lucide-react";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -26,24 +27,30 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main dir="rtl" className="min-h-screen bg-black px-5 py-8 text-white">
+    <div className="min-h-screen px-5 py-8">
       <section className="mx-auto max-w-5xl">
-        <p className="text-sm text-white/50">لوحة التحكم</p>
-
+<div className="flex items-center justify-between">
         <h1 className="mt-3 text-4xl font-black">
           أهلاً {profile?.display_name || "بك"}
         </h1>
 
-        <p className="mt-4 text-white/60">
+
+        <Link href="/admin/settings" className="cursor-pointer text-md">
+  <Settings />
+</Link>
+
+        <p className="mt-4 hidden">
           خطتك الحالية: {profile?.plan || "basic"}
         </p>
+
+</div>
 
         <div className="mt-8">
           <Link
             href="/admin/create-menu"
-            className="inline-flex rounded-full bg-white px-6 py-3 font-bold text-black"
+            className="flex items-center justify-center mt-7 rounded-lg border border-black px-6 py-3 font-bold text-black text-center hover:bg-black hover:text-white transition"
           >
-            إنشاء قائمة رقمية
+            إنشاء قائمة رقمية جديدة
           </Link>
         </div>
 
@@ -60,16 +67,20 @@ export default async function AdminPage() {
             <Link
               key={menu.id}
               href={`/admin/menus/${menu.id}`}
-              className="block rounded-2xl border border-white/10 p-5 transition hover:bg-white/5"
+              className="flex items-start justify-between rounded-2xl border border-black p-5 transition hover:bg-black hover:text-white"
             >
-              <h3 className="text-lg font-bold">{menu.name}</h3>
-              <p dir="ltr" className="mt-2 text-left text-sm text-white/50">
-                {menu.subdomain}.crtgo.com
-              </p>
+              <h3 className="text-lg font-bold uppercase">{menu.name}</h3>
+              <div className="text-left flex flex-col items-end gap-1">
+                <p className="text-sm">{menu.subdomain}.crtgo.com</p>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(menu.created_at).toLocaleDateString()}
+                </p>
+                <p dir="ltr" className="text-sm">Template: {menu.template_id}</p>
+              </div>
             </Link>
           ))}
         </div>
       </section>
-    </main>
+    </div>
   );
 }

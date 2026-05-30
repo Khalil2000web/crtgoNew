@@ -2,21 +2,11 @@ import { NextResponse } from "next/server";
 
 export function proxy(request) {
   const url = request.nextUrl.clone();
+  const host = request.headers.get("host") || "";
+  const hostname = host.split(":")[0];
 
-  const host = request.headers
-    .get("host")
-    ?.replace(":3000", "");
-
-  const rootDomain = "crtgo.com";
-
-  if (host === rootDomain || host === `www.${rootDomain}`) {
-    return NextResponse.next();
-  }
-
-  const subdomain = host?.split(".")[0];
-
-  if (subdomain && subdomain !== "www") {
-    url.pathname = `/menu/${subdomain}`;
+  if (hostname === "dash.crtgo.com") {
+    url.pathname = `/admin${url.pathname === "/" ? "" : url.pathname}`;
     return NextResponse.rewrite(url);
   }
 
@@ -24,5 +14,5 @@ export function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|favicon.ico|.*\\.).*)"],
+  matcher: ["/((?!api|_next|favicon.ico|.*\\..*).*)"],
 };
