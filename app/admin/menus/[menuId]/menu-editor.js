@@ -15,7 +15,7 @@ export default function MenuEditor({ menu }) {
   const [actionLoading, setActionLoading] = useState("");
   const [error, setError] = useState("");
   
-  const pageProcessing = saving || actionLoading;
+  const pageProcessing = saving || Boolean(actionLoading);
 
   const [details, setDetails] = useState({
     name: menu.name || "",
@@ -1102,11 +1102,6 @@ function MenuSettingsDialog({
           )}
         </div>
       </div>
-      {pageProcessing && (
-  <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-white/40 backdrop-blur-[1px]">
-    <span className="loader"></span>
-  </div>
-)}
     </div>
   );
 }
