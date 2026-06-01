@@ -190,7 +190,7 @@ export default function StartForm() {
 
           <button
             disabled={loading}
-            className="w-full rounded-2xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
+            className="w-full cursor-pointer rounded-2xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
           >
             {loading
               ? "جارٍ المعالجة..."
@@ -200,7 +200,6 @@ export default function StartForm() {
           </button>
 
         </form>
-
       </section>
     </div>
   );

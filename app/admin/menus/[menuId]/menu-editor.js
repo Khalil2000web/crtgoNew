@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 
 export default function MenuEditor({ menu }) {
   const router = useRouter();
@@ -14,8 +14,8 @@ export default function MenuEditor({ menu }) {
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
   const [error, setError] = useState("");
-  
-  const pageProcessing = saving || Boolean(actionLoading);
+
+  const [coverOpen, setCoverOpen] = useState(false);
 
   const [details, setDetails] = useState({
     name: menu.name || "",
@@ -366,38 +366,40 @@ export default function MenuEditor({ menu }) {
   return (
     <div dir="rtl" className="min-h-screen px-5 py-8">
       <section className="mx-auto max-w-6xl">
-        <Link
-          href="/admin"
-          className="flex w-full items-center justify-end gap-2 text-left text-sm text-black/50"
-        >
-          الرجوع للإعدادات <ChevronLeft />
-        </Link>
+        <Link href="/admin" className="text-left text-sm flex items-center justify-end gap-2 text-black/50 hover:bg-black/10 rounded-full px-3 py-2">
+                   الرجوع للصفحةالرئيسية <ChevronLeft />
+                </Link>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm text-black/70">محرر القائمة</p>
             <h1 className="mt-2 text-4xl font-black">{menu.name}</h1>
-            <p dir="ltr" className="mt-2 text-left text-sm text-black/60">
-              crtgo.com/m/{menu.subdomain}
-            </p>
+            <a
+  href={`https://crtgo.com/m/${menu.subdomain}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="mt-2 block text-left text-sm text-black/60 hover:text-black hover:underline"
+>
+  crtgo.com/m/{menu.subdomain}
+</a>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="cursor-pointer rounded-full border border-black/15 px-5 py-3 font-bold text-black"
-            >
-              ⚙️ الإعدادات
-            </button>
+<div className="flex gap-3">
+  <button
+    onClick={() => setSettingsOpen(true)}
+    className="rounded-full cursor-pointer border border-black/70 px-5 py-3 font-bold text-black hover:bg-white hover:text-black transition-colors"
+  >
+    ⚙️ الإعدادات
+  </button>
 
-            <button
-              onClick={saveDetails}
-              disabled={saving}
-              className="cursor-pointer rounded-full bg-white px-6 py-3 font-bold text-black disabled:opacity-50"
-            >
-              {saving ? "جارٍ الحفظ..." : "حفظ المعلومات"}
-            </button>
-          </div>
+  <button
+    onClick={saveDetails}
+    disabled={saving}
+    className="rounded-full cursor-pointer bg-white px-6 py-3 font-bold text-black disabled:opacity-50 hover:bg-white/60 border border-transparent hover:border-black/70"
+  >
+    {saving ? "جارٍ الحفظ..." : "حفظ المعلومات"}
+  </button>
+</div>
         </div>
 
         {error && (
@@ -406,9 +408,9 @@ export default function MenuEditor({ menu }) {
           </p>
         )}
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[380px_1fr]">
+        <div className="mt-10 grid gap-10 lg:grid-cols-[350px_1fr]">
           <aside className="space-y-6">
-            <div className="rounded-3xl border border-black/10 p-5">
+            <div className="rounded-3xl border border-black/70 p-5">
               <h2 className="text-xl font-bold">معلومات القائمة</h2>
 
               <div className="mt-5 space-y-4">
@@ -416,7 +418,7 @@ export default function MenuEditor({ menu }) {
                   value={details.name}
                   onChange={(e) => updateDetail("name", e.target.value)}
                   placeholder="اسم القائمة"
-                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 outline-none focus:border-black"
+                  className="w-full rounded-2xl border border-black/70 bg-white/5 px-4 py-4 outline-none focus:border-black"
                 />
 
                 <textarea
@@ -426,7 +428,7 @@ export default function MenuEditor({ menu }) {
                   }
                   placeholder="وصف قصير للقائمة"
                   rows={4}
-                  className="w-full resize-none rounded-2xl border border-black/15 bg-white/5 px-4 py-4 outline-none focus:border-black"
+                  className="w-full resize-none rounded-2xl border border-black/70 bg-white/5 px-4 py-4 outline-none focus:border-black"
                 />
 
                 <input
@@ -434,7 +436,7 @@ export default function MenuEditor({ menu }) {
                   onChange={(e) => updateDetail("phone", e.target.value)}
                   placeholder="رقم الهاتف"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
+                  className="w-full rounded-2xl border border-black/70  bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -442,7 +444,7 @@ export default function MenuEditor({ menu }) {
                   onChange={(e) => updateDetail("whatsapp", e.target.value)}
                   placeholder="رابط واتساب"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-black/15 bg-black/5 px-4 py-4 text-left outline-none focus:border-black"
+                  className="w-full rounded-2xl border border-black/70 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -450,7 +452,7 @@ export default function MenuEditor({ menu }) {
                   onChange={(e) => updateDetail("instagram", e.target.value)}
                   placeholder="رابط إنستغرام"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
+                  className="w-full rounded-2xl border border-black/70 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -458,7 +460,7 @@ export default function MenuEditor({ menu }) {
                   onChange={(e) => updateDetail("tiktok", e.target.value)}
                   placeholder="رابط تيك توك"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
+                  className="w-full rounded-2xl border border-black/70 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
 
                 <input
@@ -466,12 +468,12 @@ export default function MenuEditor({ menu }) {
                   onChange={(e) => updateDetail("facebook", e.target.value)}
                   placeholder="رابط فيسبوك"
                   dir="ltr"
-                  className="w-full rounded-2xl border border-black/15 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
+                  className="w-full rounded-2xl border border-black/70 bg-white/5 px-4 py-4 text-left outline-none focus:border-black"
                 />
               </div>
             </div>
 
-            <div className="rounded-3xl border border-black/10 p-5">
+            <div className="rounded-3xl border border-black/70 p-5">
               <h2 className="text-xl font-bold">الشعار وصورة الغلاف</h2>
 
               <div className="mt-5 space-y-5">
@@ -486,16 +488,13 @@ export default function MenuEditor({ menu }) {
                   onDelete={() => deleteMenuImage("logo_url")}
                 />
 
-                <ImageUploader
-                  title="صورة الغلاف"
-                  imageUrl={menu.cover_url}
-                  loading={
-                    actionLoading === "upload-menu-cover_url" ||
-                    actionLoading === "delete-menu-cover_url"
-                  }
-                  onUpload={(file) => uploadMenuImage("cover_url", file)}
-                  onDelete={() => deleteMenuImage("cover_url")}
-                />
+                <button
+  type="button"
+  onClick={() => setCoverOpen(true)}
+  className="w-full rounded-2xl border cursor-pointer border-black/70 px-4 py-4 font-bold hover:bg-white transition-colors text-black"
+>
+  إعدادات صورة الغلاف
+</button>
               </div>
             </div>
 
@@ -505,7 +504,7 @@ export default function MenuEditor({ menu }) {
             />
           </aside>
 
-          <section className="rounded-3xl border-2 border-black/50 p-5">
+          <section className="rounded-3xl border border-black/50 p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-black">الأقسام والأصناف</h2>
@@ -539,7 +538,7 @@ export default function MenuEditor({ menu }) {
                   <div
                     id={`section-${section.id}`}
                     key={section.id}
-                    className="scroll-mt-24 rounded-3xl border-2 border-black/50 p-5"
+                    className="rounded-3xl border border-black/50 p-5"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <h3 className="text-xl font-bold">{section.name_ar}</h3>
@@ -594,7 +593,7 @@ export default function MenuEditor({ menu }) {
                         <div
                           id={`item-${item.id}`}
                           key={item.id}
-                          className="scroll-mt-24 grid gap-4 rounded-2xl bg-white/5 p-4 md:grid-cols-[160px_1fr_110px]"
+                          className="grid gap-4 rounded-2xl bg-white/5 p-4 md:grid-cols-[200px_1fr_0px]"
                         >
                           <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/40">
                             {item.image_url ? (
@@ -604,19 +603,13 @@ export default function MenuEditor({ menu }) {
                                 className="pointer-events-none h-40 w-full object-cover"
                               />
                             ) : (
-                              <div className="flex h-40 items-center justify-center text-sm text-white/30">
+                              <div className="flex h-40 items-center justify-center text-sm text-black">
                                 لا توجد صورة
                               </div>
                             )}
 
-                            <label className="block cursor-pointer border-t border-black/10 px-3 py-3 text-center text-sm font-bold text-white/70 hover:bg-black/20">
-                              {actionLoading ===
-                              `upload-item-image-${item.id}`
-                                ? "جارٍ الرفع..."
-                                : item.image_url
-                                  ? "تغيير الصورة"
-                                  : "إضافة صورة"}
-
+                            <label className="block cursor-pointer font-bold hover:bg-black/20 border-t border-black/50 px-3 py-3 text-center text-sm text-white/70">
+                              {item.image_url ? "تغيير الصورة" : "إضافة صورة"}
                               <input
                                 type="file"
                                 accept="image/*"
@@ -637,16 +630,9 @@ export default function MenuEditor({ menu }) {
                             {item.image_url && (
                               <button
                                 onClick={() => deleteItemImage(item.id)}
-                                disabled={
-                                  actionLoading ===
-                                  `delete-item-image-${item.id}`
-                                }
-                                className="w-full cursor-pointer border-t border-black/10 px-3 py-3 text-sm font-bold text-red-800 hover:bg-red-400/20 hover:text-red-700 disabled:opacity-50"
+                                className="w-full border-t border-black/50 px-3 py-3 text-sm font-bold text-red-800 hover:text-red-700 hover:bg-red-400/20 cursor-pointer"
                               >
-                                {actionLoading ===
-                                `delete-item-image-${item.id}`
-                                  ? "جارٍ الحذف..."
-                                  : "حذف الصورة"}
+                                حذف الصورة
                               </button>
                             )}
                           </div>
@@ -687,43 +673,35 @@ export default function MenuEditor({ menu }) {
                               />
                             </label>
 
-                            <label className="text-md w-full">
-                              <p className="my-1 text-md font-bold text-black">
-                                سعر الصنف
-                              </p>
+<label className="text-md">
+<p className="my-1 text-md text-black font-bold">
 
-                              <input
-                                defaultValue={item.price || ""}
-                                onBlur={(e) =>
-                                  updateItem(item.id, {
-                                    price: e.target.value || 0,
-                                  })
-                                }
-                                placeholder="السعر"
-                                type="number"
-                                dir="ltr"
-                                step="0.1"
-                                className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-right outline-none focus:border-black"
-                              />
-                            </label>
+سعر الصنف
+</p>
+                            <input
+                              defaultValue={item.price || ""}
+                              onBlur={(e) =>
+                                updateItem(item.id, {
+                                  price: e.target.value || 0,
+                                })
+                              }
+                              placeholder="السعر"
+                              type="number"
+                              dir="ltr"
+                              step="0.1"
+                            
+                              className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-right outline-none focus:border-black"
+                            />
+</label>
 
-                            {actionLoading === `update-item-${item.id}` && (
-                              <p className="text-xs text-black/50">
-                                جارٍ الحفظ...
-                              </p>
-                            )}
+                            <button
+                              onClick={() => deleteItem(item.id)}
+                              className="w-full rounded-xl font-bold border border-black/70 px-3 py-3 text-sm cursor-pointer bg-red-500 text-white hover:bg-red-700"
+                            >
+                              حذف الصنف
+                            </button>
                           </div>
-
-                          <button
-                            onClick={() => deleteItem(item.id)}
-                            disabled={actionLoading === `delete-item-${item.id}`}
-                            className="w-full cursor-pointer rounded-xl border border-black/70 bg-red-600 px-3 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
-                          >
-                            {actionLoading === `delete-item-${item.id}`
-                              ? "جارٍ الحذف..."
-                              : "حذف الصنف"}
-                          </button>
-                        </div>
+                          </div>
                       ))}
                     </div>
                   </div>
@@ -746,19 +724,28 @@ export default function MenuEditor({ menu }) {
               template_id: values.template_id,
             });
 
-            if (saved) setSettingsOpen(false);
-          }}
-          onArchive={archiveMenu}
-          onRestore={restoreMenu}
-          onDelete={deleteMenu}
-        />
-      )}
-      
-      {pageProcessing && (
-  <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
-    <span className="loader"></span>
-  </div>
+      if (saved) setSettingsOpen(false);
+    }}
+    onArchive={archiveMenu}
+    onRestore={restoreMenu}
+    onDelete={deleteMenu}
+  />
 )}
+
+
+{coverOpen && (
+  <CoverSettingsModal
+    menu={menu}
+    supabase={supabase}
+    onClose={() => setCoverOpen(false)}
+    onSaved={() => {
+      setCoverOpen(false);
+      router.refresh();
+    }}
+    setError={setError}
+  />
+)}
+
     </div>
   );
 }
@@ -861,7 +848,7 @@ function WorkingHoursEditor({ menuId, initialHours }) {
   }
 
   return (
-    <div className="rounded-3xl border border-black/10 p-5">
+    <div className="rounded-3xl border border-black/70 p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold">ساعات العمل</h2>
 
@@ -878,7 +865,7 @@ function WorkingHoursEditor({ menuId, initialHours }) {
         {days.map(([key, label]) => (
           <div
             key={key}
-            className="rounded-2xl border border-black/10 bg-white/5 p-3"
+            className="rounded-2xl border border-black/70 bg-white/5 p-3"
           >
             <div className="flex items-center justify-between gap-3">
               <span className="font-bold">{label}</span>
@@ -1101,6 +1088,385 @@ function MenuSettingsDialog({
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+function CoverSettingsModal({ menu, supabase, onClose, onSaved, setError }) {
+  const [images, setImages] = useState(menu.cover_images || []);
+  const [settings, setSettings] = useState(
+    menu.cover_settings || { type: "single", speed: "normal" }
+  );
+  const [saving, setSaving] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState(null);
+
+  const types = [
+    { id: "single", name: "صورة واحدة" },
+    { id: "fade", name: "تبديل ناعم" },
+    { id: "carousel", name: "سلايدر تلقائي" },
+    { id: "stack", name: "صور متراكمة" },
+  ];
+
+  const speeds = [
+    { id: "verySlow", name: "بطيء جداً" },
+    { id: "slow", name: "بطيء" },
+    { id: "normal", name: "عادي" },
+    { id: "fast", name: "سريع" },
+  ];
+
+  async function uploadCover(file) {
+    if (!file) return;
+
+    if (images.length >= 5) {
+      setError("يمكنك رفع 5 صور كحد أقصى.");
+      return;
+    }
+
+    setSaving(true);
+
+    const fileExt = file.name.split(".").pop();
+    const filePath = `menus/${menu.id}/covers/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("menu-images")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      setSaving(false);
+      setError(uploadError.message);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("menu-images")
+      .getPublicUrl(filePath);
+
+    setImages((current) => [...current, data.publicUrl]);
+    setSaving(false);
+  }
+
+  function confirmDeleteImage() {
+    if (imageToDelete === null) return;
+
+    setImages((current) => current.filter((_, i) => i !== imageToDelete));
+    setImageToDelete(null);
+  }
+
+  async function saveCoverSettings() {
+    setSaving(true);
+
+    const mainCover = images[0] || null;
+
+    const { error } = await supabase
+      .from("menus")
+      .update({
+        cover_url: mainCover,
+        cover_images: images,
+        cover_settings: settings,
+      })
+      .eq("id", menu.id);
+
+    setSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    onSaved();
+  }
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 px-4">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-5 text-black no-scrollbar">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-black/50">إعدادات الغلاف</p>
+            <h2 className="text-2xl font-black">صور غلاف القائمة</h2>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="cursor-pointer rounded-full border border-black/20 px-4 py-2 text-sm text-black/50 hover:bg-black/10"
+          >
+            إغلاق
+          </button>
+        </div>
+
+        <div className="mt-6">
+          <label className="block cursor-pointer rounded-2xl border border-black/20 px-4 py-5 text-center font-bold hover:border-black">
+            {images.length >= 5 ? "وصلت للحد الأقصى" : "إضافة صورة غلاف"}
+
+            <input
+              type="file"
+              accept="image/*"
+              disabled={images.length >= 5 || saving}
+              className="hidden"
+              onChange={(e) => {
+                uploadCover(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+
+          <p className="mt-2 text-sm text-black/50">يمكنك رفع حتى 5 صور.</p>
+        </div>
+
+        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+          {images.map((image, index) => (
+            <div key={image} className="relative pt-3">
+              <button
+                type="button"
+                onClick={() => setImageToDelete(index)}
+                className="absolute -right-2 top-0 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-black bg-white text-black shadow-lg transition hover:bg-red-600 hover:text-white"
+                aria-label="حذف الصورة"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="overflow-hidden rounded-2xl border border-black/10">
+                <img
+                  src={image}
+                  alt={`Cover ${index + 1}`}
+                  className="h-36 w-full object-cover"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8">
+          <h3 className="mb-3 font-bold">شكل الهيدر</h3>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {types.map((type) => {
+              const active = settings.type === type.id;
+
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() =>
+                    setSettings((current) => ({
+                      ...current,
+                      type: type.id,
+                    }))
+                  }
+                  className={`rounded-3xl border-2 p-3 text-right transition ${
+                    active
+                      ? "border-black bg-white shadow-[0_0_0_4px_rgba(0,0,0,0.08)]"
+                      : "border-black/15 bg-white hover:border-black/50"
+                  }`}
+                >
+                  <div className="h-36 overflow-hidden rounded-2xl bg-black/10">
+                    <CoverTypePreview
+                      type={type.id}
+                      images={images}
+                      speed={settings.speed || "normal"}
+                    />
+                  </div>
+
+                  <p className="mt-3 font-bold">{type.name}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="mb-3 font-bold">سرعة الحركة</h3>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {speeds.map((speed) => {
+              const active = (settings.speed || "normal") === speed.id;
+
+              return (
+                <button
+                  key={speed.id}
+                  type="button"
+                  onClick={() =>
+                    setSettings((current) => ({
+                      ...current,
+                      speed: speed.id,
+                    }))
+                  }
+                  className={`rounded-2xl border-2 px-4 py-4 font-bold transition ${
+                    active
+                      ? "border-black bg-black text-white"
+                      : "border-black/15 bg-white text-black hover:border-black/50"
+                  }`}
+                >
+                  {speed.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <button
+          onClick={saveCoverSettings}
+          disabled={saving}
+          className="mt-6 w-full rounded-2xl bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
+        >
+          {saving ? "جارٍ الحفظ..." : "حفظ إعدادات الغلاف"}
+        </button>
+      </div>
+
+      {imageToDelete !== null && (
+        <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 text-black shadow-2xl">
+            <h3 className="text-xl font-black">حذف الصورة؟</h3>
+
+            <p className="mt-3 text-sm text-black/60">
+              سيتم حذف هذه الصورة من غلاف القائمة بعد حفظ إعدادات الغلاف.
+            </p>
+
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setImageToDelete(null)}
+                className="flex-1 rounded-2xl border border-black/15 px-4 py-3 font-bold"
+              >
+                إلغاء
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDeleteImage}
+                className="flex-1 rounded-2xl bg-red-600 px-4 py-3 font-bold text-white"
+              >
+                حذف
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function CoverTypePreview({ type, images, speed }) {
+  const previewImages = images.length ? images : [null, null, null];
+
+  const speedMap = {
+    verySlow: "10s",
+    slow: "7s",
+    normal: "4s",
+    fast: "2s",
+  };
+
+  const stackSpeedMap = {
+    verySlow: "18s",
+    slow: "14s",
+    normal: "9s",
+    fast: "5s",
+  };
+
+  const duration = speedMap[speed || "normal"] || "4s";
+  const stackDuration = stackSpeedMap[speed || "normal"] || "9s";
+
+  if (type === "single") {
+    return previewImages[0] ? (
+      <img src={previewImages[0]} className="h-full w-full object-cover" />
+    ) : (
+      <div className="flex h-full items-center justify-center text-sm text-black/40">
+        صورة واحدة
+      </div>
+    );
+  }
+
+  if (type === "fade") {
+    return (
+      <div className="relative h-full w-full">
+        {previewImages.slice(0, 3).map((image, index) =>
+          image ? (
+            <img
+              key={`${image}-${index}`}
+              src={image}
+              className="absolute inset-0 h-full w-full object-cover opacity-0"
+              style={{
+                animationName: "cover-preview-fade",
+                animationDuration: duration,
+                animationIterationCount: "infinite",
+                animationDelay: `${index * 0.8}s`,
+              }}
+            />
+          ) : (
+            <div
+              key={index}
+              className="absolute inset-0 h-full w-full bg-black/20 opacity-0"
+              style={{
+                animationName: "cover-preview-fade",
+                animationDuration: duration,
+                animationIterationCount: "infinite",
+                animationDelay: `${index * 0.8}s`,
+              }}
+            />
+          )
+        )}
+      </div>
+    );
+  }
+
+  if (type === "carousel") {
+    return (
+      <div className="h-full w-full overflow-hidden">
+        <div
+          className="flex h-full"
+          style={{
+            animationName: "cover-preview-carousel",
+            animationDuration: duration,
+            animationIterationCount: "infinite",
+          }}
+        >
+          {[...previewImages, ...previewImages]
+            .slice(0, 6)
+            .map((image, index) =>
+              image ? (
+                <img
+                  key={`${image}-${index}`}
+                  src={image}
+                  className="h-full min-w-full object-cover"
+                />
+              ) : (
+                <div key={index} className="h-full min-w-full bg-black/20" />
+              )
+            )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full w-full overflow-hidden">
+      <div
+        className="flex h-full"
+        style={{
+          animationName: "cover-preview-stack",
+          animationDuration: stackDuration,
+          animationTimingFunction: "linear",
+          animationIterationCount: "infinite",
+        }}
+      >
+        {[...previewImages, ...previewImages].slice(0, 6).map((image, index) =>
+          image ? (
+            <img
+              key={`${image}-${index}`}
+              src={image}
+              className="h-full min-w-[75%] object-cover shadow"
+            />
+          ) : (
+            <div
+              key={index}
+              className="h-full min-w-[75%] bg-black/20"
+            />
+          )
+        )}
       </div>
     </div>
   );

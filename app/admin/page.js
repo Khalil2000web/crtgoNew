@@ -22,7 +22,7 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="min-h-screen px-5 py-8">
+    <div className="px-5 py-8">
       <section className="mx-auto max-w-5xl">
 <div className="flex items-center justify-between">
         <h1 className="hidden mt-3 text-4xl font-black">

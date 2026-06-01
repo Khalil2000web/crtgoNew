@@ -23,12 +23,12 @@ export default async function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-black/10">
+      <header className="border-b border-black/10 md:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-2 py-4">
 
           <nav className="flex items-center gap-4">
 
-            <Link href="/admin/settings" className="cursor-pointer text-md hover:bg-black/10 rounded-full p-3">
+            <Link prefetch href="/admin/settings" className="cursor-pointer text-md hover:bg-black/10 rounded-full p-3">
   <Settings />
 </Link>
 
@@ -47,7 +47,36 @@ export default async function AdminLayout({ children }) {
         </div>
       </header>
 
-      <main>
+
+      <aside className="fixed left-0 top-0 hidden h-screen w-70 border-r border-black/10 p-2 md:flex flex-col justify-between items-center">
+      
+      <div className="flex items-center justify-between w-full pt-2">
+  <Link prefetch href="/admin/settings" className="cursor-pointer text-md hover:bg-black/10 rounded-full p-3">
+  <Settings />
+</Link>
+          
+          <div className="flex flex-col pl-3 justify-center items-start" dir="ltr">
+            <p className="text-xs text-black/70">
+              DASHBOARD
+            </p>
+
+            <h1 className="font-black">
+              @{profile?.display_name || "CRTGO"}
+            </h1>
+          </div>
+</div>
+
+          <div className="flex items-center justify-center w-full">
+
+
+            <LogoutButton className="w-full" />
+          </div>
+
+
+      
+      </aside>
+
+      <main className="md:ml-70">
         {children}
       </main>
     </div>

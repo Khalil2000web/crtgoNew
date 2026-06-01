@@ -1,3 +1,5 @@
+import MenuCover from "@/components/MenuCover";
+
 export default function MinimalTemplate({ menu }) {
   const sections = [...(menu.sections || [])].sort(
     (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
@@ -5,6 +7,8 @@ export default function MinimalTemplate({ menu }) {
 
   return (
     <main dir="rtl" className="min-h-screen bg-white text-black">
+      <MenuCover menu={menu} />
+
       <section className="mx-auto max-w-2xl px-5 py-10">
         <h1 className="text-4xl font-black">{menu.name}</h1>
 
@@ -26,7 +30,9 @@ export default function MinimalTemplate({ menu }) {
                     </div>
 
                     {item.description_ar && (
-                      <p className="mt-1 text-sm text-black/50">{item.description_ar}</p>
+                      <p className="mt-1 text-sm text-black/50">
+                        {item.description_ar}
+                      </p>
                     )}
                   </article>
                 ))}

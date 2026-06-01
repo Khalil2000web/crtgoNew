@@ -26,13 +26,13 @@ body {
         position: absolute;
         inset: 0px;
         border-radius: 50%;
-        border: 5px solid #fff;
+        border: 5px solid #b87d7d;
         animation: prixClipFix 2s linear infinite ;
       }
       .loader::after{
         inset: 8px;
         transform: rotate3d(90, 90, 0, 180deg );
-        border-color: #fff;
+        border-color: #d11919;
       }
 
       @keyframes rotate {
@@ -45,3 +45,83 @@ body {
           50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
           75%, 100%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
       }
+
+
+
+
+@keyframes cover-stack {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(50%);
+  }
+}
+
+.animate-cover-stack {
+  animation: cover-stack linear infinite;
+}
+
+
+@keyframes cover-preview-fade {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes cover-preview-carousel {
+  0% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  85% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes cover-preview-stack {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(50%);
+  }
+}
+
+
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+.horizontal-scroll-lock {
+  overscroll-behavior: contain;
+}

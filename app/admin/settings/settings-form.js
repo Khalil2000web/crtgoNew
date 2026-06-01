@@ -81,7 +81,7 @@ export default function SettingsForm({ user, profile }) {
         </p>
       )}
 
-      <div className="rounded-3xl border border-black/10 p-5">
+      <div className="rounded-3xl border border-black/70 p-5">
         <h2 className="text-xl font-bold">معلومات الحساب</h2>
 
         <form onSubmit={saveProfile} className="mt-5 space-y-4">
@@ -93,7 +93,7 @@ export default function SettingsForm({ user, profile }) {
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-2xl border border-black/15 bg-transparent px-4 py-4 outline-none focus:border-black"
+              className="w-full rounded-2xl border border-black/60 bg-transparent px-4 py-4 outline-none focus:border-black"
             />
           </div>
 
@@ -135,7 +135,7 @@ export default function SettingsForm({ user, profile }) {
         </form>
       </div>
 
-      <div className="rounded-3xl border border-black/10 p-5">
+      <div className="rounded-3xl border border-black/70 p-5">
         <h2 className="text-xl font-bold">الخطة الحالية</h2>
 
         <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl bg-black p-5 text-white">
@@ -153,7 +153,7 @@ export default function SettingsForm({ user, profile }) {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-black/10 p-5">
+      <div className="rounded-3xl border border-black/70 p-5">
         <h2 className="text-xl font-bold">تغيير كلمة المرور</h2>
 
         <form onSubmit={changePassword} className="mt-5 space-y-4">
@@ -162,7 +162,7 @@ export default function SettingsForm({ user, profile }) {
             onChange={(e) => setPassword(e.target.value)}
             type="password"
             placeholder="كلمة مرور جديدة"
-            className="w-full rounded-2xl border border-black/15 bg-transparent px-4 py-4 outline-none focus:border-black"
+            className="w-full rounded-2xl border border-black/60 bg-transparent px-4 py-4 outline-none focus:border-black"
           />
 
           <button
