@@ -593,7 +593,7 @@ export default function MenuEditor({ menu }) {
                         <div
                           id={`item-${item.id}`}
                           key={item.id}
-                          className="grid gap-4 rounded-2xl bg-white/5 p-4 md:grid-cols-[200px_1fr_0px]"
+                          className="grid gap-4 bg-white/5 p-4 md:grid-cols-[200px_1fr_0px] border-t border-black"
                         >
                           <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/40">
                             {item.image_url ? (
