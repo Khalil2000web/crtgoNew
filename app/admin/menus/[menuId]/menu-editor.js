@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft, X } from "lucide-react";
+import { ChevronLeft, X, Trash2 } from "lucide-react";
 
 export default function MenuEditor({ menu }) {
   const router = useRouter();
@@ -371,17 +371,24 @@ export default function MenuEditor({ menu }) {
                 </Link>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
+          
+          
+  <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start mb-4">
             <p className="text-sm text-black/70">محرر القائمة</p>
             <h1 className="mt-2 text-4xl font-black">{menu.name}</h1>
+            </div>
+            <div className="flex flex-col items-start gap-2">
             <a
   href={`https://crtgo.com/m/${menu.subdomain}`}
   target="_blank"
   rel="noopener noreferrer"
-  className="mt-2 block text-left text-sm text-black/60 hover:text-black hover:underline"
+  className="mt-2 block text-left text-sm text-black/60 hover:text-black hover:underline hover:bg-black/10 rounded-full px-3 py-2 transition"
 >
   crtgo.com/m/{menu.subdomain}
 </a>
+
+</div>
           </div>
 
 <div className="flex gap-3">
@@ -504,211 +511,62 @@ export default function MenuEditor({ menu }) {
             />
           </aside>
 
-          <section className="rounded-3xl border border-black/50 p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-black">الأقسام والأصناف</h2>
-                <p className="mt-2 text-sm text-black/50">
-                  أنشئ أقسام القائمة، ثم أضف الأصناف داخل كل قسم.
-                </p>
-              </div>
 
-              <button
-                onClick={addSection}
-                disabled={actionLoading === "add-section"}
-                className="cursor-pointer rounded-full border border-transparent bg-white px-5 py-3 font-bold text-black hover:border-black/70 hover:bg-white/60 disabled:opacity-50"
-              >
-                {actionLoading === "add-section"
-                  ? "جارٍ الإضافة..."
-                  : "قسم جديد"}
-              </button>
-            </div>
 
-            <div className="mt-8 space-y-6">
-              {!sections.length && (
-                <div className="rounded-2xl border border-black/70 p-6 text-black/50">
-                  لا توجد أقسام بعد.
-                </div>
-              )}
 
-              {sections.map((section) => {
-                const items = section.items || [];
 
-                return (
-                  <div
-                    id={`section-${section.id}`}
-                    key={section.id}
-                    className="rounded-3xl border border-black/50 p-5"
-                  >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <h3 className="text-xl font-bold">{section.name_ar}</h3>
 
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => addItem(section.id)}
-                          disabled={actionLoading === `add-item-${section.id}`}
-                          className="cursor-pointer rounded-full border border-black/70 px-4 py-2 text-sm transition-colors hover:bg-white hover:text-black disabled:opacity-50"
-                        >
-                          {actionLoading === `add-item-${section.id}`
-                            ? "جارٍ الإضافة..."
-                            : "إضافة صنف"}
-                        </button>
 
-                        <button
-                          onClick={() =>
-                            renameSection(section.id, section.name_ar)
-                          }
-                          disabled={
-                            actionLoading === `rename-section-${section.id}`
-                          }
-                          className="cursor-pointer rounded-full border border-black/70 px-4 py-2 text-sm text-black/70 transition-colors hover:bg-white hover:text-black disabled:opacity-50"
-                        >
-                          {actionLoading === `rename-section-${section.id}`
-                            ? "جارٍ التعديل..."
-                            : "تعديل الاسم"}
-                        </button>
 
-                        <button
-                          onClick={() => deleteSection(section.id)}
-                          disabled={
-                            actionLoading === `delete-section-${section.id}`
-                          }
-                          className="cursor-pointer rounded-full border border-black/70 bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
-                        >
-                          {actionLoading === `delete-section-${section.id}`
-                            ? "جارٍ الحذف..."
-                            : "حذف القسم"}
-                        </button>
-                      </div>
-                    </div>
 
-                    <div className="mt-5 space-y-4">
-                      {!items.length && (
-                        <p className="rounded-2xl bg-black/7 p-4 text-sm text-black/70">
-                          لا توجد أصناف في هذا القسم.
-                        </p>
-                      )}
 
-                      {items.map((item) => (
-                        <div
-                          id={`item-${item.id}`}
-                          key={item.id}
-                          className="grid gap-4 bg-white/5 p-4 md:grid-cols-[200px_1fr_0px] border-t border-black"
-                        >
-                          <div className="overflow-hidden rounded-2xl border border-black/10 bg-black/40">
-                            {item.image_url ? (
-                              <img
-                                src={item.image_url}
-                                alt={item.name_ar || "صورة الصنف"}
-                                className="pointer-events-none h-40 w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-40 items-center justify-center text-sm text-black">
-                                لا توجد صورة
-                              </div>
-                            )}
 
-                            <label className="block cursor-pointer font-bold hover:bg-black/20 border-t border-black/50 px-3 py-3 text-center text-sm text-white/70">
-                              {item.image_url ? "تغيير الصورة" : "إضافة صورة"}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                disabled={
-                                  actionLoading ===
-                                  `upload-item-image-${item.id}`
-                                }
-                                onChange={(e) =>
-                                  uploadItemImage(
-                                    item.id,
-                                    e.target.files?.[0]
-                                  )
-                                }
-                              />
-                            </label>
 
-                            {item.image_url && (
-                              <button
-                                onClick={() => deleteItemImage(item.id)}
-                                className="w-full border-t border-black/50 px-3 py-3 text-sm font-bold text-red-800 hover:text-red-700 hover:bg-red-400/20 cursor-pointer"
-                              >
-                                حذف الصورة
-                              </button>
-                            )}
-                          </div>
 
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <label className="text-md w-full">
-                              <p className="my-1 text-md font-bold text-black">
-                                اسم الصنف
-                              </p>
 
-                              <input
-                                defaultValue={item.name_ar}
-                                onBlur={(e) =>
-                                  updateItem(item.id, {
-                                    name_ar: e.target.value,
-                                  })
-                                }
-                                placeholder="اسم الصنف"
-                                className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
-                              />
-                            </label>
 
-                            <label className="w-full">
-                              <p className="my-1 text-md font-bold text-black">
-                                وصف الصنف
-                              </p>
+<section className="rounded-3xl border border-black/50 p-5">
+  <div className="flex items-center justify-between gap-4">
+    <div>
+      <h2 className="text-2xl font-black">الأقسام</h2>
+      <p className="mt-2 text-sm text-black/50">
+        اضغط على أي قسم لتعديل الأصناف داخله.
+      </p>
+    </div>
 
-                              <textarea
-                                defaultValue={item.description_ar || ""}
-                                onBlur={(e) =>
-                                  updateItem(item.id, {
-                                    description_ar: e.target.value,
-                                  })
-                                }
-                                placeholder="وصف الصنف"
-                                rows={4}
-                                className="w-full resize-none rounded-xl border border-black/10 bg-black/40 px-3 py-3 outline-none focus:border-black"
-                              />
-                            </label>
+    <button
+      onClick={addSection}
+      disabled={actionLoading === "add-section"}
+      className="cursor-pointer rounded-full border border-transparent bg-white px-5 py-3 font-bold text-black hover:border-black/70 hover:bg-white/60 disabled:opacity-50"
+    >
+      {actionLoading === "add-section" ? "جارٍ الإضافة..." : "قسم جديد"}
+    </button>
+  </div>
 
-<label className="text-md">
-<p className="my-1 text-md text-black font-bold">
+  <div className="mt-8 grid gap-4">
+    {!sections.length && (
+      <div className="rounded-2xl border border-black/70 p-6 text-black/50">
+        لا توجد أقسام بعد.
+      </div>
+    )}
 
-سعر الصنف
-</p>
-                            <input
-                              defaultValue={item.price || ""}
-                              onBlur={(e) =>
-                                updateItem(item.id, {
-                                  price: e.target.value || 0,
-                                })
-                              }
-                              placeholder="السعر"
-                              type="number"
-                              dir="ltr"
-                              step="0.1"
-                            
-                              className="w-full rounded-xl border border-black/10 bg-black/40 px-3 py-3 text-right outline-none focus:border-black"
-                            />
-</label>
+    {sections.map((section) => (
+      <Link
+  href={`/admin/menus/${menu.id}/sections/${section.id}`}
+  className="flex items-center justify-between rounded-3xl border border-black/40 p-5 text-right transition hover:bg-black/5"
+>
+  <div>
+    <h3 className="text-xl font-black">{section.name_ar}</h3>
+    <p className="mt-1 text-sm text-black/50">
+      {(section.items || []).length} أصناف
+    </p>
+  </div>
 
-                            <button
-                              onClick={() => deleteItem(item.id)}
-                              className="w-full rounded-xl font-bold border border-black/70 px-3 py-3 text-sm cursor-pointer bg-red-500 text-white hover:bg-red-700"
-                            >
-                              حذف الصنف
-                            </button>
-                          </div>
-                          </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+  <ChevronLeft />
+</Link>
+    ))}
+  </div>
+</section>
         </div>
       </section>
 
@@ -745,6 +603,9 @@ export default function MenuEditor({ menu }) {
     setError={setError}
   />
 )}
+
+
+
 
     </div>
   );
@@ -793,6 +654,9 @@ function ImageUploader({ title, imageUrl, onUpload, onDelete, loading }) {
     </div>
   );
 }
+
+
+
 
 function WorkingHoursEditor({ menuId, initialHours }) {
   const router = useRouter();
@@ -902,6 +766,13 @@ function WorkingHoursEditor({ menuId, initialHours }) {
           </div>
         ))}
       </div>
+
+
+
+
+
+
+      
     </div>
   );
 }
@@ -1471,3 +1342,6 @@ function CoverTypePreview({ type, images, speed }) {
     </div>
   );
 }
+
+
+

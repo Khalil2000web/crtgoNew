@@ -65,7 +65,22 @@ export default function SettingsForm({ user, profile }) {
     setMessage("تم تغيير كلمة المرور.");
   }
 
-  const plan = profile?.plan || "basic";
+  
+
+const plan = profile?.plan_id || "trial";
+
+const trialEnds = profile?.trial_ends_at
+  ? new Date(profile.trial_ends_at)
+  : null;
+
+const trialDaysLeft = trialEnds
+  ? Math.max(
+      0,
+      Math.ceil((trialEnds - new Date()) / (1000 * 60 * 60 * 24))
+    )
+  : 0;
+
+
 
   return (
     <div className="mt-8 space-y-6">
@@ -143,6 +158,26 @@ export default function SettingsForm({ user, profile }) {
             <p className="text-sm text-white/50">خطتك</p>
             <p className="mt-1 text-2xl font-black uppercase">{plan}</p>
           </div>
+
+
+{profile?.subscription_status === "trialing" && (
+  <p className="mt-1 text-sm text-white/60">
+    باقي {trialDaysLeft} أيام من الفترة التجريبية
+  </p>
+)}
+
+{profile?.subscription_status === "active" && (
+  <p className="mt-1 text-sm text-white/60">
+    الاشتراك فعال
+  </p>
+)}
+
+{profile?.subscription_status === "expired" && (
+  <p className="mt-1 text-sm text-red-300">
+    انتهت الفترة التجريبية
+  </p>
+)}
+
 
           <Link
             href="/admin/upgrade"

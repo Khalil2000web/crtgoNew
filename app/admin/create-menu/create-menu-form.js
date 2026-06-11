@@ -82,30 +82,41 @@ export default function CreateMenuForm() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("plan")
-        .eq("id", user.id)
-        .single();
 
-      if (profileError) throw profileError;
 
-      const { count, error: countError } = await supabase
-        .from("menus")
-        .select("*", { count: "exact", head: true })
-        .eq("owner_id", user.id);
 
-      if (countError) throw countError;
+const { data: profile, error: profileError } = await supabase
+  .from("profiles")
+  .select("plan_id, subscription_status, trial_ends_at")
+  .eq("id", user.id)
+  .single();
 
-      const plan = profile?.plan || "basic";
+if (profileError) throw profileError;
 
-      if (plan === "basic" && count >= 1) {
-        throw new Error("خطتك الحالية تسمح بإنشاء قائمة رقمية واحدة فقط.");
-      }
+const { count, error: countError } = await supabase
+  .from("menus")
+  .select("*", { count: "exact", head: true })
+  .eq("owner_id", user.id);
 
-      if (plan === "pro" && count >= 3) {
-        throw new Error("خطة Pro تسمح بإنشاء 3 قوائم رقمية فقط.");
-      }
+if (countError) throw countError;
+
+const menuLimits = {
+  trial: 1,
+  basic: 1,
+  pro: 5,
+  business: Infinity,
+};
+
+const plan = profile?.plan_id || "trial";
+const limit = menuLimits[plan] ?? 1;
+
+if (count >= limit) {
+  throw new Error("وصلت للحد الأقصى من القوائم في خطتك الحالية.");
+}
+
+
+
+
 
       const cleanSubdomain = makeSubdomain(form.subdomain || form.name);
 
