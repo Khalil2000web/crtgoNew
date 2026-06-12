@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Settings } from "lucide-react";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -15,65 +14,63 @@ export default async function AdminPage() {
     .eq("id", user.id)
     .single();
 
-  const { data: menus } = await supabase
+  const { count: menuCount } = await supabase
     .from("menus")
-    .select("*")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user.id);
 
   return (
-    <div className="px-5 py-8">
-      <section className="mx-auto max-w-5xl">
-<div className="flex items-center justify-between">
-        <h1 className="hidden mt-3 text-4xl font-black">
+    <main dir="rtl" className="px-5 py-8">
+      <section className="mx-auto max-w-6xl">
+        <p className="text-sm text-black/50">لوحة التحكم</p>
+
+        <h1 className="mt-2 text-4xl font-black">
           أهلاً {profile?.display_name || "بك"}
         </h1>
 
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="rounded-3xl border border-black/15 p-5">
+            <p className="text-sm text-black/50">عدد القوائم</p>
+            <h2 className="mt-2 text-2xl font-black">{menuCount || 0}</h2>
+          </div>
 
+          <div className="rounded-3xl border border-black/15 p-5">
+            <p className="text-sm text-black/50">الخطة</p>
+            <h2 className="mt-2 text-2xl font-black uppercase">
+              {profile?.plan_id || "trial"}
+            </h2>
+          </div>
 
+          <div className="rounded-3xl border border-black/15 p-5">
+            <p className="text-sm text-black/50">الحالة</p>
+            <h2 className="mt-2 text-2xl font-black uppercase">
+              {profile?.subscription_status || "unknown"}
+            </h2>
+          </div>
+        </div>
 
-        <p className="mt-4 hidden">
-          خطتك الحالية: {profile?.plan || "basic"}
-        </p>
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <Link
+            href="/admin/menus"
+            className="rounded-3xl bg-black p-6 text-white transition hover:opacity-90"
+          >
+            <h2 className="text-xl font-black">إدارة القوائم</h2>
+            <p className="mt-2 text-white/60">
+              عرض وتعديل جميع القوائم الرقمية.
+            </p>
+          </Link>
 
-</div>
-
-        <div className="mt-8">
           <Link
             href="/admin/create-menu"
-            className="flex items-center justify-center mt-7 rounded-lg border border-black px-6 py-3 font-bold text-black text-center hover:bg-black hover:text-white transition"
+            className="rounded-3xl border border-black/15 p-6 transition hover:bg-black hover:text-white"
           >
-            إنشاء قائمة رقمية جديدة
+            <h2 className="text-xl font-black">إنشاء قائمة جديدة</h2>
+            <p className="mt-2 opacity-60">
+              ابدأ قائمة رقمية جديدة لمطعم أو كافيه.
+            </p>
           </Link>
         </div>
-
-        <div className="mt-10 space-y-4">
-          <h2 className="text-xl font-bold">قوائمك الرقمية</h2>
-
-          {!menus?.length && (
-            <p className="rounded-2xl border border-white/10 p-5 text-white/50">
-              لا توجد قوائم بعد.
-            </p>
-          )}
-
-          {menus?.map((menu) => (
-            <Link
-              key={menu.id}
-              href={`/admin/menus/${menu.id}`}
-              className="flex items-start justify-between rounded-2xl border border-black p-5 transition hover:bg-black hover:text-white"
-            >
-              <h3 className="text-lg font-bold uppercase">{menu.name}</h3>
-              <div className="text-left flex flex-col items-end gap-1">
-                <p className="text-sm">crtgo.com/m/{menu.subdomain}</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(menu.created_at).toLocaleDateString()}
-                </p>
-                <p dir="ltr" className="text-sm">Template: {menu.template_id}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
       </section>
-    </div>
+    </main>
   );
 }

@@ -17,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={notoKufi.variable + " min-h-full flex flex-col"}>
+      <body className="min-h-full flex flex-col">
         <main>
         {children}
         </main>
