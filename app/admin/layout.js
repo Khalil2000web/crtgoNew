@@ -6,6 +6,7 @@ import TrialNotice from "@/components/TrialNotice";
 import AdminBackground from "./AdminBackground";
 import { dashboardFont } from "./fonts";
 
+
 export default async function AdminLayout({ children }) {
   const supabase = await createClient();
 
