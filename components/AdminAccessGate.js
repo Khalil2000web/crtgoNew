@@ -8,6 +8,7 @@ function getAccessState(profile) {
     return {
       allowed: false,
       status: "unknown",
+      title: "الاشتراك غير فعال",
       message: "لم يتم العثور على بيانات الحساب.",
     };
   }
@@ -16,6 +17,7 @@ function getAccessState(profile) {
     return {
       allowed: true,
       status: "active",
+      title: "الاشتراك فعال",
       message: "الاشتراك فعال.",
     };
   }
@@ -31,6 +33,7 @@ function getAccessState(profile) {
       return {
         allowed: true,
         status: "trialing",
+        title: "الفترة التجريبية فعالة",
         message: "الفترة التجريبية فعالة.",
       };
     }
@@ -38,39 +41,48 @@ function getAccessState(profile) {
     return {
       allowed: false,
       status: "expired",
-      message: "انتهت الفترة التجريبية.",
+      title: "انتهت الفترة التجريبية",
+      message: "انتهت الفترة التجريبية. اختر خطة مناسبة للاستمرار.",
     };
   }
 
   return {
     allowed: false,
-    status: profile.subscription_status || "expired",
-    message: "الاشتراك غير فعال.",
+    status: profile.subscription_status || "inactive",
+    title: "الاشتراك غير فعال",
+    message: "الاشتراك غير فعال حالياً. يمكنك إدارته من صفحة الفوترة.",
   };
 }
 
 function SubscriptionWall({ access }) {
   return (
     <main dir="rtl" className="min-h-screen px-5 py-10">
-      <section className="mx-auto max-w-2xl rounded-3xl border border-black/20 p-6 text-center">
+      <section className="mx-auto max-w-2xl rounded-3xl bg-white p-6 text-center">
         <p className="text-sm text-black/50">CRTGO</p>
 
-        <h1 className="mt-3 text-4xl font-black">انتهت الفترة التجريبية</h1>
+        <h1 className="mt-3 text-4xl font-bold">{access.title}</h1>
 
-        <p className="mt-4 text-black/60">
-          للاكمال في استخدام لوحة التحكم ونشر القوائم الرقمية، اختر خطة مناسبة.
-        </p>
+        <p className="mt-4 text-black/60">{access.message}</p>
 
         <div className="mt-6 rounded-2xl bg-black/5 p-4 text-sm text-black/60">
-          {access.message}
+          الحالة الحالية: {access.status}
         </div>
 
-        <Link
-          href="/admin/upgrade"
-          className="mt-6 inline-flex rounded-2xl bg-black px-6 py-4 font-bold text-white"
-        >
-          اختيار خطة
-        </Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/admin/upgrade"
+            className="rounded-2xl bg-black px-6 py-4 font-bold text-white"
+          >
+            اختيار خطة
+          </Link>
+
+          <Link
+            href="/admin/billing"
+            className="rounded-2xl border border-black/15 px-6 py-4 font-bold text-black"
+          >
+            الفوترة
+          </Link>
+        </div>
       </section>
     </main>
   );
@@ -80,9 +92,20 @@ export default function AdminAccessGate({ profile, children }) {
   const pathname = usePathname();
 
   const access = getAccessState(profile);
-  const isUpgradePage = pathname?.startsWith("/admin/upgrade");
 
-  if (!access.allowed && !isUpgradePage) {
+  const allowedRoutesWhenLocked = [
+    "/admin/upgrade",
+    "/admin/checkout",
+    "/admin/billing",
+    "/admin/support",
+    "/admin/settings",
+  ];
+
+  const isAllowedRouteWhenLocked = allowedRoutesWhenLocked.some((route) =>
+    pathname?.startsWith(route)
+  );
+
+  if (!access.allowed && !isAllowedRouteWhenLocked) {
     return <SubscriptionWall access={access} />;
   }
 

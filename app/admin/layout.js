@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminAccessGate from "@/components/AdminAccessGate";
 import AdminSidebar from "@/components/AdminSidebar";
+import TrialNotice from "@/components/TrialNotice";
 import { dashboardFont } from "./fonts";
 
 export default async function AdminLayout({ children }) {
@@ -23,11 +24,12 @@ export default async function AdminLayout({ children }) {
 
   return (
     <div
-      className={`${dashboardFont.className} min-h-screen bg-[#edebeb]`}
+      className={`${dashboardFont.className} min-h-screen text-white bg-[#0f0f0f]`}
     >
       <AdminSidebar profile={profile} />
 
       <main className="md:ml-80">
+        <TrialNotice profile={profile} />
         <AdminAccessGate profile={profile}>
           {children}
         </AdminAccessGate>

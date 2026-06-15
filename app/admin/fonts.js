@@ -1,7 +1,6 @@
-import { Rubik } from "next/font/google";
+import { Tajawal } from "next/font/google";
 
-export const dashboardFont = Rubik({
-  subsets: ["arabic"],
-  weight: ["400", "500", "600", "700", "800"],
+export const dashboardFont = Tajawal({
+  weight: ["400", "500", "700", "800"],
   display: "swap",
 });

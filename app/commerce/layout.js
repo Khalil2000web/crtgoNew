@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function CommerceLayout({ children }) {
   return (
-    <div className="min-h-screen bg-[#f5f1eb] text-black">
+    <div className="min-h-screen bg-[#f5f1eb] text-black" dir="ltr">
       <header className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f1eb]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
           <Link href="/" className="text-xl font-black">

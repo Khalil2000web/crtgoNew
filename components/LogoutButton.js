@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LogoutButton() {
+export default function LogoutButton({ className = "" }) {
   const router = useRouter();
   const supabase = createClient();
 
@@ -17,7 +17,7 @@ export default function LogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="rounded-full cursor-pointer border border-black/15 px-4 py-2 text-sm font-bold hover:bg-black/5 transition"
+      className={`${className}`}
     >
       تسجيل الخروج
     </button>
