@@ -14,6 +14,20 @@ export default function SettingsForm({ user, profile }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const plan = profile?.plan_id || "trial";
+  const status = profile?.subscription_status || "unknown";
+
+  const trialEnds = profile?.trial_ends_at
+    ? new Date(profile.trial_ends_at)
+    : null;
+
+  const trialDaysLeft = trialEnds
+    ? Math.max(
+        0,
+        Math.ceil((trialEnds - new Date()) / (1000 * 60 * 60 * 24))
+      )
+    : 0;
+
   async function saveProfile(e) {
     e.preventDefault();
 
@@ -65,149 +79,190 @@ export default function SettingsForm({ user, profile }) {
     setMessage("تم تغيير كلمة المرور.");
   }
 
-  
-
-const plan = profile?.plan_id || "trial";
-
-const trialEnds = profile?.trial_ends_at
-  ? new Date(profile.trial_ends_at)
-  : null;
-
-const trialDaysLeft = trialEnds
-  ? Math.max(
-      0,
-      Math.ceil((trialEnds - new Date()) / (1000 * 60 * 60 * 24))
-    )
-  : 0;
-
-
-
   return (
-    <div className="mt-8 space-y-6">
-      {message && (
-        <p className="rounded-2xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-700">
-          {message}
-        </p>
-      )}
+    <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="space-y-6">
+        {message && (
+          <p className="rounded-xl bg-green-500/10 p-4 text-sm text-green-300">
+            {message}
+          </p>
+        )}
 
-      {error && (
-        <p className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-700">
-          {error}
-        </p>
-      )}
+        {error && (
+          <p className="rounded-xl bg-red-500/10 p-4 text-sm text-red-300">
+            {error}
+          </p>
+        )}
 
-      <div className="rounded-3xl border border-black/70 p-5">
-        <h2 className="text-xl font-bold">معلومات الحساب</h2>
-
-        <form onSubmit={saveProfile} className="mt-5 space-y-4">
+        <section className="rounded-xl bg-black p-6">
           <div>
-            <label className="mb-2 block text-sm text-black/60">
-              اسم العرض
-            </label>
-
-            <input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full rounded-2xl border border-black/60 bg-transparent px-4 py-4 outline-none focus:border-black"
-            />
+            <p className="text-sm text-white/50">Profile</p>
+            <h2 className="mt-1 text-2xl font-bold">معلومات الحساب</h2>
           </div>
 
+          <form onSubmit={saveProfile} className="mt-6 space-y-4">
+            <Field label="اسم العرض">
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="اسم العرض"
+                className="input"
+              />
+            </Field>
+
+            <Field label="اسم المستخدم">
+              <input
+                value={profile?.username || ""}
+                disabled
+                className="input cursor-not-allowed opacity-50"
+              />
+
+              <p className="mt-2 text-sm text-white/35">
+                لا يمكن تغيير اسم المستخدم حالياً.
+              </p>
+            </Field>
+
+            <Field label="البريد الإلكتروني">
+              <input
+                value={user.email || ""}
+                disabled
+                dir="ltr"
+                className="input cursor-not-allowed text-left opacity-50"
+              />
+            </Field>
+
+            <button
+              disabled={savingProfile}
+              className="w-full rounded-xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
+            >
+              {savingProfile ? "جارٍ الحفظ..." : "حفظ معلومات الحساب"}
+            </button>
+          </form>
+        </section>
+
+        <section className="rounded-xl bg-black p-6">
           <div>
-            <label className="mb-2 block text-sm text-black/60">
-              اسم المستخدم
-            </label>
-
-            <input
-              value={profile?.username || ""}
-              disabled
-              className="w-full cursor-not-allowed rounded-2xl border border-black/10 bg-black/5 px-4 py-4 text-black/50"
-            />
-
-            <p className="mt-2 text-sm text-black/40">
-              لا يمكن تغيير اسم المستخدم.
-            </p>
+            <p className="text-sm text-white/50">Security</p>
+            <h2 className="mt-1 text-2xl font-bold">تغيير كلمة المرور</h2>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm text-black/60">
-              البريد الإلكتروني
-            </label>
+          <form onSubmit={changePassword} className="mt-6 space-y-4">
+            <Field label="كلمة مرور جديدة">
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="••••••••"
+                className="input"
+              />
+            </Field>
 
-            <input
-              value={user.email || ""}
-              disabled
-              dir="ltr"
-              className="w-full cursor-not-allowed rounded-2xl border border-black/10 bg-black/5 px-4 py-4 text-left text-black/50"
-            />
-          </div>
-
-          <button
-            disabled={savingProfile}
-            className="w-full rounded-2xl cursor-pointer hover:bg-black/80 bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
-          >
-            {savingProfile ? "جارٍ الحفظ..." : "حفظ معلومات الحساب"}
-          </button>
-        </form>
+            <button
+              disabled={savingPassword}
+              className="w-full rounded-xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
+            >
+              {savingPassword ? "جارٍ التغيير..." : "تغيير كلمة المرور"}
+            </button>
+          </form>
+        </section>
       </div>
 
-      <div className="rounded-3xl border border-black/70 p-5">
-        <h2 className="text-xl font-bold">الخطة الحالية</h2>
+      <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
+        <section className="rounded-xl bg-black p-6">
+          <p className="text-sm text-white/50">الخطة الحالية</p>
 
-        <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl bg-black p-5 text-white">
-          <div>
-            <p className="text-sm text-white/50">خطتك</p>
-            <p className="mt-1 text-2xl font-black uppercase">{plan}</p>
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-5">
+            <p className="text-sm text-white/50">Plan</p>
+            <h2 className="mt-1 text-4xl font-bold uppercase">{plan}</h2>
+
+            <StatusText status={status} trialDaysLeft={trialDaysLeft} />
           </div>
-
-
-{profile?.subscription_status === "trialing" && (
-  <p className="mt-1 text-sm text-white/60">
-    باقي {trialDaysLeft} أيام من الفترة التجريبية
-  </p>
-)}
-
-{profile?.subscription_status === "active" && (
-  <p className="mt-1 text-sm text-white/60">
-    الاشتراك فعال
-  </p>
-)}
-
-{profile?.subscription_status === "expired" && (
-  <p className="mt-1 text-sm text-red-300">
-    انتهت الفترة التجريبية
-  </p>
-)}
-
 
           <Link
             href="/admin/upgrade"
-            className="rounded-full bg-white px-5 py-3 font-bold text-black"
+            className="mt-4 flex w-full items-center justify-center rounded-xl bg-white px-5 py-4 font-bold text-black"
           >
-            ترقية الخطة
+            إدارة الخطة
           </Link>
-        </div>
-      </div>
 
-      <div className="rounded-3xl border border-black/70 p-5">
-        <h2 className="text-xl font-bold">تغيير كلمة المرور</h2>
-
-        <form onSubmit={changePassword} className="mt-5 space-y-4">
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type="password"
-            placeholder="كلمة مرور جديدة"
-            className="w-full rounded-2xl border border-black/60 bg-transparent px-4 py-4 outline-none focus:border-black"
-          />
-
-          <button
-            disabled={savingPassword}
-            className="w-full rounded-2xl cursor-pointer hover:bg-black/80 bg-black px-4 py-4 font-bold text-white disabled:opacity-50"
+          <Link
+            href="/admin/billing"
+            className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/10 px-5 py-4 font-bold text-white hover:bg-white/10"
           >
-            {savingPassword ? "جارٍ التغيير..." : "تغيير كلمة المرور"}
-          </button>
-        </form>
-      </div>
+            الفوترة
+          </Link>
+        </section>
+
+        <section className="rounded-xl bg-black p-6">
+          <p className="text-sm text-white/50">Account ID</p>
+
+          <p dir="ltr" className="mt-3 break-all text-left text-sm text-white/60">
+            {user.id}
+          </p>
+        </section>
+      </aside>
+
+      <style jsx>{`
+        .input {
+          width: 100%;
+          border-radius: 0.75rem;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.06);
+          color: white;
+          padding: 1rem;
+          outline: none;
+        }
+
+        .input::placeholder {
+          color: rgba(255, 255, 255, 0.35);
+        }
+
+        .input:focus {
+          border-color: white;
+          background: rgba(255, 255, 255, 0.1);
+        }
+      `}</style>
     </div>
+  );
+}
+
+function StatusText({ status, trialDaysLeft }) {
+  if (status === "trialing") {
+    return (
+      <p className="mt-2 text-sm text-yellow-300">
+        باقي {trialDaysLeft} أيام من الفترة التجريبية
+      </p>
+    );
+  }
+
+  if (status === "active") {
+    return (
+      <p className="mt-2 text-sm text-green-300">
+        الاشتراك فعال
+      </p>
+    );
+  }
+
+  if (status === "expired") {
+    return (
+      <p className="mt-2 text-sm text-red-300">
+        انتهت الفترة التجريبية
+      </p>
+    );
+  }
+
+  return (
+    <p className="mt-2 text-sm text-white/50">
+      الحالة: {status}
+    </p>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="block">
+      <p className="mb-2 text-sm font-bold text-white/50">{label}</p>
+      {children}
+    </label>
   );
 }

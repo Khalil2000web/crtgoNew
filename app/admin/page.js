@@ -28,22 +28,23 @@ export default async function AdminPage() {
           أهلاً {profile?.display_name || "بك"}
         </h1>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          <div className="rounded-3xl border border-black/15 p-5">
+        <div className="mt-10 flex items-center justify-around">
+
+          <div className="rounded-3xl border border-black/15 p-5 flex flex-col items-center">
             <p className="text-sm text-white/50">عدد القوائم</p>
-            <h2 className="mt-2 text-2xl font-black">{menuCount || 0}</h2>
+            <h2 className="mt-2 text-xl font-black">{menuCount || 0}</h2>
           </div>
 
-          <div className="rounded-3xl border border-black/15 p-5">
+          <div className="rounded-3xl border border-black/15 p-5 flex flex-col items-center">
             <p className="text-sm text-white/50">الخطة</p>
-            <h2 className="mt-2 text-2xl font-black uppercase">
+            <h2 className="mt-2 text-xl font-black uppercase">
               {profile?.plan_id || "trial"}
             </h2>
           </div>
 
-          <div className="rounded-3xl border border-black/15 p-5">
+          <div className="rounded-3xl border border-black/15 p-5 flex flex-col items-center">
             <p className="text-sm text-white/50">الحالة</p>
-            <h2 className="mt-2 text-2xl font-black uppercase">
+            <h2 className="mt-2 text-xl font-black uppercase">
               {profile?.subscription_status || "unknown"}
             </h2>
           </div>
@@ -52,9 +53,9 @@ export default async function AdminPage() {
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <Link
             href="/admin/menus"
-            className="rounded-3xl bg-black p-6 text-white transition hover:opacity-90"
+            className="rounded-xl bg-black p-6 text-white transition hover:opacity-90"
           >
-            <h2 className="text-xl font-black">إدارة القوائم</h2>
+            <h2 className="text-md font-black">إدارة القوائم</h2>
             <p className="mt-2 text-white/60">
               عرض وتعديل جميع القوائم الرقمية.
             </p>
@@ -62,9 +63,9 @@ export default async function AdminPage() {
 
           <Link
             href="/admin/create-menu"
-            className="rounded-3xl border border-black/15 p-6 transition hover:bg-black hover:text-white"
+            className="rounded-xl border border-white/15 p-6 transition hover:bg-black hover:text-white"
           >
-            <h2 className="text-xl font-black">إنشاء قائمة جديدة</h2>
+            <h2 className="text-md font-black">إنشاء قائمة جديدة</h2>
             <p className="mt-2 text-white/60">
               ابدأ قائمة رقمية جديدة لمطعم أو كافيه.
             </p>

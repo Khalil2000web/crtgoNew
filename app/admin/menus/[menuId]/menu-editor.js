@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Check, Plus, X } from "lucide-react";
 
 export default function MenuEditor({ menu }) {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function MenuEditor({ menu }) {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen px-5 py-8 text-white">
+    <main dir="rtl" className="min-h-screen px-5 py-8 text-white pb-30">
       <section className="mx-auto max-w-6xl">
         <Link
           href="/admin/menus"
@@ -123,18 +124,12 @@ export default function MenuEditor({ menu }) {
         </Link>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm text-white/50">نظرة عامة</p>
-            <h1 className="mt-2 text-5xl font-bold">{menu.name}</h1>
-            <p dir="ltr" className="mt-3 text-left text-white/50">
-              m.crtgo.com/{menu.subdomain}
-            </p>
-          </div>
+          
 
           <button
             onClick={saveDetails}
             disabled={saving}
-            className="rounded-2xl bg-white px-6 py-4 font-bold text-black disabled:opacity-50"
+            className="rounded-2xl cursor-pointer bg-white px-6 py-4 font-bold text-black disabled:opacity-50 hover:bg-white/90"
           >
             {saving ? "جارٍ الحفظ..." : "حفظ التغييرات"}
           </button>
@@ -146,15 +141,15 @@ export default function MenuEditor({ menu }) {
           </p>
         )}
 
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          <StatCard title="الأقسام" value={sections.length} />
-          <StatCard title="الأصناف" value={itemsCount} />
-          <StatCard title="الحالة" value={menu.status || "active"} />
-        </div>
+<div className="mt-10 flex flex-row items-center justify-around gap-3 border-b border-white/10 pb-10">
+  <StatCard title="الأقسام" value={sections.length} />
+  <StatCard title="الأصناف" value={itemsCount} />
+  <StatCard title="الحالة" value={menu.status || "active"} />
+</div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
-            <div className="rounded-3xl bg-black p-6">
+            <div className="rounded-md bg-black p-6">
               <h2 className="text-2xl font-bold">معلومات القائمة</h2>
 
               <div className="mt-6 grid gap-4">
@@ -183,7 +178,7 @@ export default function MenuEditor({ menu }) {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-black p-6">
+            <div className="rounded-md bg-black p-6">
               <h2 className="text-2xl font-bold">التواصل</h2>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -198,7 +193,7 @@ export default function MenuEditor({ menu }) {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-black p-6">
+            <div className="rounded-md bg-black p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-bold">الأقسام</h2>
@@ -210,9 +205,9 @@ export default function MenuEditor({ menu }) {
                 <button
                   onClick={addSection}
                   disabled={actionLoading === "add-section"}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-black disabled:opacity-50"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-black disabled:opacity-50 hover:bg-white/90"
                 >
-                  <span>+</span>
+                  <span><Plus /></span>
                   {actionLoading === "add-section" ? "جارٍ الإضافة..." : "قسم جديد"}
                 </button>
               </div>
@@ -245,11 +240,11 @@ export default function MenuEditor({ menu }) {
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-3xl bg-black p-6 text-white">
+            <div className="hidden rounded-3xl bg-black p-6 text-white">
               <p className="text-sm text-white/50">الرابط العام</p>
 
               <h2 dir="ltr" className="mt-3 break-all text-2xl font-bold">
-                m.crtgo.com/{menu.subdomain}
+                crtgo.com/m/{menu.subdomain}
               </h2>
 
               <a
@@ -262,7 +257,7 @@ export default function MenuEditor({ menu }) {
               </a>
             </div>
 
-            <div className="rounded-3xl bg-black p-6">
+            <div className="rounded-md bg-black p-6">
               <h2 className="text-2xl font-bold">لغات القائمة</h2>
 
               <p className="mt-3 text-sm text-white/50">
@@ -292,26 +287,7 @@ export default function MenuEditor({ menu }) {
         />
       )}
 
-      <style jsx>{`
-        .input {
-          width: 100%;
-          border-radius: 1rem;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(255, 255, 255, 0.07);
-          color: white;
-          padding: 1rem;
-          outline: none;
-        }
-
-        .input::placeholder {
-          color: rgba(255, 255, 255, 0.35);
-        }
-
-        .input:focus {
-          border-color: white;
-          background: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
+  
     </main>
   );
 }
@@ -321,7 +297,7 @@ function InfoButton({ title, value, emptyText, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="rounded-3xl border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
+      className="rounded-md border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
     >
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
@@ -332,7 +308,7 @@ function InfoButton({ title, value, emptyText, onClick }) {
         </div>
 
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl font-black text-black">
-          {value ? "✓" : "+"}
+          {value ? <Check /> : <Plus color="black" />}
         </div>
       </div>
     </button>
@@ -344,7 +320,7 @@ function SocialCard({ title, value, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="rounded-3xl border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
+      className="rounded-md border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
     >
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
@@ -358,7 +334,7 @@ function SocialCard({ title, value, onClick }) {
         </div>
 
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black">
-          <span className="text-xl font-black">{value ? "✓" : "+"}</span>
+          <span className="text-xl font-black">{value ? <Check /> : <Plus />}</span>
         </div>
       </div>
     </button>
@@ -379,7 +355,7 @@ function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-3xl bg-[#111] p-5 text-white shadow-2xl">
+      <div className="w-full max-w-md rounded-md bg-[#111] p-5 text-white shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm text-white/50">تعديل</p>
@@ -388,9 +364,9 @@ function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
 
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-2xl hover:bg-white/20"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-2xl hover:bg-white/20"
           >
-            ×
+            <X />
           </button>
         </div>
 
@@ -417,39 +393,20 @@ function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
         <div className="mt-5 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 rounded-2xl border border-white/15 px-4 py-4 font-bold text-white"
+            className="flex-1 rounded-2xl cursor-pointer border border-white/15 px-4 py-4 font-bold text-white"
           >
             إلغاء
           </button>
 
           <button
             onClick={() => onSave(input)}
-            className="flex-1 rounded-2xl bg-white px-4 py-4 font-bold text-black"
+            className="flex-1 rounded-2xl cursor-pointer bg-white px-4 py-4 font-bold text-black"
           >
             حفظ
           </button>
         </div>
 
-        <style jsx>{`
-          .modal-input {
-            width: 100%;
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            padding: 1rem;
-            outline: none;
-          }
-
-          .modal-input::placeholder {
-            color: rgba(255, 255, 255, 0.35);
-          }
-
-          .modal-input:focus {
-            border-color: white;
-            background: rgba(255, 255, 255, 0.12);
-          }
-        `}</style>
+  
       </div>
     </div>
   );
@@ -457,12 +414,18 @@ function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
 
 function StatCard({ title, value }) {
   return (
-    <div className="rounded-3xl bg-black p-5">
-      <p className="text-sm text-white/50">{title}</p>
-      <h2 className="mt-2 text-4xl font-bold text-white">{value}</h2>
+    <div className="flex items-center justify-between p-5">
+      <div className="flex flex-col items-center justify-center gap-1 w-16">
+        <p className="text-sm text-white/50">{title}</p>
+
+        <h2 className="text-xl font-bold text-white">
+          {value}
+        </h2>
+      </div>
     </div>
   );
 }
+
 
 function Field({ label, children }) {
   return (
