@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AdminAccessGate from "@/components/AdminAccessGate";
 import AdminSidebar from "@/components/AdminSidebar";
 import TrialNotice from "@/components/TrialNotice";
+import AdminBackground from "./AdminBackground";
 import { dashboardFont } from "./fonts";
 
 export default async function AdminLayout({ children }) {
@@ -26,6 +27,7 @@ export default async function AdminLayout({ children }) {
     <div
       className={`${dashboardFont.className} min-h-screen text-white bg-[#0f0f0f]`}
     >
+    <AdminBackground />
       <AdminSidebar profile={profile} />
 
       <main className="md:ml-80">
