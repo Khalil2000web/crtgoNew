@@ -4,19 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import {
-  ChevronLeft,
-  ExternalLink,
-  PlusCircle,
-  Instagram,
-  Facebook,
-  Phone,
-  MapPin,
-  MessageCircle,
-  Music2,
-  X,
-  FileText,
-} from "lucide-react";
 
 export default function MenuEditor({ menu }) {
   const router = useRouter();
@@ -51,31 +38,26 @@ export default function MenuEditor({ menu }) {
     phone: {
       title: "رقم الهاتف",
       placeholder: "0500000000",
-      icon: Phone,
       type: "text",
     },
     whatsapp: {
       title: "واتساب",
       placeholder: "https://wa.me/972...",
-      icon: MessageCircle,
       type: "url",
     },
     instagram: {
       title: "إنستغرام",
       placeholder: "https://instagram.com/...",
-      icon: Instagram,
       type: "url",
     },
     tiktok: {
       title: "تيك توك",
       placeholder: "https://tiktok.com/@...",
-      icon: Music2,
       type: "url",
     },
     facebook: {
       title: "فيسبوك",
       placeholder: "https://facebook.com/...",
-      icon: Facebook,
       type: "url",
     },
   };
@@ -137,7 +119,7 @@ export default function MenuEditor({ menu }) {
           className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/50 hover:bg-white/10"
         >
           الرجوع للقوائم
-          <ChevronLeft size={18} />
+          <span>←</span>
         </Link>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -185,51 +167,19 @@ export default function MenuEditor({ menu }) {
                   />
                 </Field>
 
-                <button
-                  type="button"
+                <InfoButton
+                  title="الوصف"
+                  value={details.description_ar}
+                  emptyText="إضافة وصف قصير"
                   onClick={() => setModalField("description_ar")}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm text-white/50">الوصف</p>
-                      <h3 className="mt-1 font-bold">
-                        {details.description_ar || "إضافة وصف قصير"}
-                      </h3>
-                    </div>
+                />
 
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black">
-                      {details.description_ar ? (
-                        <FileText size={19} />
-                      ) : (
-                        <PlusCircle size={19} />
-                      )}
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
+                <InfoButton
+                  title="الموقع / العنوان"
+                  value={details.location}
+                  emptyText="إضافة موقع أو عنوان"
                   onClick={() => setModalField("location")}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm text-white/50">الموقع / العنوان</p>
-                      <h3 className="mt-1 font-bold">
-                        {details.location || "إضافة موقع أو عنوان"}
-                      </h3>
-                    </div>
-
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black">
-                      {details.location ? (
-                        <MapPin size={19} />
-                      ) : (
-                        <PlusCircle size={19} />
-                      )}
-                    </div>
-                  </div>
-                </button>
+                />
               </div>
             </div>
 
@@ -242,7 +192,6 @@ export default function MenuEditor({ menu }) {
                     key={key}
                     title={field.title}
                     value={details[key]}
-                    icon={field.icon}
                     onClick={() => setModalField(key)}
                   />
                 ))}
@@ -263,7 +212,7 @@ export default function MenuEditor({ menu }) {
                   disabled={actionLoading === "add-section"}
                   className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-black disabled:opacity-50"
                 >
-                  <PlusCircle size={18} />
+                  <span>+</span>
                   {actionLoading === "add-section" ? "جارٍ الإضافة..." : "قسم جديد"}
                 </button>
               </div>
@@ -288,7 +237,7 @@ export default function MenuEditor({ menu }) {
                       </p>
                     </div>
 
-                    <ChevronLeft size={20} />
+                    <span>←</span>
                   </Link>
                 ))}
               </div>
@@ -309,7 +258,7 @@ export default function MenuEditor({ menu }) {
                 className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-black"
               >
                 فتح القائمة
-                <ExternalLink size={18} />
+                <span>↗</span>
               </a>
             </div>
 
@@ -367,7 +316,30 @@ export default function MenuEditor({ menu }) {
   );
 }
 
-function SocialCard({ title, value, icon: Icon, onClick }) {
+function InfoButton({ title, value, emptyText, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-3xl border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm text-white/50">{title}</p>
+          <h3 className="mt-1 line-clamp-2 font-bold">
+            {value || emptyText}
+          </h3>
+        </div>
+
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl font-black text-black">
+          {value ? "✓" : "+"}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function SocialCard({ title, value, onClick }) {
   return (
     <button
       type="button"
@@ -386,7 +358,7 @@ function SocialCard({ title, value, icon: Icon, onClick }) {
         </div>
 
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black">
-          {value ? <Icon size={20} /> : <PlusCircle size={20} />}
+          <span className="text-xl font-black">{value ? "✓" : "+"}</span>
         </div>
       </div>
     </button>
@@ -397,6 +369,7 @@ function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
   const [input, setInput] = useState(value || "");
 
   const isLong = fieldKey === "description_ar";
+
   const title =
     fieldKey === "description_ar"
       ? "الوصف"
@@ -415,9 +388,9 @@ function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
 
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-2xl hover:bg-white/20"
           >
-            <X size={18} />
+            ×
           </button>
         </div>
 
