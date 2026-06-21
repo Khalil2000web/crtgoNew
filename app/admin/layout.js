@@ -26,9 +26,8 @@ export default async function AdminLayout({ children }) {
 
   return (
     <div
-      className={`${dashboardFont.className} min-h-screen text-white bg-[#0f0f0f]`}
+      className={`${dashboardFont.className} min-h-screen text-white pb-20 bg-[#0f0f0f]`}
     >
-    <AdminBackground />
       <AdminSidebar profile={profile} />
 
       <main className="md:ml-80">

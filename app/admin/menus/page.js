@@ -54,7 +54,7 @@ export default async function AdminMenusPage() {
                   
                   <div className="flex flex-col items-start">
                     <h2 className="text-2xl">{menu.name}</h2>
-                    <p dir="ltr" className="text-left text-sm opacity-60">m.crtgo.com/{menu.subdomain}</p>
+                    <p dir="ltr" className="text-left text-sm opacity-60">crtgo.com/m/{menu.subdomain}</p>
                   </div>
 
                 </div>

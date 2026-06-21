@@ -55,12 +55,14 @@ body {
   }
 
   to {
-    transform: translateX(50%);
+    transform: translateX(-50%);
   }
 }
 
 .animate-cover-stack {
-  animation: cover-stack linear infinite;
+  animation-name: cover-stack;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 
@@ -166,3 +168,43 @@ body {
           background: rgba(255, 255, 255, 0.1);
         }
 
+
+
+
+
+
+
+
+
+
+
+@keyframes header-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-header-scroll {
+  animation: header-scroll 25s linear infinite;
+}
+
+.socialIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  color: white;
+  transition: 0.2s;
+}
+
+.socialIcon:hover {
+  background: white;
+  border-color: #f2aa4c;
+  color: black;
+}

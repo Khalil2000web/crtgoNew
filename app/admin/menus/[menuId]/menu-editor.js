@@ -113,7 +113,7 @@ export default function MenuEditor({ menu }) {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen px-5 py-8 text-white pb-30">
+    <main dir="rtl" className="min-h-screen px-5 py-8 text-white">
       <section className="mx-auto max-w-6xl">
         <Link
           href="/admin/menus"
