@@ -1,115 +1,105 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { Check, Plus, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  ExternalLink,
+  Copy,
+  Settings,
+  Clock,
+  Palette,
+  FolderOpen,
+  Package,
+  ImageIcon,
+  MapPin,
+  Phone,
+  Globe,
+  CheckCircle2,
+  AlertCircle,
+  Archive,
+  Pencil,
+  LayoutGrid,
+} from "lucide-react";
+
+function getStatusLabel(status) {
+  if (status === "archived") return "مؤرشفة";
+  if (status === "active") return "مفعلة";
+  return "غير محددة";
+}
+
+function getStatusClass(status) {
+  if (status === "archived") {
+    return "bg-yellow-500/15 text-yellow-300";
+  }
+
+  if (status === "active") {
+    return "bg-green-500/15 text-green-300";
+  }
+
+  return "bg-white/[0.06] text-white/50";
+}
+
+function getTemplateLabel(template) {
+  const labels = {
+    classic: "Classic",
+    luxury: "Luxury",
+    minimal: "Minimal",
+    starter: "Starter",
+  };
+
+  return labels[template] || template || "Default";
+}
 
 export default function MenuEditor({ menu }) {
-  const router = useRouter();
-  const supabase = createClient();
+  const [origin, setOrigin] = useState("");
+  const [message, setMessage] = useState("");
 
-  const sections = [...(menu.sections || [])].sort(
-    (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-  );
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const sections = useMemo(() => {
+    return [...(menu.sections || [])].sort(
+      (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+    );
+  }, [menu.sections]);
 
   const itemsCount = sections.reduce(
     (total, section) => total + (section.items?.length || 0),
     0
   );
 
-  const [saving, setSaving] = useState(false);
-  const [actionLoading, setActionLoading] = useState("");
-  const [error, setError] = useState("");
-  const [modalField, setModalField] = useState(null);
+  const emptySections = sections.filter(
+    (section) => !section.items?.length
+  ).length;
 
-  const [details, setDetails] = useState({
-    name: menu.name || "",
-    description_ar: menu.description_ar || "",
-    location: menu.location || "",
-    phone: menu.phone || "",
-    whatsapp: menu.whatsapp || "",
-    instagram: menu.instagram || "",
-    tiktok: menu.tiktok || "",
-    facebook: menu.facebook || "",
-  });
+  const availableItems = sections.reduce((total, section) => {
+    return (
+      total +
+      (section.items || []).filter((item) => item.is_available !== false).length
+    );
+  }, 0);
 
-  const fields = {
-    phone: {
-      title: "رقم الهاتف",
-      placeholder: "0500000000",
-      type: "text",
-    },
-    whatsapp: {
-      title: "واتساب",
-      placeholder: "https://wa.me/972...",
-      type: "url",
-    },
-    instagram: {
-      title: "إنستغرام",
-      placeholder: "https://instagram.com/...",
-      type: "url",
-    },
-    tiktok: {
-      title: "تيك توك",
-      placeholder: "https://tiktok.com/@...",
-      type: "url",
-    },
-    facebook: {
-      title: "فيسبوك",
-      placeholder: "https://facebook.com/...",
-      type: "url",
-    },
-  };
+  const unavailableItems = itemsCount - availableItems;
 
-  function updateDetail(key, value) {
-    setDetails((current) => ({
-      ...current,
-      [key]: value,
-    }));
-  }
+  const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
+  const publicUrl = publicPath
+    ? origin
+      ? `${origin}${publicPath}`
+      : publicPath
+    : null;
 
-  async function saveDetails() {
-    setSaving(true);
-    setError("");
+  async function copyPublicLink() {
+    if (!publicUrl) return;
 
-    const { error } = await supabase
-      .from("menus")
-      .update(details)
-      .eq("id", menu.id);
-
-    setSaving(false);
-
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setMessage("تم نسخ رابط القائمة.");
+    } catch {
+      setMessage("لم يتم نسخ الرابط. انسخه يدوياً.");
     }
-
-    router.refresh();
-  }
-
-  async function addSection() {
-    const name = prompt("اسم القسم الجديد");
-    if (!name?.trim()) return;
-
-    setActionLoading("add-section");
-    setError("");
-
-    const { error } = await supabase.from("sections").insert({
-      menu_id: menu.id,
-      name_ar: name.trim(),
-      sort_order: sections.length,
-    });
-
-    setActionLoading("");
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    router.refresh();
   }
 
   return (
@@ -117,336 +107,446 @@ export default function MenuEditor({ menu }) {
       <section className="mx-auto max-w-6xl">
         <Link
           href="/admin/menus"
-          className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/50 hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
         >
+          <ArrowRight size={18} />
           الرجوع للقوائم
-          <span>←</span>
         </Link>
 
-        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          
-
-          <button
-            onClick={saveDetails}
-            disabled={saving}
-            className="rounded-2xl cursor-pointer bg-white px-6 py-4 font-bold text-black disabled:opacity-50 hover:bg-white/90"
-          >
-            {saving ? "جارٍ الحفظ..." : "حفظ التغييرات"}
-          </button>
-        </div>
-
-        {error && (
-          <p className="mt-6 rounded-2xl bg-red-500/10 p-4 text-sm text-red-300">
-            {error}
-          </p>
-        )}
-
-<div className="mt-10 flex flex-row items-center justify-around gap-3 border-b border-white/10 pb-10">
-  <StatCard title="الأقسام" value={sections.length} />
-  <StatCard title="الأصناف" value={itemsCount} />
-  <StatCard title="الحالة" value={menu.status || "active"} />
-</div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
-            <div className="rounded-md bg-black p-6">
-              <h2 className="text-2xl font-bold">معلومات القائمة</h2>
-
-              <div className="mt-6 grid gap-4">
-                <Field label="اسم القائمة">
-                  <input
-                    value={details.name}
-                    onChange={(e) => updateDetail("name", e.target.value)}
-                    placeholder="اسم القائمة"
-                    className="input"
-                  />
-                </Field>
-
-                <InfoButton
-                  title="الوصف"
-                  value={details.description_ar}
-                  emptyText="إضافة وصف قصير"
-                  onClick={() => setModalField("description_ar")}
+        <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f0f] shadow-2xl shadow-black/20">
+          <div className="grid gap-0 lg:grid-cols-[260px_1fr]">
+            <div className="relative min-h-[240px] border-b border-white/10 bg-white/[0.03] lg:border-b-0 lg:border-l">
+              {menu.cover_url ? (
+                <Image
+                  src={menu.cover_url}
+                  alt={menu.name || "Cover"}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 260px"
+                  className="object-cover opacity-80 pointer-events-none"
                 />
+              ) : (
+                <div className="flex h-full min-h-[240px] items-center justify-center text-white/25">
+                  <ImageIcon size={44} />
+                </div>
+              )}
 
-                <InfoButton
-                  title="الموقع / العنوان"
-                  value={details.location}
-                  emptyText="إضافة موقع أو عنوان"
-                  onClick={() => setModalField("location")}
-                />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+
+              <div className="absolute bottom-5 right-5 flex items-center gap-3">
+                <div className="relative flex h-16 w-16 overflow-hidden rounded-2xl border border-white/15 bg-[#0f0f0f]">
+                  {menu.logo_url ? (
+                    <Image
+                      src={menu.logo_url}
+                      alt={menu.name || "Logo"}
+                      fill
+                      sizes="64px"
+                      className="object-cover pointer-events-none"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <ImageIcon size={24} className="text-white/30" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="rounded-md bg-black p-6">
-              <h2 className="text-2xl font-bold">التواصل</h2>
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {Object.entries(fields).map(([key, field]) => (
-                  <SocialCard
-                    key={key}
-                    title={field.title}
-                    value={details[key]}
-                    onClick={() => setModalField(key)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-md bg-black p-6">
-              <div className="flex items-center justify-between gap-4">
+            <div className="p-6">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">الأقسام</h2>
-                  <p className="mt-2 text-sm text-white/50">
-                    اضغط على أي قسم لتعديل الأصناف داخله.
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-bold ${getStatusClass(
+                        menu.status
+                      )}`}
+                    >
+                      {getStatusLabel(menu.status)}
+                    </span>
+
+                    <span className="rounded-full bg-white/[0.05] px-3 py-1 text-xs font-bold text-white/45">
+                      {getTemplateLabel(menu.template_id)}
+                    </span>
+                  </div>
+
+                  <h1 className="mt-4 text-5xl font-black text-white">
+                    {menu.name || "قائمة بدون اسم"}
+                  </h1>
+
+                  {menu.description_ar && (
+                    <p className="mt-3 max-w-2xl leading-7 text-white/45">
+                      {menu.description_ar}
+                    </p>
+                  )}
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {menu.location && (
+                      <InfoPill icon={<MapPin size={15} />} text={menu.location} />
+                    )}
+
+                    {menu.phone && (
+                      <InfoPill icon={<Phone size={15} />} text={menu.phone} />
+                    )}
+
+                    {menu.subdomain && (
+                      <InfoPill
+                        icon={<Globe size={15} />}
+                        text={`/m/${menu.subdomain}`}
+                        ltr
+                      />
+                    )}
+                  </div>
                 </div>
 
-                <button
-                  onClick={addSection}
-                  disabled={actionLoading === "add-section"}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-black disabled:opacity-50 hover:bg-white/90"
-                >
-                  <span><Plus /></span>
-                  {actionLoading === "add-section" ? "جارٍ الإضافة..." : "قسم جديد"}
-                </button>
-              </div>
-
-              <div className="mt-6 grid gap-3">
-                {!sections.length && (
-                  <div className="rounded-2xl border border-white/10 p-5 text-white/50">
-                    لا توجد أقسام بعد.
-                  </div>
-                )}
-
-                {sections.map((section) => (
+                <div className="flex flex-wrap gap-2">
                   <Link
-                    key={section.id}
-                    href={`/admin/menus/${menu.id}/sections/${section.id}`}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 p-5 transition hover:bg-white hover:text-black"
+                    href={`/admin/menus/${menu.id}/details`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
                   >
-                    <div>
-                      <h3 className="text-xl font-bold">{section.name_ar}</h3>
-                      <p className="mt-1 text-sm opacity-60">
-                        {(section.items || []).length} أصناف
-                      </p>
-                    </div>
-
-                    <span>←</span>
+                    <Pencil size={18} />
+                    تعديل المعلومات
                   </Link>
-                ))}
+
+                  {publicPath ? (
+                    <Link
+                      href={publicPath}
+                      target="_blank"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-4 font-extrabold text-white transition hover:bg-white/10"
+                    >
+                      <ExternalLink size={18} />
+                      فتح للزبائن
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/admin/menus/${menu.id}/settings`}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-5 py-4 font-extrabold text-yellow-300 transition hover:bg-yellow-500/15"
+                    >
+                      إعداد الرابط
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <aside className="space-y-6">
-            <div className="hidden rounded-3xl bg-black p-6 text-white">
-              <p className="text-sm text-white/50">الرابط العام</p>
+        {message && (
+          <p className="mt-6 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-300">
+            {message}
+          </p>
+        )}
 
-              <h2 dir="ltr" className="mt-3 break-all text-2xl font-bold">
-                crtgo.com/m/{menu.subdomain}
-              </h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          <StatCard
+            icon={<FolderOpen size={22} />}
+            label="الأقسام"
+            value={sections.length}
+            hint={`${emptySections} أقسام فارغة`}
+          />
 
-              <a
-                href={`/m/${menu.subdomain}`}
-                target="_blank"
-                className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 font-bold text-black"
-              >
-                فتح القائمة
-                <span>↗</span>
-              </a>
+          <StatCard
+            icon={<Package size={22} />}
+            label="الأصناف"
+            value={itemsCount}
+            hint={`${availableItems} متوفر`}
+          />
+
+          <StatCard
+            icon={<AlertCircle size={22} />}
+            label="غير متوفر"
+            value={unavailableItems}
+            hint="أصناف مخفية أو غير متاحة"
+          />
+
+          <StatCard
+            icon={<Archive size={22} />}
+            label="الحالة"
+            value={getStatusLabel(menu.status)}
+            hint={menu.status || "active"}
+          />
+        </div>
+
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px]">
+          <section className="space-y-6">
+            <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-xl shadow-black/10">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm text-white/45">إدارة القائمة</p>
+
+                  <h2 className="mt-1 text-3xl font-black text-white">
+                    اختصارات التحرير
+                  </h2>
+
+                  <p className="mt-2 text-sm text-white/45">
+                    كل جزء من القائمة له صفحة خاصة حتى يكون التعديل أوضح وأسهل.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-3 md:grid-cols-2">
+                <ActionCard
+                  href={`/admin/menus/${menu.id}/details`}
+                  icon={<Pencil size={22} />}
+                  title="المعلومات"
+                  description="اسم القائمة، الوصف، الموقع، وطرق التواصل."
+                  primary
+                />
+
+                <ActionCard
+                  href={`/admin/menus/${menu.id}/sections`}
+                  icon={<FolderOpen size={22} />}
+                  title="الأقسام والأصناف"
+                  description="إدارة أقسام القائمة وكل الأصناف داخلها."
+                />
+
+                <ActionCard
+                  href={`/admin/menus/${menu.id}/appearance`}
+                  icon={<Palette size={22} />}
+                  title="المظهر"
+                  description="القالب، الألوان، الخط، صور الغلاف، وطريقة العرض."
+                />
+
+                <ActionCard
+                  href={`/admin/menus/${menu.id}/hours`}
+                  icon={<Clock size={22} />}
+                  title="ساعات العمل"
+                  description="الأيام المفتوحة والمغلقة وأوقات العمل."
+                />
+
+                <ActionCard
+                  href={`/admin/menus/${menu.id}/settings`}
+                  icon={<Settings size={22} />}
+                  title="الإعدادات"
+                  description="الرابط، حالة القائمة، والحذف النهائي."
+                />
+              </div>
             </div>
 
-            <div className="rounded-md bg-black p-6">
-              <h2 className="text-2xl font-bold">لغات القائمة</h2>
+            <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-xl shadow-black/10">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm text-white/45">الأقسام</p>
 
-              <p className="mt-3 text-sm text-white/50">
-                قريباً ستتمكن من اختيار لغات القائمة العامة.
-              </p>
+                  <h2 className="mt-1 text-3xl font-black text-white">
+                    نظرة سريعة
+                  </h2>
+                </div>
+
+                <Link
+                  href={`/admin/menus/${menu.id}/sections`}
+                  className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                >
+                  إدارة الأقسام
+                </Link>
+              </div>
+
+              {!sections.length && (
+                <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.04] p-6 text-center">
+                  <FolderOpen className="mx-auto text-white/25" size={38} />
+
+                  <h3 className="mt-3 text-xl font-bold text-white">
+                    لا توجد أقسام بعد
+                  </h3>
+
+                  <p className="mt-2 text-sm text-white/45">
+                    أضف أول قسم من صفحة الأقسام.
+                  </p>
+                </div>
+              )}
+
+              {sections.length > 0 && (
+                <div className="mt-6 grid gap-3">
+                  {sections.slice(0, 5).map((section) => (
+                    <Link
+                      key={section.id}
+                      href={`/admin/menus/${menu.id}/sections/${section.id}`}
+                      className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.07]"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-black text-white">
+                            {section.name_ar || "قسم بدون اسم"}
+                          </h3>
+
+                          <p className="mt-1 text-sm text-white/40">
+                            {(section.items || []).length} أصناف
+                          </p>
+                        </div>
+
+                        <ExternalLink size={17} className="text-white/35" />
+                      </div>
+                    </Link>
+                  ))}
+
+                  {sections.length > 5 && (
+                    <Link
+                      href={`/admin/menus/${menu.id}/sections`}
+                      className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center text-sm font-bold text-white/60 transition hover:bg-white/[0.07]"
+                    >
+                      عرض كل الأقسام
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <aside className="space-y-6">
+            <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-xl shadow-black/10">
+              <p className="text-sm text-white/45">الرابط العام</p>
+
+              <h2 className="mt-2 text-2xl font-black text-white">
+                رابط القائمة
+              </h2>
+
+              <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                <p dir="ltr" className="break-all text-left text-sm text-white/70">
+                  {publicUrl || "لم يتم إعداد الرابط بعد"}
+                </p>
+              </div>
+
+              <div className="mt-4 grid gap-2">
+                {publicPath ? (
+                  <>
+                    <Link
+                      href={publicPath}
+                      target="_blank"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
+                    >
+                      <ExternalLink size={18} />
+                      فتح القائمة
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={copyPublicLink}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-4 font-extrabold text-white transition hover:bg-white/10"
+                    >
+                      <Copy size={18} />
+                      نسخ الرابط
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href={`/admin/menus/${menu.id}/settings`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
+                  >
+                    <Settings size={18} />
+                    إعداد الرابط
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-xl shadow-black/10">
+              <p className="text-sm text-white/45">جاهزية القائمة</p>
+
+              <h2 className="mt-2 text-2xl font-black text-white">
+                ماذا ينقص؟
+              </h2>
 
               <div className="mt-5 space-y-3">
-                <LanguagePlaceholder label="العربية" active />
-                <LanguagePlaceholder label="العبرية" />
-                <LanguagePlaceholder label="الإنجليزية" />
+                <ChecklistItem
+                  done={Boolean(menu.name)}
+                  text="اسم القائمة موجود"
+                />
+
+                <ChecklistItem
+                  done={Boolean(menu.subdomain)}
+                  text="رابط القائمة جاهز"
+                />
+
+                <ChecklistItem
+                  done={Boolean(menu.logo_url)}
+                  text="تم إضافة شعار"
+                />
+
+                <ChecklistItem
+                  done={Boolean(menu.cover_url)}
+                  text="تم إضافة صورة غلاف"
+                />
+
+                <ChecklistItem
+                  done={sections.length > 0}
+                  text="تم إضافة أقسام"
+                />
+
+                <ChecklistItem
+                  done={itemsCount > 0}
+                  text="تم إضافة أصناف"
+                />
               </div>
             </div>
           </aside>
         </div>
       </section>
-
-      {modalField && (
-        <EditFieldModal
-          fieldKey={modalField}
-          value={details[modalField]}
-          field={fields[modalField]}
-          onClose={() => setModalField(null)}
-          onSave={(value) => {
-            updateDetail(modalField, value);
-            setModalField(null);
-          }}
-        />
-      )}
-
-  
     </main>
   );
 }
 
-function InfoButton({ title, value, emptyText, onClick }) {
+function InfoPill({ icon, text, ltr }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-md border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
+    <span
+      dir={ltr ? "ltr" : "rtl"}
+      className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-3 py-2 text-sm text-white/45"
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm text-white/50">{title}</p>
-          <h3 className="mt-1 line-clamp-2 font-bold">
-            {value || emptyText}
-          </h3>
-        </div>
-
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl font-black text-black">
-          {value ? <Check /> : <Plus color="black" />}
-        </div>
-      </div>
-    </button>
+      {icon}
+      <span className="break-all">{text}</span>
+    </span>
   );
 }
 
-function SocialCard({ title, value, onClick }) {
+function StatCard({ icon, label, value, hint }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-md border border-white/10 bg-white/5 p-5 text-right transition hover:bg-white/10"
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm text-white/50">{title}</p>
-          <p
-            dir="ltr"
-            className="mt-1 truncate text-left text-sm font-bold text-white"
-          >
-            {value || "غير مضاف"}
-          </p>
-        </div>
-
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black">
-          <span className="text-xl font-black">{value ? <Check /> : <Plus />}</span>
-        </div>
+    <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-5 shadow-xl shadow-black/10">
+      <div className="flex items-center justify-between gap-3 text-white/45">
+        <span>{label}</span>
+        {icon}
       </div>
-    </button>
-  );
-}
 
-function EditFieldModal({ fieldKey, field, value, onSave, onClose }) {
-  const [input, setInput] = useState(value || "");
+      <p className="mt-4 text-3xl font-black text-white">{value}</p>
 
-  const isLong = fieldKey === "description_ar";
-
-  const title =
-    fieldKey === "description_ar"
-      ? "الوصف"
-      : fieldKey === "location"
-      ? "الموقع / العنوان"
-      : field?.title;
-
-  return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-md bg-[#111] p-5 text-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-white/50">تعديل</p>
-            <h2 className="mt-1 text-2xl font-bold">{title}</h2>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-2xl hover:bg-white/20"
-          >
-            <X />
-          </button>
-        </div>
-
-        <div className="mt-6">
-          {isLong ? (
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              rows={5}
-              placeholder="اكتب هنا..."
-              className="modal-input resize-none"
-            />
-          ) : (
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={field?.placeholder || "اكتب هنا..."}
-              dir={fieldKey === "phone" || field?.type === "url" ? "ltr" : "rtl"}
-              className="modal-input"
-            />
-          )}
-        </div>
-
-        <div className="mt-5 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-2xl cursor-pointer border border-white/15 px-4 py-4 font-bold text-white"
-          >
-            إلغاء
-          </button>
-
-          <button
-            onClick={() => onSave(input)}
-            className="flex-1 rounded-2xl cursor-pointer bg-white px-4 py-4 font-bold text-black"
-          >
-            حفظ
-          </button>
-        </div>
-
-  
-      </div>
+      <p className="mt-2 text-sm text-white/35">{hint}</p>
     </div>
   );
 }
 
-function StatCard({ title, value }) {
+function ActionCard({ href, icon, title, description, primary }) {
   return (
-    <div className="flex items-center justify-between p-5">
-      <div className="flex flex-col items-center justify-center gap-1 w-16">
-        <p className="text-sm text-white/50">{title}</p>
-
-        <h2 className="text-xl font-bold text-white">
-          {value}
-        </h2>
-      </div>
-    </div>
-  );
-}
-
-
-function Field({ label, children }) {
-  return (
-    <label className="block">
-      <p className="mb-2 text-sm font-bold text-white/50">{label}</p>
-      {children}
-    </label>
-  );
-}
-
-function LanguagePlaceholder({ label, active }) {
-  return (
-    <div
-      className={`flex items-center justify-between rounded-2xl border px-4 py-4 ${
-        active
-          ? "border-white bg-white text-black"
-          : "border-white/10 text-white/50"
+    <Link
+      href={href}
+      className={`block rounded-2xl border p-5 transition ${
+        primary
+          ? "border-white bg-white text-black hover:bg-white/90"
+          : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
       }`}
     >
-      <span className="font-bold">{label}</span>
-      <span className="text-xs opacity-60">{active ? "مفعلة" : "قريباً"}</span>
+      <div
+        className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+          primary ? "bg-black text-white" : "bg-white text-black"
+        }`}
+      >
+        {icon}
+      </div>
+
+      <h3 className="mt-4 text-xl font-black">{title}</h3>
+
+      <p className={`mt-2 text-sm ${primary ? "text-black/55" : "text-white/45"}`}>
+        {description}
+      </p>
+    </Link>
+  );
+}
+
+function ChecklistItem({ done, text }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+      <span className="text-sm font-bold text-white/70">{text}</span>
+
+      {done ? (
+        <CheckCircle2 size={18} className="text-green-300" />
+      ) : (
+        <AlertCircle size={18} className="text-yellow-300" />
+      )}
     </div>
   );
 }

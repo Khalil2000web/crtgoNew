@@ -1,30 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
+  ArrowRight,
   ImagePlus,
   Trash2,
-  Eye,
   Check,
   Palette,
   Type,
   LayoutGrid,
   Upload,
+  Save,
+  Loader2,
+  RotateCcw,
+  ImageIcon,
+  Eye,
+  Circle,
 } from "lucide-react";
-import MenuCover from "@/components/MenuCover";
 
-export default function AppearanceEditor({ menu }) {
-  const router = useRouter();
-  const supabase = createClient();
+const MAX_COVER_IMAGES = 6;
 
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState("");
-  const [error, setError] = useState("");
+function normalizeCoverImages(value) {
+  return Array.isArray(value) ? value.filter(Boolean) : [];
+}
 
-  const [form, setForm] = useState({
+function normalizeCoverSettings(value) {
+  return {
+    type: value?.type || "single",
+    speed: value?.speed || "normal",
+  };
+}
+
+function getInitialForm(menu) {
+  return {
     template_id: menu.template_id || "classic",
     primary_color: menu.primary_color || "#000000",
     background_color: menu.background_color || "#ffffff",
@@ -35,17 +46,26 @@ export default function AppearanceEditor({ menu }) {
     font_family: menu.font_family || "tajawal",
     logo_url: menu.logo_url || "",
     cover_url: menu.cover_url || "",
-    cover_images: menu.cover_images || [],
-    cover_settings: menu.cover_settings || {
-      type: "single",
-      speed: "normal",
-    },
-  });
-
-  const previewMenu = {
-    ...menu,
-    ...form,
+    cover_images: normalizeCoverImages(menu.cover_images),
+    cover_settings: normalizeCoverSettings(menu.cover_settings),
   };
+}
+
+export default function AppearanceEditor({ menu }) {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [initialForm, setInitialForm] = useState(() => getInitialForm(menu));
+  const [form, setForm] = useState(() => getInitialForm(menu));
+
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState("");
+
+  const [coverUploads, setCoverUploads] = useState([]);
+
+  const [savingKey, setSavingKey] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const templates = [
     {
@@ -113,11 +133,40 @@ export default function AppearanceEditor({ menu }) {
     },
   ];
 
+  const coverPreviewImages = useMemo(() => {
+    return [
+      ...form.cover_images,
+      ...coverUploads.map((upload) => upload.preview),
+    ].filter(Boolean);
+  }, [form.cover_images, coverUploads]);
+
+  const mainCoverPreview =
+    logoPreview || form.logo_url
+      ? coverPreviewImages[0] || form.cover_url
+      : coverPreviewImages[0] || form.cover_url;
+
+  const currentLogoPreview = logoPreview || form.logo_url;
+
+  const hasChanges = useMemo(() => {
+    if (JSON.stringify(form) !== JSON.stringify(initialForm)) return true;
+    if (logoFile) return true;
+    if (coverUploads.length > 0) return true;
+
+    return false;
+  }, [form, initialForm, logoFile, coverUploads]);
+
+  function clearAlerts() {
+    setMessage("");
+    setError("");
+  }
+
   function updateField(key, value) {
     setForm((current) => ({
       ...current,
       [key]: value,
     }));
+
+    clearAlerts();
   }
 
   function updateCoverSettings(key, value) {
@@ -128,6 +177,8 @@ export default function AppearanceEditor({ menu }) {
         [key]: value,
       },
     }));
+
+    clearAlerts();
   }
 
   function applyPreset(preset) {
@@ -137,188 +188,352 @@ export default function AppearanceEditor({ menu }) {
       background_color: preset.background,
       text_color: preset.text,
     }));
+
+    clearAlerts();
   }
 
-  async function saveAppearance() {
-    setSaving(true);
-    setError("");
-
-    const { error } = await supabase
-      .from("menus")
-      .update(form)
-      .eq("id", menu.id);
-
-    setSaving(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    router.refresh();
-  }
-
-  async function uploadImage(field, file) {
+  function selectLogo(file) {
     if (!file) return;
 
-    setUploading(field);
-    setError("");
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    updateField("logo_url", "");
+  }
 
+  function removeLogo() {
+    setLogoFile(null);
+    setLogoPreview("");
+    updateField("logo_url", "");
+  }
+
+function addCoverImages(files) {
+  const fileList = Array.from(files || []);
+  if (!fileList.length) return;
+
+  const currentCount = form.cover_images.length + coverUploads.length;
+  const remainingSlots = MAX_COVER_IMAGES - currentCount;
+
+  if (remainingSlots <= 0) {
+    setError(`يمكنك رفع ${MAX_COVER_IMAGES} صور غلاف كحد أقصى.`);
+    return;
+  }
+
+  const allowedFiles = fileList.slice(0, remainingSlots);
+
+  if (fileList.length > remainingSlots) {
+    setError(`تم اختيار صور كثيرة. يمكنك إضافة ${remainingSlots} صور فقط الآن.`);
+  } else {
+    clearAlerts();
+  }
+
+  const uploads = allowedFiles.map((file) => ({
+    id: `cover-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    file,
+    preview: URL.createObjectURL(file),
+  }));
+
+  setCoverUploads((current) => [...current, ...uploads]);
+}
+
+  function removeExistingCoverImage(index) {
+    const nextImages = form.cover_images.filter((_, i) => i !== index);
+
+    setForm((current) => ({
+      ...current,
+      cover_images: nextImages,
+      cover_url: nextImages.includes(current.cover_url)
+        ? current.cover_url
+        : nextImages[0] || "",
+    }));
+
+    clearAlerts();
+  }
+
+  function removePendingCoverImage(uploadId) {
+    setCoverUploads((current) =>
+      current.filter((upload) => upload.id !== uploadId)
+    );
+
+    clearAlerts();
+  }
+
+  function setMainCover(imageUrl) {
+    updateField("cover_url", imageUrl);
+  }
+
+  function discardChanges() {
+    if (!hasChanges) return;
+
+    const sure = confirm("هل تريد التراجع عن التغييرات غير المحفوظة؟");
+    if (!sure) return;
+
+    setForm(initialForm);
+    setLogoFile(null);
+    setLogoPreview("");
+    setCoverUploads([]);
+    setMessage("تم التراجع عن التغييرات.");
+    setError("");
+  }
+
+  async function uploadFile(prefix, file) {
     const fileExt = file.name.split(".").pop();
-    const filePath = `menus/${menu.id}/${field}-${Date.now()}.${fileExt}`;
+    const filePath = `menus/${menu.id}/${prefix}-${Date.now()}-${Math.random()
+      .toString(16)
+      .slice(2)}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from("menu-images")
       .upload(filePath, file);
 
-    if (uploadError) {
-      setUploading("");
-      setError(uploadError.message);
-      return;
-    }
+    if (uploadError) throw uploadError;
 
-    const { data } = supabase.storage
-      .from("menu-images")
-      .getPublicUrl(filePath);
+    const { data } = supabase.storage.from("menu-images").getPublicUrl(filePath);
 
-    if (field === "cover_images") {
-      const nextImages = [...form.cover_images, data.publicUrl];
-
-      updateField("cover_images", nextImages);
-      updateField("cover_url", form.cover_url || data.publicUrl);
-    } else {
-      updateField(field, data.publicUrl);
-    }
-
-    setUploading("");
+    return data.publicUrl;
   }
 
-  function removeCoverImage(index) {
-    const nextImages = form.cover_images.filter((_, i) => i !== index);
+  async function saveAppearance() {
+    setSavingKey("save-appearance");
+    clearAlerts();
 
-    updateField("cover_images", nextImages);
-    updateField("cover_url", nextImages[0] || "");
+    try {
+      let finalLogoUrl = form.logo_url || null;
+
+      if (form.cover_images.length + coverUploads.length > MAX_COVER_IMAGES) {
+  throw new Error(`يمكنك حفظ ${MAX_COVER_IMAGES} صور غلاف كحد أقصى.`);
+}
+
+      if (logoFile) {
+        finalLogoUrl = await uploadFile("logo", logoFile);
+      }
+
+      const uploadedCoverUrls = [];
+
+      for (const upload of coverUploads) {
+        const publicUrl = await uploadFile("cover", upload.file);
+        uploadedCoverUrls.push(publicUrl);
+      }
+
+      const finalCoverImages = [
+        ...form.cover_images,
+        ...uploadedCoverUrls,
+      ].filter(Boolean);
+
+      const finalCoverUrl =
+        form.cover_url && finalCoverImages.includes(form.cover_url)
+          ? form.cover_url
+          : finalCoverImages[0] || null;
+
+      const nextForm = {
+        template_id: form.template_id,
+        primary_color: form.primary_color,
+        background_color: form.background_color,
+        text_color: form.text_color,
+        layout_style: form.layout_style,
+        section_style: form.section_style,
+        item_style: form.item_style,
+        font_family: form.font_family,
+        logo_url: finalLogoUrl,
+        cover_url: finalCoverUrl,
+        cover_images: finalCoverImages,
+        cover_settings: form.cover_settings,
+      };
+
+      const { error } = await supabase
+        .from("menus")
+        .update(nextForm)
+        .eq("id", menu.id)
+        .eq("owner_id", menu.owner_id);
+
+      if (error) throw error;
+
+      setForm(nextForm);
+      setInitialForm(nextForm);
+      setLogoFile(null);
+      setLogoPreview("");
+      setCoverUploads([]);
+
+      setMessage("تم حفظ المظهر.");
+      router.refresh();
+    } catch (err) {
+      setError(err.message || "حدث خطأ أثناء حفظ المظهر.");
+    }
+
+    setSavingKey("");
   }
 
   return (
-    <main dir="rtl" className="min-h-screen px-5 py-8 text-white">
+    <main dir="rtl" className="min-h-screen px-5 py-8 pb-36 text-white">
       <section className="mx-auto max-w-6xl">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm text-white/50">المظهر</p>
+        <Link
+          href={`/admin/menus/${menu.id}`}
+          className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+        >
+          <ArrowRight size={18} />
+          الرجوع للقائمة
+        </Link>
 
-            <h1 className="mt-2 text-5xl font-bold">
-              تصميم القائمة
-            </h1>
+        <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_320px]">
+          <section className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-2xl shadow-black/20">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm text-white/45">المظهر</p>
 
-            <p className="mt-3 max-w-2xl text-white/50">
-              عدّل الصور، القالب، الألوان، الخطوط، وطريقة عرض القائمة.
-            </p>
-          </div>
+                <h1 className="mt-2 text-5xl font-black text-white">
+                  تصميم القائمة
+                </h1>
 
-          <button
-            onClick={saveAppearance}
-            disabled={saving}
-            className="rounded-xl bg-white px-6 py-4 font-bold text-black disabled:opacity-50"
-          >
-            {saving ? "جارٍ الحفظ..." : "حفظ المظهر"}
-          </button>
+                <p className="mt-3 max-w-2xl text-white/45">
+                  عدّل الصور، القالب، الألوان، الخطوط، وطريقة عرض القائمة العامة.
+                </p>
+              </div>
+
+              <div
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-bold ${
+                  hasChanges
+                    ? "bg-yellow-500/15 text-yellow-300"
+                    : "bg-green-500/15 text-green-300"
+                }`}
+              >
+                <Circle size={9} fill="currentColor" />
+                {hasChanges ? "تغييرات غير محفوظة" : "كل شيء محفوظ"}
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-3">
+            <StatusCard
+              icon={<ImageIcon size={20} />}
+              label="صور الغلاف"
+              value={coverPreviewImages.length}
+            />
+
+            <StatusCard
+              icon={<LayoutGrid size={20} />}
+              label="القالب"
+              value={form.template_id}
+            />
+
+            <StatusCard
+              icon={<Type size={20} />}
+              label="الخط"
+              value={form.font_family}
+            />
+          </section>
         </div>
 
+        {message && (
+          <p className="mt-6 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-300">
+            {message}
+          </p>
+        )}
+
         {error && (
-          <p className="mt-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-300">
+          <p className="mt-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
             {error}
           </p>
         )}
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_340px]">
-          <div className="space-y-6">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px]">
+          <section className="space-y-6">
             <SettingsCard
               icon={<ImagePlus size={20} />}
               title="الصور"
-              description="ارفع شعار القائمة وصور الغلاف التي تظهر في أعلى الصفحة العامة."
+              description="ارفع الشعار وصور الغلاف. الصور لن تُحفظ نهائياً إلا بعد الضغط على حفظ المظهر."
             >
-              <div className="grid gap-4 md:grid-cols-2">
-                <SquareImageBox
-                  title="الشعار"
-                  description="صورة صغيرة تظهر كهوية للقائمة."
-                  imageUrl={form.logo_url}
-                  loading={uploading === "logo_url"}
-                  onUpload={(file) => uploadImage("logo_url", file)}
-                  onRemove={() => updateField("logo_url", "")}
+              <div className="grid gap-4 md:grid-cols-[280px_1fr]">
+                <LogoBox
+                  imageUrl={currentLogoPreview}
+                  hasPendingFile={Boolean(logoFile)}
+                  onUpload={selectLogo}
+                  onRemove={removeLogo}
                 />
 
-                <CoverGallery
-                  images={form.cover_images}
-                  uploading={uploading === "cover_images"}
-                  onUpload={(file) => uploadImage("cover_images", file)}
-                  onRemove={removeCoverImage}
-                />
+<CoverGallery
+  existingImages={form.cover_images}
+  pendingImages={coverUploads}
+  mainCover={form.cover_url}
+  maxImages={MAX_COVER_IMAGES}
+  onUpload={addCoverImages}
+  onRemoveExisting={removeExistingCoverImage}
+  onRemovePending={removePendingCoverImage}
+  onSetMainCover={setMainCover}
+/>
               </div>
             </SettingsCard>
 
             <SettingsCard
               icon={<LayoutGrid size={20} />}
-              title="طريقة عرض الغلاف"
-              description="اختر كيف تتحرك صور الغلاف في الصفحة العامة."
+              title="حركة الغلاف"
+              description="اختر كيف تظهر صور الغلاف في الصفحة العامة."
             >
               <div className="grid gap-3 md:grid-cols-4">
                 <ChoiceCard
                   title="صورة واحدة"
+                  description="أول صورة فقط"
                   active={form.cover_settings.type === "single"}
                   onClick={() => updateCoverSettings("type", "single")}
                 />
 
                 <ChoiceCard
                   title="تبديل ناعم"
+                  description="Fade بين الصور"
                   active={form.cover_settings.type === "fade"}
                   onClick={() => updateCoverSettings("type", "fade")}
                 />
 
                 <ChoiceCard
                   title="سلايدر"
+                  description="انتقال جانبي"
                   active={form.cover_settings.type === "carousel"}
                   onClick={() => updateCoverSettings("type", "carousel")}
                 />
 
                 <ChoiceCard
                   title="صور متحركة"
+                  description="Stack متحرك"
                   active={form.cover_settings.type === "stack"}
                   onClick={() => updateCoverSettings("type", "stack")}
                 />
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-4">
-                <ChoiceCard
-                  title="بطيء جداً"
-                  active={form.cover_settings.speed === "verySlow"}
-                  onClick={() => updateCoverSettings("speed", "verySlow")}
-                />
+              <div className="mt-5">
+                <p className="mb-3 text-sm font-bold text-white/45">
+                  سرعة الحركة
+                </p>
 
-                <ChoiceCard
-                  title="بطيء"
-                  active={form.cover_settings.speed === "slow"}
-                  onClick={() => updateCoverSettings("speed", "slow")}
-                />
+                <div className="grid gap-3 md:grid-cols-4">
+                  <ChoiceCard
+                    title="بطيء جداً"
+                    active={form.cover_settings.speed === "verySlow"}
+                    onClick={() => updateCoverSettings("speed", "verySlow")}
+                  />
 
-                <ChoiceCard
-                  title="عادي"
-                  active={form.cover_settings.speed === "normal"}
-                  onClick={() => updateCoverSettings("speed", "normal")}
-                />
+                  <ChoiceCard
+                    title="بطيء"
+                    active={form.cover_settings.speed === "slow"}
+                    onClick={() => updateCoverSettings("speed", "slow")}
+                  />
 
-                <ChoiceCard
-                  title="سريع"
-                  active={form.cover_settings.speed === "fast"}
-                  onClick={() => updateCoverSettings("speed", "fast")}
-                />
+                  <ChoiceCard
+                    title="عادي"
+                    active={form.cover_settings.speed === "normal"}
+                    onClick={() => updateCoverSettings("speed", "normal")}
+                  />
+
+                  <ChoiceCard
+                    title="سريع"
+                    active={form.cover_settings.speed === "fast"}
+                    onClick={() => updateCoverSettings("speed", "fast")}
+                  />
+                </div>
               </div>
             </SettingsCard>
 
             <SettingsCard
               icon={<Eye size={20} />}
               title="القالب"
-              description="اختر شكل القائمة العام. لاحقاً يمكن إضافة GIF لكل قالب."
+              description="اختر تصميم القائمة العامة."
             >
               <div className="grid gap-4 md:grid-cols-3">
                 {templates.map((template) => (
@@ -327,7 +542,6 @@ export default function AppearanceEditor({ menu }) {
                     template={template}
                     active={form.template_id === template.id}
                     onChoose={() => updateField("template_id", template.id)}
-                    menuId={menu.id}
                   />
                 ))}
               </div>
@@ -344,24 +558,26 @@ export default function AppearanceEditor({ menu }) {
                     key={preset.name}
                     type="button"
                     onClick={() => applyPreset(preset)}
-                    className="rounded-xl border border-white/10 bg-white/5 p-4 text-right transition hover:bg-white/10"
+                    className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-right transition hover:bg-white/[0.07]"
                   >
                     <div className="flex gap-1">
                       <span
                         className="h-7 w-7 rounded-full border border-white/20"
                         style={{ background: preset.primary }}
                       />
+
                       <span
                         className="h-7 w-7 rounded-full border border-white/20"
                         style={{ background: preset.background }}
                       />
+
                       <span
                         className="h-7 w-7 rounded-full border border-white/20"
                         style={{ background: preset.text }}
                       />
                     </div>
 
-                    <p className="mt-3 text-sm font-bold">
+                    <p className="mt-3 text-sm font-bold text-white">
                       {preset.name}
                     </p>
                   </button>
@@ -403,16 +619,14 @@ export default function AppearanceEditor({ menu }) {
                     className={`rounded-xl border p-5 text-right transition ${
                       form.font_family === font.id
                         ? "border-white bg-white text-black"
-                        : "border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
                     }`}
                   >
                     <p className="text-sm font-bold opacity-60">
                       {font.name}
                     </p>
 
-                    <p className="mt-3 text-xl font-bold">
-                      {font.sample}
-                    </p>
+                    <p className="mt-3 text-xl font-bold">{font.sample}</p>
                   </button>
                 ))}
               </div>
@@ -483,35 +697,58 @@ export default function AppearanceEditor({ menu }) {
                 />
               </SettingBlock>
             </SettingsCard>
-          </div>
+          </section>
 
           <aside className="lg:sticky lg:top-6 lg:h-fit">
-            <div className="rounded-xl bg-black p-4">
-              <p className="text-sm font-bold text-white/50">
-                معاينة مباشرة
-              </p>
+            <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-4 shadow-xl shadow-black/10">
+              <p className="text-sm font-bold text-white/45">معاينة سريعة</p>
 
-              <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                <div className="h-56 overflow-hidden">
-                  <MenuCover menu={previewMenu} />
+              <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+                <div className="relative h-56 bg-black/30">
+                  {mainCoverPreview ? (
+                    <img
+                      src={mainCoverPreview}
+                      alt="Cover preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-white/25">
+                      <ImageIcon size={44} />
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+
+                  <div className="absolute bottom-4 right-4">
+                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[#0f0f0f]">
+                      {currentLogoPreview ? (
+                        <img
+                          src={currentLogoPreview}
+                          alt="Logo preview"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon size={24} className="text-white/30" />
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div
-                  className="p-4"
+                  className="p-5"
                   style={{
                     background: form.background_color,
                     color: form.text_color,
                   }}
                 >
-                  <h3 className="text-2xl font-bold">
-                    {menu.name}
-                  </h3>
+                  <h3 className="text-2xl font-black">{menu.name}</h3>
 
                   <p className="mt-2 text-sm opacity-70">
                     معاينة بسيطة لشكل القائمة بعد التعديل.
                   </p>
 
                   <button
+                    type="button"
                     className="mt-4 rounded-xl px-4 py-3 text-sm font-bold"
                     style={{
                       background: form.primary_color,
@@ -526,25 +763,72 @@ export default function AppearanceEditor({ menu }) {
           </aside>
         </div>
       </section>
+
+      <div className="fixed bottom-24 left-4 right-4 z-[80] md:left-[22rem]">
+        <div className="mx-auto max-w-6xl rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p
+                className={`text-sm font-bold ${
+                  hasChanges ? "text-yellow-300" : "text-green-300"
+                }`}
+              >
+                {hasChanges ? "لديك تغييرات غير محفوظة" : "كل شيء محفوظ"}
+              </p>
+
+              <p className="mt-1 text-xs text-white/40">
+                احفظ التغييرات لتطبيق الصور، القالب، الألوان، وطريقة العرض.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 md:flex">
+              <button
+                type="button"
+                onClick={discardChanges}
+                disabled={!hasChanges || savingKey === "save-appearance"}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1 text-sm font-extrabold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <RotateCcw size={18} />
+                تراجع
+              </button>
+
+              <button
+                type="button"
+                onClick={saveAppearance}
+                disabled={!hasChanges || savingKey === "save-appearance"}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-extrabold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {savingKey === "save-appearance" ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <Save size={18} />
+                )}
+
+                {savingKey === "save-appearance"
+                  ? "جارٍ الحفظ..."
+                  : "حفظ المظهر"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
 
 function SettingsCard({ icon, title, description, children }) {
   return (
-    <section className="rounded-xl bg-black p-5 md:p-6">
+    <section className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-5 shadow-xl shadow-black/10 md:p-6">
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-black">
           {icon}
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold">{title}</h2>
+          <h2 className="text-2xl font-black text-white">{title}</h2>
 
           {description && (
-            <p className="mt-1 text-sm text-white/50">
-              {description}
-            </p>
+            <p className="mt-1 text-sm text-white/45">{description}</p>
           )}
         </div>
       </div>
@@ -554,39 +838,45 @@ function SettingsCard({ icon, title, description, children }) {
   );
 }
 
-function SquareImageBox({ title, description, imageUrl, loading, onUpload, onRemove }) {
+function LogoBox({ imageUrl, hasPendingFile, onUpload, onRemove }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="font-bold">{title}</h3>
-          <p className="mt-1 text-xs text-white/40">{description}</p>
-        </div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div>
+        <h3 className="text-xl font-black text-white">الشعار</h3>
+
+        <p className="mt-1 text-xs text-white/40">
+          صورة صغيرة تظهر كهوية للقائمة.
+        </p>
       </div>
 
-      <div className="mt-4 aspect-square overflow-hidden rounded-xl bg-white/5">
+      <div className="mt-4 aspect-square overflow-hidden rounded-2xl border border-white/10 bg-black/25">
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={title}
+            alt="Logo"
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-white/40">
-            لا توجد صورة
+          <div className="flex h-full items-center justify-center text-sm text-white/35">
+            لا يوجد شعار
           </div>
         )}
       </div>
 
+      {hasPendingFile && (
+        <p className="mt-3 rounded-xl bg-yellow-500/10 px-3 py-2 text-xs font-bold text-yellow-300">
+          شعار جديد بانتظار الحفظ
+        </p>
+      )}
+
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-3 py-3 text-sm font-bold text-black">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-3 py-3 text-sm font-bold text-black transition hover:bg-white/90">
           <Upload size={16} />
-          {loading ? "جارٍ..." : imageUrl ? "تغيير" : "رفع"}
+          {imageUrl ? "تغيير" : "رفع"}
 
           <input
             type="file"
             accept="image/*"
-            disabled={loading}
             className="hidden"
             onChange={(e) => {
               onUpload(e.target.files?.[0]);
@@ -599,7 +889,7 @@ function SquareImageBox({ title, description, imageUrl, loading, onUpload, onRem
           type="button"
           onClick={onRemove}
           disabled={!imageUrl}
-          className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-3 text-sm font-bold text-white disabled:opacity-30"
+          className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-sm font-bold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
         >
           <Trash2 size={16} />
           حذف
@@ -609,68 +899,140 @@ function SquareImageBox({ title, description, imageUrl, loading, onUpload, onRem
   );
 }
 
-function CoverGallery({ images, uploading, onUpload, onRemove }) {
+function CoverGallery({
+  existingImages,
+  pendingImages,
+  mainCover,
+  maxImages,
+  onUpload,
+  onRemoveExisting,
+  onRemovePending,
+  onSetMainCover,
+}) {
+
+const totalImages = existingImages.length + pendingImages.length;
+const reachedLimit = totalImages >= maxImages;
+
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-      <div>
-        <h3 className="font-bold">صور الغلاف</h3>
-        <p className="mt-1 text-xs text-white/40">
-          يمكنك رفع أكثر من صورة للغلاف.
-        </p>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h3 className="text-xl font-black text-white">صور الغلاف</h3>
+
+<p className="mt-1 text-xs text-white/40">
+  يمكنك رفع حتى {maxImages} صور غلاف. لديك الآن {totalImages} / {maxImages}.
+</p>
+        </div>
+
+<label
+  className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${
+    reachedLimit
+      ? "cursor-not-allowed bg-white/10 text-white/30"
+      : "cursor-pointer bg-white text-black hover:bg-white/90"
+  }`}
+>
+  <ImagePlus size={16} />
+  {reachedLimit ? "وصلت للحد الأقصى" : "إضافة صور"}
+
+  <input
+    type="file"
+    accept="image/*"
+    multiple
+    disabled={reachedLimit}
+    className="hidden"
+    onChange={(e) => {
+      onUpload(e.target.files);
+      e.target.value = "";
+    }}
+  />
+</label>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        {images.map((image, index) => (
-          <div
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {existingImages.map((image, index) => (
+          <CoverImageCard
             key={`${image}-${index}`}
-            className="group relative aspect-square overflow-hidden rounded-xl bg-white/5"
-          >
-            <img
-              src={image}
-              alt={`Cover ${index + 1}`}
-              className="h-full w-full object-cover"
-            />
-
-            <button
-              type="button"
-              onClick={() => onRemove(index)}
-              className="absolute left-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-red-600 text-white shadow-lg"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+            image={image}
+            isMain={mainCover === image}
+            pending={false}
+            onMakeMain={() => onSetMainCover(image)}
+            onRemove={() => onRemoveExisting(index)}
+          />
         ))}
 
-        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/5 text-center transition hover:bg-white/10">
-          <ImagePlus size={24} />
-
-          <span className="mt-2 text-sm font-bold">
-            {uploading ? "جارٍ الرفع..." : "إضافة"}
-          </span>
-
-          <input
-            type="file"
-            accept="image/*"
-            disabled={uploading}
-            className="hidden"
-            onChange={(e) => {
-              onUpload(e.target.files?.[0]);
-              e.target.value = "";
-            }}
+        {pendingImages.map((upload) => (
+          <CoverImageCard
+            key={upload.id}
+            image={upload.preview}
+            isMain={false}
+            pending
+            onMakeMain={null}
+            onRemove={() => onRemovePending(upload.id)}
           />
-        </label>
+        ))}
+
+        {!existingImages.length && !pendingImages.length && (
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-white/15 bg-black/20 text-sm text-white/35 sm:col-span-2 lg:col-span-3">
+            لا توجد صور غلاف بعد.
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function TemplateCard({ template, active, onChoose, menuId }) {
+function CoverImageCard({ image, isMain, pending, onMakeMain, onRemove }) {
   return (
-    <div
-      className={`overflow-hidden rounded-xl border ${
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/25">
+      <div className="relative aspect-square">
+        <img src={image} alt="Cover" className="h-full w-full object-cover" />
+
+        <div className="absolute right-2 top-2 flex flex-wrap gap-2">
+          {isMain && (
+            <span className="rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white">
+              الرئيسية
+            </span>
+          )}
+
+          {pending && (
+            <span className="rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold text-black">
+              بانتظار الحفظ
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 p-2">
+        <button
+          type="button"
+          onClick={onMakeMain}
+          disabled={pending || isMain}
+          className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-bold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          جعلها الرئيسية
+        </button>
+
+        <button
+          type="button"
+          onClick={onRemove}
+          className="rounded-xl bg-red-600 px-3 py-3 text-xs font-bold text-white transition hover:bg-red-700"
+        >
+          حذف
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TemplateCard({ template, active, onChoose }) {
+  return (
+    <button
+      type="button"
+      onClick={onChoose}
+      className={`overflow-hidden rounded-2xl border text-right transition ${
         active
           ? "border-white bg-white text-black"
-          : "border-white/10 bg-white/5 text-white"
+          : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
       }`}
     >
       <div className="aspect-square bg-white/10">
@@ -684,7 +1046,8 @@ function TemplateCard({ template, active, onChoose, menuId }) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-xl font-bold">{template.name}</h3>
+            <h3 className="text-xl font-black">{template.name}</h3>
+
             <p className="mt-1 text-xs opacity-60">
               {template.description}
             </p>
@@ -697,44 +1060,28 @@ function TemplateCard({ template, active, onChoose, menuId }) {
           )}
         </div>
 
-        <div className="mt-4 grid gap-2">
-          <button
-            type="button"
-            onClick={onChoose}
-            className={`rounded-xl px-4 py-3 font-bold ${
-              active ? "bg-black text-white" : "bg-white text-black"
-            }`}
-          >
-            {active ? "مختار" : "اختيار القالب"}
-          </button>
-
-          <Link
-            href={`/admin/menus/${menuId}/appearance/preview/${template.id}`}
-            className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-center font-bold ${
-              active
-                ? "border-black/20 text-black"
-                : "border-white/10 text-white"
-            }`}
-          >
-            <Eye size={16} />
-            معاينة
-          </Link>
-        </div>
+        <p
+          className={`mt-4 rounded-xl px-4 py-3 text-center text-sm font-black ${
+            active ? "bg-black text-white" : "bg-white text-black"
+          }`}
+        >
+          {active ? "مختار" : "اختيار القالب"}
+        </p>
       </div>
-    </div>
+    </button>
   );
 }
 
 function SettingBlock({ title, children }) {
   return (
     <div className="mt-5 first:mt-0">
-      <h3 className="mb-3 text-sm font-bold text-white/50">{title}</h3>
+      <h3 className="mb-3 text-sm font-bold text-white/45">{title}</h3>
       <div className="grid gap-3 md:grid-cols-3">{children}</div>
     </div>
   );
 }
 
-function ChoiceCard({ title, active, onClick }) {
+function ChoiceCard({ title, description, active, onClick }) {
   return (
     <button
       type="button"
@@ -742,10 +1089,16 @@ function ChoiceCard({ title, active, onClick }) {
       className={`rounded-xl border p-4 text-right text-sm font-bold transition ${
         active
           ? "border-white bg-white text-black"
-          : "border-white/10 bg-white/5 text-white hover:bg-white/10"
+          : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.07]"
       }`}
     >
-      {title}
+      <p>{title}</p>
+
+      {description && (
+        <p className="mt-1 text-xs font-normal opacity-60">
+          {description}
+        </p>
+      )}
     </button>
   );
 }
@@ -753,9 +1106,9 @@ function ChoiceCard({ title, active, onClick }) {
 function ColorField({ label, value, onChange }) {
   return (
     <label className="block">
-      <p className="mb-2 text-sm font-bold text-white/50">{label}</p>
+      <p className="mb-2 text-sm font-bold text-white/45">{label}</p>
 
-      <div className="flex overflow-hidden rounded-xl border border-white/10 bg-white/5">
+      <div className="flex overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
         <input
           type="color"
           value={value}
@@ -771,5 +1124,20 @@ function ColorField({ label, value, onChange }) {
         />
       </div>
     </label>
+  );
+}
+
+function StatusCard({ icon, label, value }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] p-5 shadow-xl shadow-black/10">
+      <div className="flex items-center justify-between gap-3 text-white/45">
+        <span>{label}</span>
+        {icon}
+      </div>
+
+      <p className="mt-3 break-all text-2xl font-black text-white">
+        {value}
+      </p>
+    </div>
   );
 }

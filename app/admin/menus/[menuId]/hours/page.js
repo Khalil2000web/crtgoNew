@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import SectionsManager from "./sections-manager";
+import HoursForm from "./hours-form";
 
-export default async function SectionsPage({ params }) {
+export default async function HoursPage({ params }) {
   const { menuId } = await params;
 
   const supabase = await createClient();
@@ -15,29 +15,12 @@ export default async function SectionsPage({ params }) {
 
   const { data: menu } = await supabase
     .from("menus")
-    .select(
-      `
-      id,
-      name,
-      owner_id,
-      sections (
-        *,
-        items (
-          id
-        )
-      )
-    `
-    )
+    .select("*")
     .eq("id", menuId)
     .eq("owner_id", user.id)
     .single();
 
   if (!menu) notFound();
 
-  const sections =
-    menu.sections?.sort(
-      (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-    ) || [];
-
-  return <SectionsManager menu={menu} initialSections={sections} />;
+  return <HoursForm menu={menu} />;
 }

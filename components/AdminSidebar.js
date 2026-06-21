@@ -186,7 +186,7 @@ export default function AdminSidebar({ profile }) {
       {mobileOpen && (
         <div
           dir="rtl"
-          className="fixed inset-0 z-[999] overflow-y-auto overscroll-contain bg-[#000] text-white px-5 pb-28 pt-8 md:hidden"
+          className="fixed inset-0 z-[999] no-scrollbar overflow-y-auto overscroll-contain bg-[#000] text-white px-5 pb-28 pt-8 md:hidden"
         >
           <div className="mx-auto max-w-md">
             <NavContent

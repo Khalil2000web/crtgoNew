@@ -208,3 +208,42 @@ body {
   border-color: #f2aa4c;
   color: black;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* hours */
+        .input {
+          width: 100%;
+          border-radius: 0.75rem;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.06);
+          color: white;
+          padding: 0.9rem;
+          outline: none;
+        }
+
+        .input:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .input:focus {
+          border-color: white;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+
+
+/* section editor */

@@ -1,14 +1,17 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppearanceEditor from "./appearance-editor";
 
 export default async function AppearancePage({ params }) {
   const { menuId } = await params;
+
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) redirect("/start");
 
   const { data: menu } = await supabase
     .from("menus")

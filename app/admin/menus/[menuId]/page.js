@@ -4,6 +4,7 @@ import MenuEditor from "./menu-editor";
 
 export default async function MenuAdminPage({ params }) {
   const { menuId } = await params;
+
   const supabase = await createClient();
 
   const {
@@ -14,13 +15,15 @@ export default async function MenuAdminPage({ params }) {
 
   const { data: menu } = await supabase
     .from("menus")
-    .select(`
+    .select(
+      `
       *,
       sections (
         *,
         items (*)
       )
-    `)
+    `
+    )
     .eq("id", menuId)
     .eq("owner_id", user.id)
     .single();
