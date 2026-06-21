@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { CircleAlert } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 import ClassicTemplate from "@/components/templates/ClassicTemplate";
-import LuxuryTemplate from "@/components/templates/LuxuryTemplate";
-import MinimalTemplate from "@/components/templates/MinimalTemplate";
+import { getPublicMenu } from "@/lib/public-menu";
 
 function hasAccess(profile) {
   if (!profile) return false;
@@ -22,15 +21,36 @@ function hasAccess(profile) {
   return false;
 }
 
+export async function generateMetadata({ params }) {
+  const { handle } = await params;
+
+  const menu = await getPublicMenu(handle);
+
+  if (!menu) {
+    return {
+      title: "Menu unavailable",
+      description: "This digital menu is unavailable.",
+    };
+  }
+
+  return {
+    title: menu.name || "Menu",
+    description: menu.description_ar || "Digital menu powered by CRTGO.",
+    openGraph: {
+      title: menu.name || "Menu",
+      description: menu.description_ar || "Digital menu powered by CRTGO.",
+      images: menu.cover_url || menu.logo_url ? [menu.cover_url || menu.logo_url] : [],
+    },
+  };
+}
+
 function MenuUnavailable() {
   return (
     <main className="flex min-h-screen items-center justify-center p-5">
       <div className="max-w-md text-center">
-        <h1 className="text-2xl font-black flex gap-2 items-center justify-center">This menu is unavailable <CircleAlert /></h1>
-
-        <p className="mt-3 text-black/50 hidden">
-          The subscription for this menu has expired
-        </p>
+        <h1 className="flex items-center justify-center gap-2 text-2xl font-black">
+          This menu is unavailable <CircleAlert />
+        </h1>
       </div>
     </main>
   );
@@ -38,22 +58,12 @@ function MenuUnavailable() {
 
 export default async function PublicMenuPage({ params }) {
   const { handle } = await params;
-  const supabase = await createClient();
 
-  const { data: menu } = await supabase
-    .from("menus")
-    .select(`
-      *,
-      sections (
-        *,
-        items (*)
-      )
-    `)
-    .eq("subdomain", handle)
-    .eq("status", "active")
-    .single();
+  const menu = await getPublicMenu(handle);
 
   if (!menu) notFound();
+
+  const supabase = await createClient();
 
   const { data: owner } = await supabase
     .from("profiles")
@@ -63,14 +73,6 @@ export default async function PublicMenuPage({ params }) {
 
   if (!hasAccess(owner)) {
     return <MenuUnavailable />;
-  }
-
-  if (menu.template_id === "luxury") {
-    return <LuxuryTemplate menu={menu} />;
-  }
-
-  if (menu.template_id === "minimal") {
-    return <MinimalTemplate menu={menu} />;
   }
 
   return <ClassicTemplate menu={menu} />;

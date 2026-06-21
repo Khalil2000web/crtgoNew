@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
@@ -295,6 +296,7 @@ function addCoverImages(files) {
   async function saveAppearance() {
     setSavingKey("save-appearance");
     clearAlerts();
+    
 
     try {
       let finalLogoUrl = form.logo_url || null;
@@ -346,6 +348,7 @@ function addCoverImages(files) {
         .eq("owner_id", menu.owner_id);
 
       if (error) throw error;
+      await revalidatePublicMenu(menu.id);
 
       setForm(nextForm);
       setInitialForm(nextForm);

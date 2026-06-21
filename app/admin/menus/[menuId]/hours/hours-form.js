@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 
 const DAYS = [
   { key: "sunday", label: "الأحد" },
@@ -102,30 +103,32 @@ export default function HoursForm({ menu }) {
     setHours(updated);
   }
 
-  async function saveHours(e) {
-    e.preventDefault();
+async function saveHours(e) {
+  e.preventDefault();
 
-    setSaving(true);
-    setMessage("");
-    setError("");
+  setSaving(true);
+  setMessage("");
+  setError("");
 
-    const { error } = await supabase
-      .from("menus")
-      .update({
-        working_hours: hours,
-      })
-      .eq("id", menu.id);
+  const { error } = await supabase
+    .from("menus")
+    .update({
+      working_hours: hours,
+    })
+    .eq("id", menu.id);
 
+  if (error) {
     setSaving(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    setMessage("تم حفظ ساعات العمل.");
-    router.refresh();
+    setError(error.message);
+    return;
   }
+
+  await revalidatePublicMenu(menu.id);
+
+  setSaving(false);
+  setMessage("تم حفظ ساعات العمل.");
+  router.refresh();
+}
 
   return (
     <main dir="rtl" className="min-h-screen px-5 py-8 text-white">

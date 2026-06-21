@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 import {
   ArrowRight,
   ImagePlus,
@@ -349,6 +350,8 @@ export default function SectionEditor({ section, menu, menuId }) {
       setItems(savedItems);
       setDeletedItemIds([]);
 
+      await revalidatePublicMenu(menuId);
+
       setMessage("تم حفظ كل التغييرات.");
       router.refresh();
     } catch (err) {
@@ -376,13 +379,15 @@ export default function SectionEditor({ section, menu, menuId }) {
 
     setSavingKey("");
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
+if (error) {
+  setError(error.message);
+  return;
+}
 
-    router.push(`/admin/menus/${menuId}/sections`);
-    router.refresh();
+await revalidatePublicMenu(menuId);
+
+router.push(`/admin/menus/${menuId}/sections`);
+router.refresh();
   }
 
   return (

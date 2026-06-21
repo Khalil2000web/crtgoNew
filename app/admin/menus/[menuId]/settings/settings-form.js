@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
+
 import {
   ArrowRight,
   Save,
@@ -147,20 +149,22 @@ async function copyPublicLink() {
       .eq("id", menu.id)
       .eq("owner_id", menu.owner_id);
 
-    setSavingKey("");
+if (error) {
+  setSavingKey("");
+  setError(error.message);
+  return;
+}
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
+await revalidatePublicMenu(menu.id, cleanSubdomain, menu.subdomain);
 
-    setSettings({
-      subdomain: cleanSubdomain,
-      status: settings.status,
-    });
+setSettings({
+  subdomain: cleanSubdomain,
+  status: settings.status,
+});
 
-    setMessage("تم حفظ إعدادات القائمة.");
-    router.refresh();
+setSavingKey("");
+setMessage("تم حفظ إعدادات القائمة.");
+router.refresh();
   }
 
   async function deleteMenu() {
@@ -204,6 +208,8 @@ async function copyPublicLink() {
       setError(sectionsError.message);
       return;
     }
+
+    await revalidatePublicMenu(menu.id, menu.subdomain);
 
     const { error: menuError } = await supabase
       .from("menus")

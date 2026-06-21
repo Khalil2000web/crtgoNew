@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 
 export default function ItemsForm({
   menuId,
@@ -21,28 +22,29 @@ export default function ItemsForm({
   const [loading,setLoading] =
     useState(false);
 
-  async function addCategory(e){
-    e.preventDefault();
+async function addCategory(e) {
+  e.preventDefault();
 
-    setLoading(true);
+  setLoading(true);
 
-    const { error } =
-      await supabase
-      .from("categories")
-      .insert({
-        branch_id:branchId,
-        name_ar:categoryName
-      });
+  const { error } = await supabase
+    .from("categories")
+    .insert({
+      branch_id: branchId,
+      name_ar: categoryName,
+    });
 
+  if (error) {
     setLoading(false);
-
-    if(error){
-      return;
-    }
-
-    router.refresh();
-    setCategoryName("");
+    return;
   }
+
+  await revalidatePublicMenu(menuId);
+
+  setLoading(false);
+  router.refresh();
+  setCategoryName("");
+}
 
   return(
     <div className="mt-8">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 
 export default function DetailsForm({ menu }) {
   const router = useRouter();
@@ -30,37 +31,40 @@ export default function DetailsForm({ menu }) {
     }));
   }
 
-  async function saveDetails(e) {
-    e.preventDefault();
+async function saveDetails(e) {
+  e.preventDefault();
 
-    setSaving(true);
-    setMessage("");
-    setError("");
+  setSaving(true);
+  setMessage("");
+  setError("");
 
-    const { error } = await supabase
-      .from("menus")
-      .update({
-        name: form.name.trim(),
-        description_ar: form.description_ar.trim(),
-        location: form.location.trim(),
-        phone: form.phone.trim(),
-        whatsapp: form.whatsapp.trim(),
-        instagram: form.instagram.trim(),
-        tiktok: form.tiktok.trim(),
-        facebook: form.facebook.trim(),
-      })
-      .eq("id", menu.id);
+  const { error } = await supabase
+    .from("menus")
+    .update({
+      name: form.name.trim(),
+      description_ar: form.description_ar.trim(),
+      location: form.location.trim(),
+      phone: form.phone.trim(),
+      whatsapp: form.whatsapp.trim(),
+      instagram: form.instagram.trim(),
+      tiktok: form.tiktok.trim(),
+      facebook: form.facebook.trim(),
+    })
+    .eq("id", menu.id);
 
+  if (error) {
     setSaving(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    setMessage("تم حفظ معلومات القائمة.");
-    router.refresh();
+    setError(error.message);
+    return;
   }
+
+  await revalidatePublicMenu(menu.id);
+
+  setSaving(false);
+  setMessage("تم حفظ المعلومات.");
+  router.refresh();
+}
+
 
   return (
     <main dir="rtl" className="min-h-screen px-5 py-8 text-white">

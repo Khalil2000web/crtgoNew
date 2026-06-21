@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 import {
   ArrowRight,
   Plus,
@@ -94,6 +95,9 @@ export default function SectionsManager({ menu, initialSections }) {
 
     setSections((current) => [...current, normalizeSection(data)]);
     setNewSectionName("");
+
+    await revalidatePublicMenu(menu.id);
+
     setMessage("تمت إضافة القسم.");
     router.refresh();
   }
@@ -143,6 +147,9 @@ export default function SectionsManager({ menu, initialSections }) {
 
     setEditingId("");
     setEditingName("");
+
+    await revalidatePublicMenu(menu.id);
+
     setMessage("تم تعديل اسم القسم.");
     router.refresh();
   }
@@ -173,6 +180,8 @@ export default function SectionsManager({ menu, initialSections }) {
     setSections((current) =>
       current.filter((section) => section.id !== sectionId)
     );
+
+await revalidatePublicMenu(menu.id);
 
     setMessage("تم حذف القسم.");
     router.refresh();
@@ -226,6 +235,8 @@ export default function SectionsManager({ menu, initialSections }) {
       router.refresh();
       return;
     }
+
+    await revalidatePublicMenu(menu.id);
 
     setMessage("تم تحديث ترتيب الأقسام.");
     router.refresh();
