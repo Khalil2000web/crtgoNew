@@ -1,12 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import DetailsForm from "./details-form";
+import LanguagesForm from "./languages-form";
 
 export const metadata = {
-  title: "Menu Details",
+  title: "Languages",
 };
 
-export default async function DetailsPage({ params }) {
+export default async function LanguagesPage({ params }) {
   const { menuId } = await params;
 
   const supabase = await createClient();
@@ -21,24 +21,9 @@ export default async function DetailsPage({ params }) {
 
   const { data: menu, error } = await supabase
     .from("menus")
-    .select(`
-      id,
-      owner_id,
-      name,
-      subdomain,
-      description_ar,
-      location,
-      phone,
-      whatsapp,
-      instagram,
-      tiktok,
-      facebook,
-      enabled_languages,
-      default_language,
-      name_i18n,
-      description_i18n,
-      location_i18n
-    `)
+    .select(
+      "id, owner_id, name, subdomain, enabled_languages, default_language"
+    )
     .eq("id", menuId)
     .single();
 
@@ -46,5 +31,5 @@ export default async function DetailsPage({ params }) {
     notFound();
   }
 
-  return <DetailsForm menu={menu} />;
+  return <LanguagesForm menu={menu} />;
 }

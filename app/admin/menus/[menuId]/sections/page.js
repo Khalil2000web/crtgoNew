@@ -2,6 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SectionsManager from "./sections-manager";
 
+export const metadata = {
+  title: "Menu Sections",
+};
+
 export default async function SectionsPage({ params }) {
   const { menuId } = await params;
 
@@ -11,33 +15,42 @@ export default async function SectionsPage({ params }) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/start");
+  if (!user) {
+    redirect("/start");
+  }
 
-  const { data: menu } = await supabase
+  const { data: menu, error: menuError } = await supabase
     .from("menus")
+    .select(
+      "id, owner_id, name, subdomain, enabled_languages, default_language"
+    )
+    .eq("id", menuId)
+    .single();
+
+  if (menuError || !menu || menu.owner_id !== user.id) {
+    notFound();
+  }
+
+  const { data: sections, error: sectionsError } = await supabase
+    .from("sections")
     .select(
       `
       id,
-      name,
-      owner_id,
-      sections (
-        *,
-        items (
-          id
-        )
+      menu_id,
+      name_ar,
+      name_i18n,
+      sort_order,
+      items (
+        id
       )
     `
     )
-    .eq("id", menuId)
-    .eq("owner_id", user.id)
-    .single();
+    .eq("menu_id", menu.id)
+    .order("sort_order", { ascending: true });
 
-  if (!menu) notFound();
+  if (sectionsError) {
+    throw new Error(sectionsError.message);
+  }
 
-  const sections =
-    menu.sections?.sort(
-      (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-    ) || [];
-
-  return <SectionsManager menu={menu} initialSections={sections} />;
+  return <SectionsManager menu={menu} initialSections={sections || []} />;
 }

@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import MenuCover from "@/components/MenuCover";
 import {
+  LANGUAGES,
+  getLanguage,
+  getTranslatedText,
+  normalizeEnabledLanguages,
+} from "@/lib/i18n";
+import {
   Clock,
   MapPin,
   Phone,
@@ -132,6 +138,22 @@ export default function ClassicTemplate({ menu }) {
   const sectionStyle = menu.section_style || "normal";
   const itemStyle = menu.item_style || "image-top";
 
+
+const enabledLanguages = normalizeEnabledLanguages(menu.enabled_languages);
+const safeDefaultLanguage = enabledLanguages.includes(menu.default_language)
+  ? menu.default_language
+  : enabledLanguages[0];
+
+const [selectedLanguage, setSelectedLanguage] = useState(safeDefaultLanguage);
+
+const currentLanguage = getLanguage(selectedLanguage);
+const isLtr = currentLanguage.dir === "ltr";
+
+function t(translations, fallbackText = "") {
+  return getTranslatedText(translations, selectedLanguage, fallbackText);
+}
+
+
   const sections = useMemo(() => {
     return [...(menu.sections || [])].sort(
       (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
@@ -139,12 +161,28 @@ export default function ClassicTemplate({ menu }) {
   }, [menu.sections]);
 
   useEffect(() => {
-    setMounted(true);
+  setMounted(true);
+}, []);
 
-    if (!activeSectionId && sections.length > 0) {
-      setActiveSectionId(sections[0].id);
-    }
-  }, [sections, activeSectionId]);
+useEffect(() => {
+  const savedLanguage = localStorage.getItem(`crtgo-language-${menu.id}`);
+
+  if (savedLanguage && enabledLanguages.includes(savedLanguage)) {
+    setSelectedLanguage(savedLanguage);
+  }
+}, [menu.id, enabledLanguages]);
+
+useEffect(() => {
+  if (!activeSectionId && sections.length > 0) {
+    setActiveSectionId(sections[0].id);
+  }
+}, [sections, activeSectionId]);
+
+
+  function changeLanguage(languageCode) {
+  setSelectedLanguage(languageCode);
+  localStorage.setItem(`crtgo-language-${menu.id}`, languageCode);
+}
 
   const socials = [
     {
@@ -227,7 +265,7 @@ export default function ClassicTemplate({ menu }) {
 
   return (
     <div
-      dir="rtl"
+  dir={currentLanguage.dir}
       className="min-h-screen overflow-x-hidden"
       style={{
         background: backgroundColor,
@@ -243,7 +281,7 @@ export default function ClassicTemplate({ menu }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/35 to-black/90" />
 
         <div className="relative z-10 mx-auto flex min-h-[500px] max-w-5xl flex-col justify-end px-4 pb-6 pt-10 sm:min-h-[560px] sm:px-5 sm:pb-8">
-          <div className="rounded-[1.8rem] border border-white/15 bg-white/10 p-4 text-white shadow-2xl backdrop-blur-xl sm:rounded-[2rem] sm:p-5">
+          <div className="rounded-[1.8rem] border border-white/15 bg-white/10 p-4 text-white shadow-2xl backdrop-blur-sm sm:rounded-[2rem] sm:p-5">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/20 bg-black/30 sm:h-24 sm:w-24 sm:rounded-[1.7rem]">
@@ -266,14 +304,14 @@ export default function ClassicTemplate({ menu }) {
                   </p>
 
                   <h1 className="mt-2 break-words text-3xl font-black leading-tight sm:text-5xl">
-                    {menu.name}
+                    {t(menu.name_i18n, menu.name)}
                   </h1>
 
-                  {menu.description_ar && (
-                    <p className="mt-2 line-clamp-3 max-w-2xl text-sm leading-6 text-white/70">
-                      {menu.description_ar}
-                    </p>
-                  )}
+                  {t(menu.description_i18n, menu.description_ar) && (
+  <p className="mt-2 line-clamp-3 max-w-2xl text-sm leading-6 text-white/70">
+    {t(menu.description_i18n, menu.description_ar)}
+  </p>
+)}
                 </div>
               </div>
 
@@ -315,14 +353,14 @@ export default function ClassicTemplate({ menu }) {
                 {menu.location && (
                   <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">
                     <MapPin size={16} />
-                    <span className="line-clamp-1">{menu.location}</span>
+                    <span className="line-clamp-1">{t(menu.location_i18n, menu.location)}</span>
                   </div>
                 )}
 
                 {menu.phone && (
                   <a
                     href={`tel:${menu.phone}`}
-                    className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/25"
+                    className="hidden items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/25"
                   >
                     <Phone size={16} />
                     اتصال
@@ -354,6 +392,31 @@ export default function ClassicTemplate({ menu }) {
           </div>
         </div>
       </header>
+
+
+      {enabledLanguages.length > 1 && (
+  <div dir="rtl" className="fixed z-40 top-4 left-4 flex flex-wrap gap-2">
+    {enabledLanguages.map((languageCode) => {
+      const language = getLanguage(languageCode);
+      const active = selectedLanguage === languageCode;
+
+      return (
+        <button
+          key={language.code}
+          type="button"
+          onClick={() => changeLanguage(language.code)}
+          className={`rounded-full cursor-pointer px-4 py-2 text-sm font-black transition ${
+            active
+              ? "bg-white text-black"
+              : "bg-white/15 text-white hover:bg-white/25"
+          }`}
+        >
+          {language.shortLabel}
+        </button>
+      );
+    })}
+  </div>
+)}
 
       <main className={`mx-auto ${pageWidth} px-4 py-6 sm:px-5 sm:py-8`}>
         <div className="sticky top-0 z-30 -mx-4 border-b border-black/10 bg-white/85 px-4 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5 sm:py-4">
@@ -393,7 +456,7 @@ export default function ClassicTemplate({ menu }) {
                         borderColor: `${primaryColor}33`,
                       }}
                     >
-                      {section.name_ar}
+                      {t(section.name_i18n, section.name_ar)}
                     </button>
                   );
                 })}
