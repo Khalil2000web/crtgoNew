@@ -1,8 +1,61 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  CreditCard,
+  Fingerprint,
+  KeyRound,
+  Loader2,
+  Mail,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+
+import {
+  AdminAlert,
+  AdminButton,
+  AdminCard,
+  AdminField,
+  AdminInput,
+  AdminLinkButton,
+  AdminRow,
+  AdminStatStrip,
+} from "@/components/admin/AdminUI";
+
+function getPlanLabel(plan) {
+  const labels = {
+    basic: "Basic",
+    pro: "Pro",
+    business: "Business",
+    trial: "Trial",
+  };
+
+  return labels[plan] || plan || "Trial";
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    active: "فعال",
+    trialing: "تجريبي",
+    inactive: "غير فعال",
+    expired: "منتهي",
+    cancelled: "ملغي",
+  };
+
+  return labels[status] || status || "غير معروف";
+}
+
+function getTrialDaysLeft(profile) {
+  if (!profile?.trial_ends_at) return 0;
+
+  return Math.max(
+    0,
+    Math.ceil(
+      (new Date(profile.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)
+    )
+  );
+}
 
 export default function SettingsForm({ user, profile }) {
   const supabase = createClient();
@@ -16,17 +69,7 @@ export default function SettingsForm({ user, profile }) {
 
   const plan = profile?.plan_id || "trial";
   const status = profile?.subscription_status || "unknown";
-
-  const trialEnds = profile?.trial_ends_at
-    ? new Date(profile.trial_ends_at)
-    : null;
-
-  const trialDaysLeft = trialEnds
-    ? Math.max(
-        0,
-        Math.ceil((trialEnds - new Date()) / (1000 * 60 * 60 * 24))
-      )
-    : 0;
+  const trialDaysLeft = getTrialDaysLeft(profile);
 
   async function saveProfile(e) {
     e.preventDefault();
@@ -80,148 +123,206 @@ export default function SettingsForm({ user, profile }) {
   }
 
   return (
-    <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_340px]">
-      <div className="space-y-6">
-        {message && (
-          <p className="rounded-xl bg-green-500/10 p-4 text-sm text-green-300">
-            {message}
-          </p>
-        )}
+    <div className="mt-5 grid gap-5">
+      {(message || error) && (
+        <div>
+          {message && <AdminAlert type="success">{message}</AdminAlert>}
+          {error && <AdminAlert type="error">{error}</AdminAlert>}
+        </div>
+      )}
 
-        {error && (
-          <p className="rounded-xl bg-red-500/10 p-4 text-sm text-red-300">
-            {error}
-          </p>
-        )}
+      <AdminStatStrip
+        stats={[
+          {
+            label: "الخطة الحالية",
+            value: getPlanLabel(plan),
+            hint: "يمكنك إدارتها من صفحة الخطط",
+            icon: <CreditCard size={20} />,
+          },
+          {
+            label: "حالة الحساب",
+            value: getStatusLabel(status),
+            hint:
+              status === "trialing"
+                ? `باقي ${trialDaysLeft} أيام`
+                : status || "unknown",
+            icon: <ShieldCheck size={20} />,
+          },
+          {
+            label: "البريد",
+            value: user.email ? "مربوط" : "غير محدد",
+            hint: user.email || "No email",
+            icon: <Mail size={20} />,
+          },
+        ]}
+      />
 
-        <section className="rounded-xl bg-black p-6">
-          <div>
-            <p className="text-sm text-white/50">Profile</p>
-            <h2 className="mt-1 text-2xl font-bold">معلومات الحساب</h2>
-          </div>
+      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        <section className="grid gap-5">
+          <AdminCard>
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#15120d] text-white">
+                <UserRound size={20} />
+              </div>
 
-          <form onSubmit={saveProfile} className="mt-6 space-y-4">
-            <Field label="اسم العرض">
-              <input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="اسم العرض"
-                className="input"
-              />
-            </Field>
+              <div>
+                <p className="text-sm font-bold text-[#15120d]/45">Profile</p>
+                <h2 className="mt-1 text-2xl font-black text-[#15120d]">
+                  معلومات الحساب
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-[#15120d]/50">
+                  هذه المعلومات تظهر داخل لوحة التحكم وتساعدك تميز حسابك.
+                </p>
+              </div>
+            </div>
 
-            <Field label="اسم المستخدم">
-              <input
-                value={profile?.username || ""}
-                disabled
-                className="input cursor-not-allowed opacity-50"
-              />
+            <form onSubmit={saveProfile} className="mt-5 grid gap-4">
+              <AdminField label="اسم العرض">
+                <AdminInput
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="اسم العرض"
+                />
+              </AdminField>
 
-              <p className="mt-2 text-sm text-white/35">
-                لا يمكن تغيير اسم المستخدم حالياً.
-              </p>
-            </Field>
+              <AdminField
+                label="اسم المستخدم"
+                hint="لا يمكن تغيير اسم المستخدم حالياً."
+              >
+                <AdminInput
+                  value={profile?.username || ""}
+                  disabled
+                  className="cursor-not-allowed opacity-55"
+                />
+              </AdminField>
 
-            <Field label="البريد الإلكتروني">
-              <input
-                value={user.email || ""}
-                disabled
-                dir="ltr"
-                className="input cursor-not-allowed text-left opacity-50"
-              />
-            </Field>
+              <AdminField label="البريد الإلكتروني">
+                <AdminInput
+                  value={user.email || ""}
+                  disabled
+                  dir="ltr"
+                  className="cursor-not-allowed text-left opacity-55"
+                />
+              </AdminField>
 
-            <button
-              disabled={savingProfile}
-              className="w-full rounded-xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
-            >
-              {savingProfile ? "جارٍ الحفظ..." : "حفظ معلومات الحساب"}
-            </button>
-          </form>
+              <AdminButton
+                type="submit"
+                variant="primary"
+                loading={savingProfile}
+                disabled={savingProfile}
+                className="w-full"
+              >
+                {savingProfile ? "جارٍ الحفظ..." : "حفظ معلومات الحساب"}
+              </AdminButton>
+            </form>
+          </AdminCard>
+
+          <AdminCard>
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#15120d] text-white">
+                <KeyRound size={20} />
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#15120d]/45">Security</p>
+                <h2 className="mt-1 text-2xl font-black text-[#15120d]">
+                  تغيير كلمة المرور
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-[#15120d]/50">
+                  اختر كلمة مرور جديدة وقوية لحسابك.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={changePassword} className="mt-5 grid gap-4">
+              <AdminField label="كلمة مرور جديدة">
+                <AdminInput
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  placeholder="••••••••"
+                />
+              </AdminField>
+
+              <AdminButton
+                type="submit"
+                variant="primary"
+                loading={savingPassword}
+                disabled={savingPassword}
+                className="w-full"
+              >
+                {savingPassword ? "جارٍ التغيير..." : "تغيير كلمة المرور"}
+              </AdminButton>
+            </form>
+          </AdminCard>
         </section>
 
-        <section className="rounded-xl bg-black p-6">
-          <div>
-            <p className="text-sm text-white/50">Security</p>
-            <h2 className="mt-1 text-2xl font-bold">تغيير كلمة المرور</h2>
-          </div>
+        <aside className="grid gap-4 lg:sticky lg:top-6 lg:h-fit">
+          <AdminCard>
+            <p className="text-sm font-bold text-[#15120d]/45">الخطة</p>
 
-          <form onSubmit={changePassword} className="mt-6 space-y-4">
-            <Field label="كلمة مرور جديدة">
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                placeholder="••••••••"
-                className="input"
-              />
-            </Field>
+            <div className="mt-4 rounded-2xl border border-[#241b12]/12 bg-[#f4ecdc] p-4">
+              <p className="text-sm font-bold text-[#15120d]/45">Plan</p>
 
-            <button
-              disabled={savingPassword}
-              className="w-full rounded-xl bg-white px-4 py-4 font-bold text-black disabled:opacity-50"
-            >
-              {savingPassword ? "جارٍ التغيير..." : "تغيير كلمة المرور"}
-            </button>
-          </form>
-        </section>
+              <h2 className="mt-1 text-4xl font-black uppercase text-[#15120d]">
+                {getPlanLabel(plan)}
+              </h2>
+
+              <StatusText status={status} trialDaysLeft={trialDaysLeft} />
+            </div>
+
+            <div className="mt-4 grid gap-2">
+              <AdminLinkButton href="/admin/upgrade" variant="primary">
+                إدارة الخطة
+              </AdminLinkButton>
+
+              <AdminLinkButton href="/admin/billing" variant="secondary">
+                الفوترة
+              </AdminLinkButton>
+            </div>
+          </AdminCard>
+
+          <AdminCard>
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f4ecdc] text-[#15120d]">
+                <Fingerprint size={19} />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-[#15120d]/45">
+                  Account ID
+                </p>
+
+                <p
+                  dir="ltr"
+                  className="mt-2 break-all text-left text-xs font-semibold leading-5 text-[#15120d]/55"
+                >
+                  {user.id}
+                </p>
+              </div>
+            </div>
+          </AdminCard>
+
+          <AdminRow>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-700/10 text-green-800">
+                {savingProfile || savingPassword ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <ShieldCheck size={18} />
+                )}
+              </div>
+
+              <div>
+                <p className="font-black text-[#15120d]">الحساب آمن</p>
+                <p className="mt-1 text-sm text-[#15120d]/45">
+                  التغييرات تتم من خلال Supabase Auth.
+                </p>
+              </div>
+            </div>
+          </AdminRow>
+        </aside>
       </div>
-
-      <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
-        <section className="rounded-xl bg-black p-6">
-          <p className="text-sm text-white/50">الخطة الحالية</p>
-
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-5">
-            <p className="text-sm text-white/50">Plan</p>
-            <h2 className="mt-1 text-4xl font-bold uppercase">{plan}</h2>
-
-            <StatusText status={status} trialDaysLeft={trialDaysLeft} />
-          </div>
-
-          <Link
-            href="/admin/upgrade"
-            className="mt-4 flex w-full items-center justify-center rounded-xl bg-white px-5 py-4 font-bold text-black"
-          >
-            إدارة الخطة
-          </Link>
-
-          <Link
-            href="/admin/billing"
-            className="mt-3 flex w-full items-center justify-center rounded-xl border border-white/10 px-5 py-4 font-bold text-white hover:bg-white/10"
-          >
-            الفوترة
-          </Link>
-        </section>
-
-        <section className="rounded-xl bg-black p-6">
-          <p className="text-sm text-white/50">Account ID</p>
-
-          <p dir="ltr" className="mt-3 break-all text-left text-sm text-white/60">
-            {user.id}
-          </p>
-        </section>
-      </aside>
-
-      <style jsx>{`
-        .input {
-          width: 100%;
-          border-radius: 0.75rem;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          background: rgba(255, 255, 255, 0.06);
-          color: white;
-          padding: 1rem;
-          outline: none;
-        }
-
-        .input::placeholder {
-          color: rgba(255, 255, 255, 0.35);
-        }
-
-        .input:focus {
-          border-color: white;
-          background: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
     </div>
   );
 }
@@ -229,7 +330,7 @@ export default function SettingsForm({ user, profile }) {
 function StatusText({ status, trialDaysLeft }) {
   if (status === "trialing") {
     return (
-      <p className="mt-2 text-sm text-yellow-300">
+      <p className="mt-2 text-sm font-bold text-yellow-900">
         باقي {trialDaysLeft} أيام من الفترة التجريبية
       </p>
     );
@@ -237,32 +338,21 @@ function StatusText({ status, trialDaysLeft }) {
 
   if (status === "active") {
     return (
-      <p className="mt-2 text-sm text-green-300">
-        الاشتراك فعال
-      </p>
+      <p className="mt-2 text-sm font-bold text-green-800">الاشتراك فعال</p>
     );
   }
 
   if (status === "expired") {
     return (
-      <p className="mt-2 text-sm text-red-300">
+      <p className="mt-2 text-sm font-bold text-red-700">
         انتهت الفترة التجريبية
       </p>
     );
   }
 
   return (
-    <p className="mt-2 text-sm text-white/50">
+    <p className="mt-2 text-sm font-bold text-[#15120d]/50">
       الحالة: {status}
     </p>
-  );
-}
-
-function Field({ label, children }) {
-  return (
-    <label className="block">
-      <p className="mb-2 text-sm font-bold text-white/50">{label}</p>
-      {children}
-    </label>
   );
 }

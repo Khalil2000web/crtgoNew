@@ -2,17 +2,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
-  Plus,
-  FolderOpen,
-  CreditCard,
-  Settings,
-  ExternalLink,
-  LayoutDashboard,
+  ArrowLeft,
   Circle,
-  Menu as MenuIcon,
+  CreditCard,
+  ExternalLink,
+  FolderOpen,
+  Globe,
+  LayoutDashboard,
+  MenuSquare,
+  Plus,
+  Settings,
+  Sparkles,
+  Store,
 } from "lucide-react";
-
-
 
 function getPlanLabel(plan) {
   const labels = {
@@ -41,7 +43,6 @@ function getTrialDaysLeft(profile) {
   if (!profile?.trial_ends_at) return null;
 
   const diff = new Date(profile.trial_ends_at) - new Date();
-
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
@@ -62,289 +63,419 @@ export default async function AdminPage() {
 
   const { data: menus } = await supabase
     .from("menus")
-    .select("id, name, subdomain, status")
+    .select("id, name, subdomain, status, created_at")
     .eq("owner_id", user.id)
-    .limit(5);
+    .order("created_at", { ascending: false });
 
   const menuList = menus || [];
+  const latestMenus = menuList.slice(0, 5);
 
-  const menuCount = menuList.length;
-  const activeMenus = menuList.filter((menu) => menu.status !== "archived").length;
-  const archivedMenus = menuList.filter((menu) => menu.status === "archived").length;
+  const activeMenus = menuList.filter((menu) => menu.status !== "archived");
+  const archivedMenus = menuList.filter((menu) => menu.status === "archived");
 
   const trialDaysLeft = getTrialDaysLeft(profile);
+  const subscriptionStatus = profile?.subscription_status || "unknown";
+  const plan = profile?.plan_id || "trial";
 
   return (
-    <main dir="rtl" className="min-h-screen px-5 py-8 text-white">
-      <section className="mx-auto max-w-6xl">
-        <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-2xl shadow-black/20">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/50">
-                <LayoutDashboard size={16} />
-                لوحة التحكم
-              </div>
+    <main dir="rtl" className="min-h-screen px-4 pb-28 pt-5 sm:px-5 lg:px-8">
+      <section className="mx-auto max-w-7xl">
+        <section className="overflow-hidden rounded-[32px] border border-black/10 bg-white shadow-sm">
+          <div className="grid gap-0 lg:grid-cols-[1fr_330px]">
+            <div className="p-5 sm:p-7">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">
+                CRTGO Workspace
+              </p>
 
-              <h1 className="mt-5 text-5xl font-black text-white">
+              <h1 className="mt-3 text-4xl font-black leading-[1.05] text-[#171411] sm:text-5xl">
                 أهلاً {profile?.display_name || "بك"}
               </h1>
 
-              <p className="hidden mt-3 max-w-2xl text-white/45">
-                من هنا تقدر تدير قوائمك الرقمية، تعدّل التصميم، تضيف الأقسام والأصناف، وتتابع حالة حسابك.
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-black/55">
+                لوحة تحكم لإدارة قوائم العملاء، الروابط، الاشتراك، والإعدادات بطريقة واضحة وسريعة.
               </p>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                <StatusPill status={subscriptionStatus} />
+                <SmallPill icon={<CreditCard size={13} />}>
+                  {getPlanLabel(plan)}
+                </SmallPill>
+
+                {subscriptionStatus === "trialing" && trialDaysLeft !== null && (
+                  <SmallPill>باقي {trialDaysLeft} أيام</SmallPill>
+                )}
+              </div>
+
+              <div className="mt-6 grid gap-2 sm:grid-cols-2">
+                <MainButton href="/admin/create-menu" dark>
+                  <Plus size={18} />
+                  إنشاء قائمة جديدة
+                </MainButton>
+
+                <MainButton href="/admin/menus">
+                  <FolderOpen size={18} />
+                  إدارة كل القوائم
+                </MainButton>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/admin/create-menu"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
-              >
-                <Plus size={18} />
-                إنشاء قائمة
-              </Link>
+            <div className="border-t border-black/10 bg-[#171411] p-5 text-white lg:border-r lg:border-t-0">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-white/35">
+                Account
+              </p>
 
-              <Link
-                href="/admin/menus"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-4 font-extrabold text-white transition hover:bg-white/10"
-              >
-                <FolderOpen size={18} />
-                إدارة القوائم
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {profile?.subscription_status === "trialing" && trialDaysLeft !== null && (
-          <div className="mt-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="font-extrabold text-yellow-300">
-                  الفترة التجريبية
-                </p>
-
-                <p className="mt-1 text-sm text-yellow-100/70">
-                  {trialDaysLeft > 0
-                    ? `باقي ${trialDaysLeft} أيام من الفترة التجريبية.`
-                    : "انتهت الفترة التجريبية."}
-                </p>
+              <div className="mt-5 grid gap-3">
+                <MiniAccountRow label="الخطة" value={getPlanLabel(plan)} />
+                <MiniAccountRow
+                  label="الحالة"
+                  value={getStatusLabel(subscriptionStatus)}
+                />
+                <MiniAccountRow label="عدد القوائم" value={menuList.length} />
               </div>
 
               <Link
                 href="/admin/upgrade"
-                className="inline-flex items-center justify-center rounded-xl bg-yellow-300 px-5 py-3 font-extrabold text-black transition hover:bg-yellow-200"
+                className="mt-5 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#171411] transition hover:bg-white/90 active:scale-[0.98]"
               >
-                اختيار خطة
+                <Sparkles size={17} />
+                إدارة الخطة
               </Link>
             </div>
           </div>
-        )}
+        </section>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <StatCard
-            label="عدد القوائم"
-            value={menuCount}
-            hint={`${activeMenus} مفعلة / ${archivedMenus} مؤرشفة`}
-            icon={<MenuIcon size={22} />}
+        <section className="mt-4 grid gap-3 sm:grid-cols-3">
+          <MetricStrip
+            icon={<Store size={19} />}
+            label="القوائم النشطة"
+            value={activeMenus.length}
+            hint={`${archivedMenus.length} مؤرشفة`}
           />
 
-          <StatCard
-            label="الخطة الحالية"
-            value={getPlanLabel(profile?.plan_id || "trial")}
-            hint="يمكنك الترقية من صفحة الخطط"
-            icon={<CreditCard size={22} />}
+          <MetricStrip
+            icon={<MenuSquare size={19} />}
+            label="كل القوائم"
+            value={menuList.length}
+            hint="في حسابك"
           />
 
-          <StatCard
-            label="حالة الحساب"
-            value={getStatusLabel(profile?.subscription_status)}
-            hint={profile?.subscription_status || "unknown"}
-            icon={
-              <Circle
-                size={18}
-                fill="currentColor"
-                className={
-                  profile?.subscription_status === "active"
-                    ? "text-green-300"
-                    : profile?.subscription_status === "trialing"
-                      ? "text-yellow-300"
-                      : "text-red-300"
-                }
-              />
-            }
+          <MetricStrip
+            icon={<LayoutDashboard size={19} />}
+            label="الصفحة الحالية"
+            value="Dashboard"
+            hint="نظرة عامة"
           />
-        </div>
+        </section>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px]">
-          <section className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-6 shadow-xl shadow-black/10">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-white/45">قوائمك</p>
+        <section className="mt-5 grid gap-5 lg:grid-cols-[1fr_340px]">
+          <div className="space-y-5">
+            <section className="rounded-[28px] border border-black/10 bg-white shadow-sm">
+              <div className="flex flex-col gap-3 border-b border-black/10 bg-[#fffaf2] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
+                    Recent work
+                  </p>
 
-                <h2 className="mt-1 text-3xl font-black text-white">
-                  آخر القوائم
-                </h2>
-              </div>
-
-              <Link
-                href="/admin/menus"
-                className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white transition hover:bg-white/10"
-              >
-                عرض الكل
-              </Link>
-            </div>
-
-            {!menuList.length && (
-              <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.04] p-8 text-center">
-                <FolderOpen className="mx-auto text-white/25" size={44} />
-
-                <h3 className="mt-4 text-2xl font-bold text-white">
-                  لا توجد قوائم بعد
-                </h3>
-
-                <p className="mt-2 text-sm text-white/45">
-                  أنشئ أول قائمة رقمية وابدأ بإضافة الأقسام والأصناف.
-                </p>
+                  <h2 className="mt-1 text-2xl font-black text-[#171411]">
+                    آخر القوائم
+                  </h2>
+                </div>
 
                 <Link
-                  href="/admin/create-menu"
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
+                  href="/admin/menus"
+                  className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-[#171411] transition hover:bg-[#f7ead8] active:scale-[0.98]"
                 >
-                  <Plus size={18} />
-                  إنشاء قائمة جديدة
+                  عرض الكل
                 </Link>
               </div>
-            )}
 
-            {menuList.length > 0 && (
-              <div className="mt-6 grid gap-3">
-                {menuList.map((menu) => (
-                  <div
-                    key={menu.id}
-                    className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.07]"
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-xl font-black text-white">
-                            {menu.name}
-                          </h3>
+              <div className="p-3">
+                {!latestMenus.length ? (
+                  <EmptyMenus />
+                ) : (
+                  <div className="grid gap-2">
+                    {latestMenus.map((menu) => {
+                      const publicPath = menu.subdomain
+                        ? `/m/${menu.subdomain}`
+                        : null;
 
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-bold ${
-                              menu.status === "archived"
-                                ? "bg-yellow-500/15 text-yellow-300"
-                                : "bg-green-500/15 text-green-300"
-                            }`}
-                          >
-                            {menu.status === "archived" ? "مؤرشفة" : "مفعلة"}
-                          </span>
-                        </div>
-
-                        <p dir="ltr" className="mt-2 text-left text-sm text-white/35">
-                          /m/{menu.subdomain || "not-set"}
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/admin/menus/${menu.id}`}
-                          className="rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-black transition hover:bg-white/90"
+                      return (
+                        <div
+                          key={menu.id}
+                          className="grid gap-3 rounded-2xl border border-black/10 bg-white p-3 transition hover:border-black/20 hover:bg-[#fff7ea] sm:grid-cols-[1fr_auto] sm:items-center"
                         >
-                          إدارة
-                        </Link>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="truncate text-lg font-black text-[#171411]">
+                                {menu.name || "قائمة بدون اسم"}
+                              </h3>
 
-                        {menu.subdomain && (
-                          <Link
-                            href={`/m/${menu.subdomain}`}
-                            target="_blank"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-extrabold text-white transition hover:bg-white/10"
-                          >
-                            <ExternalLink size={16} />
-                            فتح
-                          </Link>
-                        )}
-                      </div>
-                    </div>
+                              <MenuStatus status={menu.status} />
+                            </div>
+
+                            <p
+                              dir="ltr"
+                              className="mt-2 text-left text-sm font-bold text-black/40"
+                            >
+                              {publicPath || "/m/not-set"}
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 sm:flex">
+                            <Link
+                              href={`/admin/menus/${menu.id}`}
+                              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#171411] px-4 py-2 text-sm font-black text-white transition hover:bg-[#30271e] active:scale-[0.98]"
+                            >
+                              إدارة
+                              <ArrowLeft size={15} />
+                            </Link>
+
+                            {publicPath ? (
+                              <Link
+                                href={publicPath}
+                                target="_blank"
+                                className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-[#171411] transition hover:bg-[#f7ead8] active:scale-[0.98]"
+                              >
+                                <ExternalLink size={15} />
+                                فتح
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/admin/menus/${menu.id}/settings`}
+                                className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl border border-yellow-800/20 bg-yellow-600/15 px-4 py-2 text-sm font-black text-yellow-950 transition hover:bg-yellow-600/25 active:scale-[0.98]"
+                              >
+                                الرابط
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </section>
+            </section>
 
-          <aside className="space-y-4">
-            <QuickAction
-              href="/admin/create-menu"
-              title="إنشاء قائمة جديدة"
-              description="ابدأ قائمة رقمية جديدة لمطعم أو كافيه."
-              icon={<Plus size={22} />}
-              primary
-            />
+            <section className="rounded-[28px] border border-black/10 bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
+                Best workflow
+              </p>
 
-            <QuickAction
-              href="/admin/menus"
-              title="إدارة القوائم"
-              description="عرض وتعديل كل القوائم الموجودة."
-              icon={<FolderOpen size={22} />}
-            />
+              <h2 className="mt-1 text-2xl font-black text-[#171411]">
+                طريقة العمل الأسرع
+              </h2>
 
-            <QuickAction
-              href="/admin/upgrade"
-              title="الخطط والترقية"
-              description="اختر الخطة المناسبة لحسابك."
-              icon={<CreditCard size={22} />}
-            />
+              <div className="mt-4 grid gap-2 md:grid-cols-2">
+                <WorkflowStep
+                  href="/admin/create-menu"
+                  number="01"
+                  title="أنشئ قائمة"
+                  text="ابدأ قائمة للعميل أو للمشروع."
+                />
 
-            <QuickAction
-              href="/admin/settings"
-              title="إعدادات الحساب"
-              description="عدّل معلومات الحساب وكلمة المرور."
-              icon={<Settings size={22} />}
-            />
+                <WorkflowStep
+                  href="/admin/menus"
+                  number="02"
+                  title="أضف الأقسام"
+                  text="رتّب القائمة بطريقة مفهومة للزبائن."
+                />
+
+                <WorkflowStep
+                  href="/admin/menus"
+                  number="03"
+                  title="أضف الأصناف"
+                  text="اسم، وصف، سعر، وصورة إذا موجودة."
+                />
+
+                <WorkflowStep
+                  href="/admin/menus"
+                  number="04"
+                  title="افتح الرابط"
+                  text="اختبر القائمة كأنك زبون."
+                />
+              </div>
+            </section>
+          </div>
+
+          <aside className="space-y-4 lg:sticky lg:top-6 lg:h-fit">
+            <section className="rounded-[28px] border border-black/10 bg-white p-4 shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
+                Quick actions
+              </p>
+
+              <h2 className="mt-1 text-xl font-black text-[#171411]">
+                اختصارات
+              </h2>
+
+              <div className="mt-4 grid gap-2">
+                <QuickAction href="/admin/create-menu" icon={<Plus size={18} />} title="قائمة جديدة" />
+                <QuickAction href="/admin/menus" icon={<FolderOpen size={18} />} title="كل القوائم" />
+                <QuickAction href="/admin/upgrade" icon={<Sparkles size={18} />} title="الخطط" />
+                <QuickAction href="/admin/settings" icon={<Settings size={18} />} title="إعدادات الحساب" />
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border border-black/10 bg-[#171411] p-4 text-white shadow-sm">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-white/35">
+                Tip
+              </p>
+
+              <h2 className="mt-1 text-xl font-black">لعملائك</h2>
+
+              <p className="mt-2 text-sm leading-7 text-white/60">
+                خليك دايماً تبدأ بالشعار، رابط قصير، أقسام واضحة، وبعدين الأصناف. هيك القائمة تطلع منظمة للزبون.
+              </p>
+            </section>
           </aside>
-        </div>
+        </section>
       </section>
     </main>
   );
 }
 
-function StatCard({ label, value, hint, icon }) {
+function StatusPill({ status }) {
+  const isActive = status === "active";
+  const isTrial = status === "trialing";
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0f0f0f] p-5 shadow-xl shadow-black/10">
-      <div className="flex items-center justify-between gap-3 text-white/45">
-        <span>{label}</span>
-        {icon}
-      </div>
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${
+        isActive
+          ? "border-green-800/20 bg-green-700/10 text-green-900"
+          : isTrial
+            ? "border-yellow-800/20 bg-yellow-600/15 text-yellow-950"
+            : "border-red-500/20 bg-red-600/10 text-red-700"
+      }`}
+    >
+      <Circle size={8} fill="currentColor" />
+      {getStatusLabel(status)}
+    </span>
+  );
+}
 
-      <p className="mt-4 text-3xl font-black text-white">{value}</p>
+function SmallPill({ children, icon }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f3eadc] px-3 py-1.5 text-xs font-black text-black/60">
+      {icon}
+      {children}
+    </span>
+  );
+}
 
-      <p className="mt-2 text-sm text-white/35">{hint}</p>
+function MiniAccountRow({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
+      <p className="text-xs font-black text-white/35">{label}</p>
+      <p className="mt-1 text-lg font-black text-white">{value}</p>
     </div>
   );
 }
 
-function QuickAction({ href, title, description, icon, primary }) {
+function MetricStrip({ icon, label, value, hint }) {
   return (
-    <Link
-      href={href}
-      className={`block rounded-2xl border p-5 transition ${
-        primary
-          ? "border-white bg-white text-black hover:bg-white/90"
-          : "border-white/10 bg-[#0f0f0f] text-white hover:bg-white/[0.06]"
-      }`}
-    >
-      <div
-        className={`flex h-12 w-12 items-center justify-center rounded-xl ${
-          primary ? "bg-black text-white" : "bg-white text-black"
-        }`}
-      >
+    <div className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f3eadc] text-[#171411]">
         {icon}
       </div>
 
-      <h3 className="mt-4 text-xl font-black">{title}</h3>
+      <div>
+        <p className="text-xs font-black text-black/35">{label}</p>
+        <p className="text-2xl font-black text-[#171411]">{value}</p>
+        <p className="text-xs font-bold text-black/35">{hint}</p>
+      </div>
+    </div>
+  );
+}
 
-      <p className={`mt-2 text-sm ${primary ? "text-black/55" : "text-white/45"}`}>
-        {description}
+function MenuStatus({ status }) {
+  if (status === "archived") {
+    return (
+      <span className="rounded-full border border-yellow-800/20 bg-yellow-600/15 px-2.5 py-1 text-xs font-black text-yellow-950">
+        مؤرشفة
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full border border-green-800/20 bg-green-700/10 px-2.5 py-1 text-xs font-black text-green-900">
+      مفعلة
+    </span>
+  );
+}
+
+function EmptyMenus() {
+  return (
+    <div className="rounded-[24px] border border-dashed border-black/15 bg-[#f3eadc] p-7 text-center">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#171411]">
+        <Globe size={24} />
+      </div>
+
+      <h3 className="mt-4 text-xl font-black text-[#171411]">
+        لا توجد قوائم بعد
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-black/50">
+        أنشئ أول قائمة رقمية وابدأ بتجهيزها للزبائن.
       </p>
+
+      <Link
+        href="/admin/create-menu"
+        className="mt-5 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#171411] px-5 py-3 text-sm font-black text-white transition hover:bg-[#30271e] active:scale-[0.98]"
+      >
+        <Plus size={17} />
+        إنشاء أول قائمة
+      </Link>
+    </div>
+  );
+}
+
+function WorkflowStep({ href, number, title, text }) {
+  return (
+    <Link
+      href={href}
+      className="cursor-pointer rounded-2xl border border-black/10 bg-[#fffaf2] p-4 transition hover:border-black/20 hover:bg-[#fff1d6] active:scale-[0.99]"
+    >
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#171411] text-sm font-black text-white">
+          {number}
+        </span>
+
+        <div>
+          <h3 className="font-black text-[#171411]">{title}</h3>
+          <p className="mt-1 text-sm leading-6 text-black/50">{text}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function QuickAction({ href, icon, title }) {
+  return (
+    <Link
+      href={href}
+      className="flex cursor-pointer items-center justify-between rounded-2xl border border-black/10 bg-[#f3eadc] p-3 font-black text-[#171411] transition hover:border-black/20 hover:bg-[#ead9bd] active:scale-[0.99]"
+    >
+      <span className="flex items-center gap-2">
+        {icon}
+        {title}
+      </span>
+
+      <ArrowLeft size={16} className="text-black/35" />
+    </Link>
+  );
+}
+
+function MainButton({ href, children, dark }) {
+  return (
+    <Link
+      href={href}
+      className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition active:scale-[0.98] ${
+        dark
+          ? "bg-[#171411] text-white hover:bg-[#30271e]"
+          : "border border-black/10 bg-white text-[#171411] hover:bg-[#f7ead8]"
+      }`}
+    >
+      {children}
     </Link>
   );
 }

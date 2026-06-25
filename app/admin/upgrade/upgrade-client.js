@@ -3,13 +3,32 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import {
+  ArrowRight,
+  Check,
+  Loader2,
+  Sparkles,
+  Store,
+  Building2,
+  CreditCard,
+} from "lucide-react";
+import Link from "next/link";
+
+function getPlanIcon(planId) {
+  if (planId === "business") return <Building2 size={18} />;
+  if (planId === "pro") return <Sparkles size={18} />;
+  return <Store size={18} />;
+}
 
 export default function UpgradeClient({ userId, clientId, plans }) {
   const router = useRouter();
+
   const [error, setError] = useState("");
+  const [confirmingPlan, setConfirmingPlan] = useState("");
 
   async function confirmSubscription(subscriptionId, planId) {
     setError("");
+    setConfirmingPlan(planId);
 
     const response = await fetch("/api/paypal/confirm-subscription", {
       method: "POST",
@@ -25,6 +44,7 @@ export default function UpgradeClient({ userId, clientId, plans }) {
     const result = await response.json();
 
     if (!response.ok) {
+      setConfirmingPlan("");
       setError(result.error || "حدث خطأ أثناء تفعيل الاشتراك.");
       return;
     }
@@ -42,88 +62,152 @@ export default function UpgradeClient({ userId, clientId, plans }) {
         currency: "ILS",
       }}
     >
-      <main dir="rtl" className="min-h-screen px-5 py-10">
+      <main dir="rtl" className="min-h-screen bg-[#11100f] px-4 pb-28 pt-5 text-[#f4efe7] sm:px-5 lg:px-8">
         <section className="mx-auto max-w-6xl">
-          <p className="text-sm text-black/50">CRTGO SUBSCRIPTIONS</p>
+          <Link
+            href="/admin"
+            className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black text-white/60 transition hover:bg-white/[0.08] hover:text-white active:scale-[0.98]"
+          >
+            <ArrowRight size={15} />
+            الرجوع للوحة التحكم
+          </Link>
 
-          <h1 className="mt-2 text-5xl font-black">اختر الخطة المناسبة</h1>
+          <header className="mt-5 rounded-2xl border border-white/10 bg-[#171513] p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-white/35">
+                  PayPal Checkout
+                </p>
 
-          <p className="mt-4 text-black/50">
-            الدفع حالياً في وضع Sandbox للتجربة.
-          </p>
+                <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                  تفعيل الاشتراك
+                </h1>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">
+                  الدفع حالياً في وضع Sandbox للتجربة. بعد الموافقة من PayPal سيتم تفعيل الخطة تلقائياً.
+                </p>
+              </div>
+
+              {confirmingPlan ? (
+                <div className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white/70">
+                  <Loader2 className="animate-spin" size={17} />
+                  جارٍ التفعيل
+                </div>
+              ) : (
+                <div className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white/55">
+                  PayPal Sandbox
+                </div>
+              )}
+            </div>
+          </header>
 
           {error && (
-            <p className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-700">
+            <p className="mt-3 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm font-bold text-red-200">
               {error}
             </p>
           )}
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`rounded-3xl border p-6 ${
-                  plan.popular
-                    ? "border-black bg-black text-white"
-                    : "border-black/15 bg-white"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="mb-4 inline-flex rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
-                    الأكثر اختياراً
-                  </div>
-                )}
+          <section className="mt-5 grid gap-3 lg:grid-cols-3">
+            {plans.map((plan) => {
+              const isConfirming = confirmingPlan === plan.id;
 
-                <h2 className="text-3xl font-black">{plan.name}</h2>
-
-                <p className="mt-4 text-5xl font-black">{plan.price}</p>
-
-                <p
-                  className={`mt-1 ${
-                    plan.popular ? "text-white/60" : "text-black/50"
+              return (
+                <article
+                  key={plan.id}
+                  className={`rounded-2xl border p-4 transition ${
+                    plan.popular
+                      ? "border-[#d7b98b]/40 bg-[#211b14]"
+                      : "border-white/10 bg-[#171513] hover:border-white/18 hover:bg-[#1d1a17]"
                   }`}
                 >
-                  شهرياً
-                </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                          plan.popular
+                            ? "bg-[#d7b98b] text-[#11100f]"
+                            : "bg-white/[0.06] text-white/75"
+                        }`}
+                      >
+                        {getPlanIcon(plan.id)}
+                      </div>
 
-                <div className="mt-8 space-y-3">
-                  {plan.features.map((feature) => (
-                    <div
-                      key={feature}
-                      className={`text-sm ${
-                        plan.popular ? "text-white/80" : "text-black/70"
-                      }`}
-                    >
-                      ✓ {feature}
+                      <div>
+                        <h2 className="text-xl font-black text-white">
+                          {plan.name}
+                        </h2>
+
+                        <p className="mt-1 text-xs font-bold text-white/40">
+                          اشتراك شهري
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                </div>
 
-                <div className="mt-8 overflow-hidden rounded-2xl bg-white p-2">
-                  <PayPalButtons
-                    style={{
-                      layout: "vertical",
-                      shape: "pill",
-                      label: "subscribe",
-                    }}
-                    createSubscription={(data, actions) => {
-                      return actions.subscription.create({
-                        plan_id: plan.paypalPlanId,
-                        custom_id: userId,
-                      });
-                    }}
-                    onApprove={async (data) => {
-                      await confirmSubscription(data.subscriptionID, plan.id);
-                    }}
-                    onError={(err) => {
-                      console.error(err);
-                      setError("حدث خطأ في PayPal.");
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+                    {plan.popular && (
+                      <span className="rounded-full bg-[#d7b98b] px-2.5 py-1 text-xs font-black text-[#11100f]">
+                        الأفضل
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex items-end gap-2 border-b border-white/10 pb-4">
+                    <p className="text-3xl font-black text-white">{plan.price}</p>
+                    <p className="pb-1 text-sm font-bold text-white/40">/ شهرياً</p>
+                  </div>
+
+                  <div className="mt-4 grid gap-2">
+                    {plan.features.map((feature) => (
+                      <div
+                        key={feature}
+                        className="flex items-center gap-2 text-sm font-bold text-white/65"
+                      >
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/[0.06] text-white/70">
+                          <Check size={12} />
+                        </span>
+
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 overflow-hidden rounded-xl border border-white/10 bg-white p-2">
+                    {isConfirming ? (
+                      <div className="flex min-h-[145px] items-center justify-center gap-2 text-sm font-black text-[#11100f]">
+                        <Loader2 className="animate-spin" size={18} />
+                        جارٍ تفعيل الاشتراك...
+                      </div>
+                    ) : (
+                      <PayPalButtons
+                        style={{
+                          layout: "vertical",
+                          shape: "pill",
+                          label: "subscribe",
+                        }}
+                        createSubscription={(data, actions) => {
+                          return actions.subscription.create({
+                            plan_id: plan.paypalPlanId,
+                            custom_id: userId,
+                          });
+                        }}
+                        onApprove={async (data) => {
+                          await confirmSubscription(data.subscriptionID, plan.id);
+                        }}
+                        onError={(err) => {
+                          console.error(err);
+                          setError("حدث خطأ في PayPal.");
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2 text-xs font-bold text-white/35">
+                    <CreditCard size={14} />
+                    الدفع آمن من خلال PayPal
+                  </div>
+                </article>
+              );
+            })}
+          </section>
         </section>
       </main>
     </PayPalScriptProvider>
