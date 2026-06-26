@@ -1,234 +1,66 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
+  Home,
+  Search,
   MenuSquare,
-  PlusCircle,
+  Plus,
+  Menu,
+  X,
   CreditCard,
-  Settings,
   Crown,
   HelpCircle,
-  Search,
+  UserRound,
   LogOut,
-  MoreHorizontal,
-  X,
+  ChevronLeft,
   Store,
-  Sparkles,
-  ArrowLeft,
+  Eye,
+  Settings,
+  Palette,
+  Clock,
+  Languages,
+  Layers3,
+  FileText,
+  Globe,
+  Building2,
 } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
-
-const mainLinks = [
-  {
-    href: "/admin",
-    label: "الرئيسية",
-    shortLabel: "الرئيسية",
-    icon: LayoutDashboard,
-  },
-  {
-    href: "/admin/menus",
-    label: "القوائم",
-    shortLabel: "القوائم",
-    icon: MenuSquare,
-  },
-  {
-    href: "/admin/create-menu",
-    label: "إنشاء قائمة",
-    shortLabel: "إنشاء",
-    icon: PlusCircle,
-  },
-];
-
-const businessLinks = [
-  {
-    href: "/admin/upgrade",
-    label: "الخطط",
-    icon: Crown,
-  },
-  {
-    href: "/admin/billing",
-    label: "الفوترة",
-    icon: CreditCard,
-  },
-];
-
-const accountLinks = [
-  {
-    href: "/admin/settings",
-    label: "إعدادات الحساب",
-    icon: Settings,
-  },
-  {
-    href: "/admin/support",
-    label: "الدعم",
-    icon: HelpCircle,
-  },
-];
 
 function isActivePath(pathname, href) {
   if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function DesktopNavLink({ href, icon: Icon, label }) {
-  const pathname = usePathname();
-  const active = isActivePath(pathname, href);
-
-  return (
-    <Link
-      prefetch
-      href={href}
-      className={`group flex min-h-12 cursor-pointer items-center justify-between rounded-2xl px-3 py-2 text-sm font-black transition active:scale-[0.98] ${
-        active
-          ? "bg-white text-[#171411] shadow-sm shadow-black/10"
-          : "text-white/58 hover:bg-white/10 hover:text-white"
-      }`}
-    >
-      <span className="flex items-center gap-3">
-        <span
-          className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-            active
-              ? "bg-[#171411] text-white"
-              : "bg-white/8 text-white/58 group-hover:bg-white/12 group-hover:text-white"
-          }`}
-        >
-          <Icon size={18} />
-        </span>
-
-        {label}
-      </span>
-
-      {active && <ArrowLeft size={15} className="text-[#171411]/40" />}
-    </Link>
-  );
+function getMenuIdFromPath(pathname) {
+  const match = pathname.match(/^\/admin\/menus\/([^/]+)/);
+  return match?.[1] || null;
 }
 
-function DesktopNavGroup({ title, children }) {
-  return (
-    <div>
-      <p className="mb-2 px-3 text-xs font-black uppercase tracking-[0.22em] text-white/28">
-        {title}
-      </p>
+const mainLinks = [
+  {
+    href: "/admin",
+    label: "الرئيسية",
+    icon: Home,
+  },
+  {
+    href: "/admin/menus",
+    label: "القوائم",
+    icon: MenuSquare,
+  },
+  {
+    href: "/admin/create-menu",
+    label: "إنشاء",
+    icon: Plus,
+  },
+];
 
-      <div className="grid gap-1">{children}</div>
-    </div>
-  );
-}
-
-function MobileTabLink({ href, icon: Icon, label, onClick }) {
-  const pathname = usePathname();
-  const active = isActivePath(pathname, href);
-
-  return (
-    <Link
-      prefetch
-      href={href}
-      onClick={onClick}
-      className={`flex min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-black transition active:scale-[0.96] ${
-        active
-          ? "bg-[#171411] text-white"
-          : "text-[#171411]/45 hover:bg-[#f3eadc] hover:text-[#171411]"
-      }`}
-    >
-      <Icon size={19} />
-      <span className="truncate">{label}</span>
-    </Link>
-  );
-}
-
-function SearchBox({ onDone }) {
+function SearchModal({ open, onClose }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
 
-  function handleSubmit(e) {
-    e.preventDefault();
-
-    const clean = query.trim();
-    if (!clean) return;
-
-    router.push(`/admin/menus?search=${encodeURIComponent(clean)}`);
-    setQuery("");
-    onDone?.();
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex min-h-12 items-center gap-2 rounded-2xl border border-black/10 bg-[#f3eadc] px-4"
-    >
-      <Search size={18} className="shrink-0 text-[#171411]/40" />
-
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="ابحث عن قائمة..."
-        className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#171411] outline-none placeholder:text-[#171411]/35"
-      />
-
-      <button
-        type="submit"
-        className="cursor-pointer rounded-xl bg-[#171411] px-3 py-2 text-xs font-black text-white transition hover:bg-[#30271e] active:scale-[0.98]"
-      >
-        بحث
-      </button>
-    </form>
-  );
-}
-
-function AccountCard({ profile, dark = false }) {
-  const firstLetter = (profile?.display_name || "C").charAt(0).toUpperCase();
-
-  if (dark) {
-    return (
-      <Link
-        href="/admin/settings"
-        className="flex cursor-pointer items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.07] p-3 transition hover:bg-white/10 active:scale-[0.99]"
-      >
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white font-black text-[#171411]">
-          {firstLetter}
-        </div>
-
-        <div className="min-w-0">
-          <p className="truncate text-sm font-black text-white">
-            {profile?.display_name || "CRTGO"}
-          </p>
-
-          <p className="mt-1 truncate text-xs font-bold text-white/40">
-            {profile?.plan_id || "trial"} ·{" "}
-            {profile?.subscription_status || "unknown"}
-          </p>
-        </div>
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      href="/admin/settings"
-      className="flex cursor-pointer items-center gap-3 rounded-3xl border border-black/10 bg-white p-3 transition hover:bg-[#fff7ea] active:scale-[0.99]"
-    >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#171411] font-black text-white">
-        {firstLetter}
-      </div>
-
-      <div className="min-w-0">
-        <p className="truncate text-sm font-black text-[#171411]">
-          {profile?.display_name || "CRTGO"}
-        </p>
-
-        <p className="mt-1 truncate text-xs font-bold text-[#171411]/45">
-          {profile?.plan_id || "trial"} ·{" "}
-          {profile?.subscription_status || "unknown"}
-        </p>
-      </div>
-    </Link>
-  );
-}
-
-function MobileMoreSheet({ profile, open, onClose }) {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
 
@@ -239,213 +71,483 @@ function MobileMoreSheet({ profile, open, onClose }) {
 
   if (!open) return null;
 
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    const clean = query.trim();
+    if (!clean) return;
+
+    router.push(`/admin/menus?search=${encodeURIComponent(clean)}`);
+    setQuery("");
+    onClose();
+  }
+
   return (
     <div
       dir="rtl"
-      className="fixed inset-0 z-[999] bg-black/35 p-3 backdrop-blur-sm md:hidden"
+      className="fixed inset-0 z-[1200] bg-black/25 p-4 backdrop-blur-sm"
     >
-      <div className="flex h-full flex-col overflow-hidden rounded-[32px] border border-black/10 bg-[#f6f4ef] shadow-2xl shadow-black/30">
-        <div className="flex items-center justify-between border-b border-black/10 bg-white p-4">
+      <div className="mx-auto mt-12 max-w-md rounded-[26px] border border-[#8f806c]/60 bg-[#ded4c5] p-4 shadow-2xl shadow-black/20">
+        <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-black/35">
-              CRTGO
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1b1712]/45">
+              Search
             </p>
 
-            <h2 className="mt-1 text-2xl font-black text-[#171411]">
-              القائمة
+            <h2 className="text-xl font-black text-[#1b1712]">
+              البحث في القوائم
             </h2>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl bg-[#171411] text-white transition hover:bg-[#30271e] active:scale-[0.98]"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#8f806c]/55 bg-[#d1c5b4] text-[#1b1712] transition hover:bg-[#c5b7a4] active:scale-[0.98]"
             aria-label="إغلاق"
           >
-            <X size={22} />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          <SearchBox onDone={onClose} />
+        <form onSubmit={handleSubmit} className="grid gap-3">
+          <div className="flex items-center gap-2 rounded-2xl border border-[#8f806c]/60 bg-[#cfc3b2] px-4 py-3">
+            <Search size={18} className="text-[#1b1712]/45" />
 
-          <div className="mt-4">
-            <AccountCard profile={profile} />
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="اسم القائمة أو الرابط..."
+              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#1b1712] outline-none placeholder:text-[#1b1712]/35"
+            />
           </div>
 
-          <MobileSection title="الرئيسية">
-            {[...mainLinks, ...businessLinks, ...accountLinks].map((item) => (
-              <MobileSheetLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                label={item.label}
-                onClick={onClose}
-              />
-            ))}
-          </MobileSection>
-        </div>
-
-        <div className="border-t border-black/10 bg-white p-4">
-          <LogoutButton className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white transition hover:bg-red-700 active:scale-[0.98]">
-            <LogOut size={18} />
-            تسجيل الخروج
-          </LogoutButton>
-        </div>
+          <button
+            type="submit"
+            className="min-h-11 cursor-pointer rounded-2xl bg-[#1b1712] px-4 py-3 text-sm font-black text-[#efe7da] transition hover:bg-[#342b22] active:scale-[0.98]"
+          >
+            بحث
+          </button>
+        </form>
       </div>
     </div>
   );
 }
 
-function MobileSection({ title, children }) {
-  return (
-    <section className="mt-5">
-      <p className="mb-2 px-1 text-xs font-black uppercase tracking-[0.18em] text-[#171411]/35">
-        {title}
-      </p>
+function ToolsSheet({ profile, open, onClose }) {
+  const pathname = usePathname();
+  const menuId = getMenuIdFromPath(pathname);
 
-      <div className="grid gap-2">{children}</div>
-    </section>
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const groups = useMemo(() => {
+    if (menuId) {
+      return [
+        {
+          title: "إعدادات هذه القائمة",
+          items: [
+            {
+              href: `/admin/menus/${menuId}`,
+              label: "نظرة عامة",
+              description: "ملخص القائمة والجاهزية",
+              icon: Eye,
+            },
+            {
+              href: `/admin/menus/${menuId}/details`,
+              label: "معلومات القائمة",
+              description: "الاسم، الوصف، التواصل والموقع",
+              icon: FileText,
+            },
+            {
+              href: `/admin/menus/${menuId}/sections`,
+              label: "الأقسام والأصناف",
+              description: "إدارة المنتجات والأسعار",
+              icon: Layers3,
+            },
+            {
+              href: `/admin/menus/${menuId}/appearance`,
+              label: "المظهر",
+              description: "الشعار، الغلاف، والقالب",
+              icon: Palette,
+            },
+            {
+              href: `/admin/menus/${menuId}/hours`,
+              label: "ساعات العمل",
+              description: "الأيام والأوقات",
+              icon: Clock,
+            },
+            {
+              href: `/admin/menus/${menuId}/languages`,
+              label: "اللغات",
+              description: "إعداد لغات القائمة",
+              icon: Languages,
+            },
+            {
+              href: `/admin/menus/${menuId}/branches`,
+              label: "الفروع",
+              description: "إدارة فروع المطعم",
+              icon: Building2,
+            },
+            {
+              href: `/admin/menus/${menuId}/settings`,
+              label: "إعدادات الرابط",
+              description: "الرابط، الحالة، والحذف",
+              icon: Settings,
+            },
+          ],
+        },
+        {
+          title: "الحساب",
+          items: [
+            {
+              href: "/admin/billing",
+              label: "الفوترة",
+              description: "المدفوعات والاشتراك",
+              icon: CreditCard,
+            },
+            {
+              href: "/admin/upgrade",
+              label: "الخطط",
+              description: "ترقية خطة CRTGO",
+              icon: Crown,
+            },
+            {
+              href: "/admin/account",
+              label: "إعدادات الحساب",
+              description: "الاسم وكلمة المرور",
+              icon: UserRound,
+            },
+          ],
+        },
+      ];
+    }
+
+    return [
+      {
+        title: "العمل",
+        items: [
+          {
+            href: "/admin",
+            label: "الرئيسية",
+            description: "نظرة عامة على الحساب",
+            icon: Home,
+          },
+          {
+            href: "/admin/menus",
+            label: "القوائم",
+            description: "إدارة كل قوائم العملاء",
+            icon: MenuSquare,
+          },
+          {
+            href: "/admin/create-menu",
+            label: "إنشاء قائمة",
+            description: "إضافة قائمة جديدة",
+            icon: Plus,
+          },
+          {
+            href: "/admin/domains",
+            label: "الدومينات",
+            description: "روابط القوائم والدومينات",
+            icon: Globe,
+          },
+        ],
+      },
+      {
+        title: "الحساب والاشتراك",
+        items: [
+          {
+            href: "/admin/upgrade",
+            label: "الخطط",
+            description: "ترقية أو تغيير الخطة",
+            icon: Crown,
+          },
+          {
+            href: "/admin/billing",
+            label: "الفوترة",
+            description: "المدفوعات والاشتراك",
+            icon: CreditCard,
+          },
+          {
+            href: "/admin/account",
+            label: "إعدادات الحساب",
+            description: "الاسم وكلمة المرور",
+            icon: UserRound,
+          },
+          {
+            href: "/admin/support",
+            label: "الدعم",
+            description: "المساعدة والتواصل",
+            icon: HelpCircle,
+          },
+        ],
+      },
+    ];
+  }, [menuId]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      dir="rtl"
+      className="fixed inset-0 z-[1100] bg-black/25 p-3 backdrop-blur-sm"
+    >
+      <section className="mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-[30px] border border-[#8f806c]/65 bg-[#d8cebe] text-[#1b1712] shadow-2xl shadow-black/25">
+        <header className="border-b border-[#8f806c]/45 bg-[#d1c5b4] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1b1712]/45">
+                {menuId ? "Menu tools" : "Workspace"}
+              </p>
+
+              <h2 className="mt-1 text-xl font-black text-[#1b1712]">
+                {menuId ? "أدوات القائمة" : "القائمة"}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-[#8f806c]/60 bg-[#c4b6a4] text-[#1b1712] transition hover:bg-[#b8a892] active:scale-[0.98]"
+              aria-label="إغلاق"
+            >
+              <X size={21} />
+            </button>
+          </div>
+
+          <Link
+            href="/admin/account"
+            onClick={onClose}
+            className="mt-4 flex cursor-pointer items-center gap-3 rounded-2xl border border-[#8f806c]/55 bg-[#ded4c5] p-3 transition hover:bg-[#cfc3b2] active:scale-[0.99]"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1b1712] font-black text-[#efe7da]">
+              {(profile?.display_name || "C").charAt(0).toUpperCase()}
+            </div>
+
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black">
+                {profile?.display_name || "CRTGO"}
+              </p>
+
+              <p className="mt-0.5 truncate text-xs font-bold text-[#1b1712]/45">
+                {profile?.plan_id || "trial"} ·{" "}
+                {profile?.subscription_status || "unknown"}
+              </p>
+            </div>
+          </Link>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          {groups.map((group) => (
+            <section key={group.title} className="mb-5">
+              <p className="mb-2 px-3 text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                {group.title}
+              </p>
+
+              <div className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#e2d8c8]">
+                {group.items.map((item, index) => (
+                  <ToolRow
+                    key={item.href}
+                    item={item}
+                    last={index === group.items.length - 1}
+                    onClick={onClose}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <footer className="border-t border-[#8f806c]/45 bg-[#d1c5b4] p-3">
+          <LogoutButton className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-700 px-4 py-3 text-sm font-black text-white transition hover:bg-red-800 active:scale-[0.98]">
+            <LogOut size={18} />
+            تسجيل الخروج
+          </LogoutButton>
+        </footer>
+      </section>
+    </div>
   );
 }
 
-function MobileSheetLink({ href, icon: Icon, label, onClick }) {
+function ToolRow({ item, last, onClick }) {
+  const Icon = item.icon;
+
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      className={`flex cursor-pointer items-center gap-3 px-4 py-3.5 transition hover:bg-[#d1c5b4] active:scale-[0.99] ${
+        last ? "" : "border-b border-[#8f806c]/45"
+      }`}
+    >
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#8f806c]/50 bg-[#d1c5b4] text-[#1b1712]/70">
+        <Icon size={18} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-black text-[#1b1712]">{item.label}</p>
+
+        <p className="mt-0.5 truncate text-xs font-bold text-[#1b1712]/42">
+          {item.description}
+        </p>
+      </div>
+
+      <ChevronLeft size={19} className="text-[#1b1712]/28" />
+    </Link>
+  );
+}
+
+function TopLink({ href, label, icon: Icon }) {
   const pathname = usePathname();
   const active = isActivePath(pathname, href);
 
   return (
     <Link
-      prefetch
       href={href}
-      onClick={onClick}
-      className={`flex min-h-12 cursor-pointer items-center justify-between rounded-2xl border px-3 py-2 font-black transition active:scale-[0.98] ${
+      className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-black transition active:scale-[0.98] ${
         active
-          ? "border-[#171411] bg-[#171411] text-white"
-          : "border-black/10 bg-white text-[#171411] hover:bg-[#fff7ea]"
+          ? "border-[#1b1712] bg-[#1b1712] text-[#efe7da]"
+          : "border-[#8f806c]/45 bg-[#d8cebe] text-[#1b1712]/62 hover:border-[#8f806c]/75 hover:bg-[#cfc3b2] hover:text-[#1b1712]"
       }`}
     >
-      <span className="flex items-center gap-3">
-        <span
-          className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-            active ? "bg-white/10 text-white" : "bg-[#f3eadc] text-[#171411]"
-          }`}
-        >
-          <Icon size={18} />
-        </span>
+      <Icon size={17} />
+      {label}
+    </Link>
+  );
+}
 
-        {label}
-      </span>
+function DockCircle({ children, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-[58px] w-[58px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#8f806c]/55 bg-[#ded4c5] text-[#1b1712]/65 shadow-lg shadow-black/10 transition hover:bg-[#cfc3b2] hover:text-[#1b1712] active:scale-[0.96]"
+      aria-label={label}
+    >
+      {children}
+    </button>
+  );
+}
 
-      <ArrowLeft
-        size={15}
-        className={active ? "text-white/45" : "text-[#171411]/35"}
-      />
+function DockMainLink({ href, icon: Icon }) {
+  const pathname = usePathname();
+  const active = isActivePath(pathname, href);
+
+  return (
+    <Link
+      href={href}
+      className={`flex h-[52px] w-[52px] cursor-pointer items-center justify-center rounded-full transition active:scale-[0.96] ${
+        active
+          ? "bg-[#1b1712] text-[#efe7da]"
+          : "text-[#1b1712]/45 hover:bg-[#cfc3b2] hover:text-[#1b1712]"
+      }`}
+    >
+      <Icon size={21} />
     </Link>
   );
 }
 
 export default function AdminSidebar({ profile }) {
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <>
-      <MobileMoreSheet
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      <ToolsSheet
         profile={profile}
-        open={moreOpen}
-        onClose={() => setMoreOpen(false)}
+        open={toolsOpen}
+        onClose={() => setToolsOpen(false)}
       />
 
-      <aside
+      <header
         dir="rtl"
-        className="fixed left-0 top-0 z-[80] hidden h-screen w-80 flex-col border-r border-white/10 bg-[#171411] p-3 text-white md:flex"
+        className="fixed left-0 right-0 top-0 z-[850] border-b border-[#8f806c]/45 bg-[#cfc6b8]/95 px-3 py-3 backdrop-blur"
       >
-        <Link
-          href="/admin"
-          className="mb-4 flex cursor-pointer items-center gap-3 rounded-[28px] border border-white/10 bg-white/[0.07] p-4 transition hover:bg-white/10 active:scale-[0.99]"
-        >
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#171411]">
-            <Store size={23} />
-          </div>
+        <div className="mx-auto flex max-w-7xl items-center gap-3">
+          <Link
+            href="/admin"
+            className="flex cursor-pointer items-center gap-2 rounded-2xl border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 transition hover:bg-[#d1c5b4] active:scale-[0.98]"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1b1712] text-[#efe7da]">
+              <Store size={19} />
+            </div>
 
-          <div>
-            <p className="text-xl font-black leading-none text-white">CRTGO</p>
-            <p className="mt-1 text-xs font-bold text-white/38">
-              Admin workspace
-            </p>
-          </div>
-        </Link>
+            <div className="hidden sm:block">
+              <p className="text-sm font-black leading-none text-[#1b1712]">
+                CRTGO
+              </p>
 
-        <SearchBox />
+              <p className="mt-1 text-[11px] font-bold text-[#1b1712]/45">
+                menu workspace
+              </p>
+            </div>
+          </Link>
 
-        <nav className="mt-5 flex-1 space-y-6 overflow-y-auto pb-4">
-          <DesktopNavGroup title="العمل">
-            {mainLinks.map((item) => (
-              <DesktopNavLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                label={item.label}
+          <nav className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+            {mainLinks.map((link) => (
+              <TopLink
+                key={link.href}
+                href={link.href}
+                label={link.label}
+                icon={link.icon}
               />
             ))}
-          </DesktopNavGroup>
-
-          <DesktopNavGroup title="الاشتراك">
-            {businessLinks.map((item) => (
-              <DesktopNavLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                label={item.label}
-              />
-            ))}
-          </DesktopNavGroup>
-
-          <DesktopNavGroup title="الحساب">
-            {accountLinks.map((item) => (
-              <DesktopNavLink
-                key={item.href}
-                href={item.href}
-                icon={item.icon}
-                label={item.label}
-              />
-            ))}
-          </DesktopNavGroup>
-        </nav>
-
-        <div className="grid gap-2 border-t border-white/10 pt-3">
-          <AccountCard profile={profile} dark />
-
-          <LogoutButton className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-red-600 hover:border-red-500 active:scale-[0.98]">
-            <LogOut size={17} />
-            تسجيل الخروج
-          </LogoutButton>
-        </div>
-      </aside>
-
-      <nav
-        dir="rtl"
-        className="fixed bottom-3 left-3 right-3 z-[900] rounded-[28px] border border-black/10 bg-white/95 p-2 shadow-2xl shadow-black/15 backdrop-blur md:hidden no-scrollbar"
-      >
-        <div className="flex items-center gap-1 no-scrollbar">
-          {mainLinks.map((item) => (
-            <MobileTabLink
-              key={item.href}
-              href={item.href}
-              icon={item.icon}
-              label={item.shortLabel}
-              onClick={() => setMoreOpen(false)}
-            />
-          ))}
+          </nav>
 
           <button
             type="button"
-            onClick={() => setMoreOpen(true)}
-            className="flex min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-black text-[#171411]/45 transition hover:bg-[#f3eadc] hover:text-[#171411] active:scale-[0.96]"
-            aria-label="المزيد"
+            onClick={() => setSearchOpen(true)}
+            className="hidden min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-[#8f806c]/45 bg-[#d8cebe] px-3 py-2 text-sm font-black text-[#1b1712]/55 transition hover:border-[#8f806c]/75 hover:bg-[#cfc3b2] hover:text-[#1b1712] active:scale-[0.98] sm:inline-flex"
           >
-            <MoreHorizontal size={19} />
-            <span>المزيد</span>
+            <Search size={17} />
+            بحث
           </button>
+
+          <button
+            type="button"
+            onClick={() => setToolsOpen(true)}
+            className="hidden min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-[#8f806c]/45 bg-[#d8cebe] px-3 py-2 text-sm font-black text-[#1b1712]/55 transition hover:border-[#8f806c]/75 hover:bg-[#cfc3b2] hover:text-[#1b1712] active:scale-[0.98] sm:inline-flex"
+          >
+            <Menu size={18} />
+            الأدوات
+          </button>
+        </div>
+      </header>
+
+      <nav
+        dir="rtl"
+        className="fixed bottom-3 left-3 right-3 z-[900] md:hidden"
+      >
+        <div className="flex items-center justify-center gap-3">
+          <DockCircle onClick={() => setSearchOpen(true)} label="بحث">
+            <Search size={23} />
+          </DockCircle>
+
+          <div className="flex items-center gap-1 rounded-full border border-[#8f806c]/55 bg-[#ded4c5] p-1.5 shadow-lg shadow-black/10">
+            {mainLinks.map((link) => (
+              <DockMainLink
+                key={link.href}
+                href={link.href}
+                icon={link.icon}
+              />
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setToolsOpen(true)}
+              className="flex h-[52px] w-[52px] cursor-pointer items-center justify-center rounded-full text-[#1b1712]/45 transition hover:bg-[#cfc3b2] hover:text-[#1b1712] active:scale-[0.96]"
+              aria-label="الأدوات"
+            >
+              <Menu size={22} />
+            </button>
+          </div>
         </div>
       </nav>
     </>

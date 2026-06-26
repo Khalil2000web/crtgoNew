@@ -2,6 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MenuEditor from "./menu-editor";
 
+export const metadata = {
+  title: "Menu Dashboard",
+};
+
 export default async function MenuAdminPage({ params }) {
   const { menuId } = await params;
 
@@ -13,7 +17,7 @@ export default async function MenuAdminPage({ params }) {
 
   if (!user) redirect("/start");
 
-  const { data: menu } = await supabase
+  const { data: menu, error } = await supabase
     .from("menus")
     .select(
       `
@@ -28,7 +32,7 @@ export default async function MenuAdminPage({ params }) {
     .eq("owner_id", user.id)
     .single();
 
-  if (!menu) notFound();
+  if (error || !menu) notFound();
 
   return <MenuEditor menu={menu} />;
 }

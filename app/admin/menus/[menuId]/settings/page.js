@@ -2,6 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SettingsForm from "./settings-form";
 
+export const metadata = {
+  title: "Menu Settings",
+};
+
 export default async function MenuSettingsPage({ params }) {
   const { menuId } = await params;
 
@@ -13,7 +17,7 @@ export default async function MenuSettingsPage({ params }) {
 
   if (!user) redirect("/start");
 
-  const { data: menu } = await supabase
+  const { data: menu, error } = await supabase
     .from("menus")
     .select(
       `
@@ -27,7 +31,7 @@ export default async function MenuSettingsPage({ params }) {
     .eq("owner_id", user.id)
     .single();
 
-  if (!menu) notFound();
+  if (error || !menu) notFound();
 
   return <SettingsForm menu={menu} />;
 }

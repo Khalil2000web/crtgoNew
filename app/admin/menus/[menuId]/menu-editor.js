@@ -10,41 +10,28 @@ import {
   Clock,
   Copy,
   ExternalLink,
+  FileText,
   FolderOpen,
   Globe,
   ImageIcon,
+  Languages,
+  Layers3,
   MapPin,
   Package,
   Palette,
-  Pencil,
   Phone,
   Settings,
-  Sparkles,
+  Store,
+  TriangleAlert,
 } from "lucide-react";
 
-import {
-  AdminButton,
-  AdminChip,
-  AdminLinkButton,
-  AdminMetricRail,
-  AdminModule,
-  AdminPageShell,
-  AdminProgressLine,
-  AdminResourceRow,
-  AdminSidePanel,
-  AdminTopBar,
-  AdminWorkspace,
-} from "@/components/admin/AdminUI";
-
-function statusTone(status) {
-  return status === "archived" ? "yellow" : "green";
+function getStatusLabel(status) {
+  if (status === "archived") return "مؤرشفة";
+  if (status === "active") return "مفعلة";
+  return "غير محددة";
 }
 
-function statusLabel(status) {
-  return status === "archived" ? "مؤرشفة" : "مفعلة";
-}
-
-function templateLabel(template) {
+function getTemplateLabel(template) {
   const labels = {
     classic: "Classic",
     luxury: "Luxury",
@@ -53,6 +40,16 @@ function templateLabel(template) {
   };
 
   return labels[template] || template || "Default";
+}
+
+function getSectionCounts(section) {
+  const items = section.items || [];
+  const availableItems = items.filter((item) => item.is_available !== false);
+
+  return {
+    items: items.length,
+    availableItems: availableItems.length,
+  };
 }
 
 export default function MenuEditor({ menu }) {
@@ -69,10 +66,9 @@ export default function MenuEditor({ menu }) {
     );
   }, [menu.sections]);
 
-  const itemsCount = sections.reduce(
-    (total, section) => total + (section.items?.length || 0),
-    0
-  );
+  const itemsCount = sections.reduce((total, section) => {
+    return total + (section.items?.length || 0);
+  }, 0);
 
   const availableItems = sections.reduce((total, section) => {
     return (
@@ -81,7 +77,12 @@ export default function MenuEditor({ menu }) {
     );
   }, 0);
 
+  const emptySections = sections.filter((section) => {
+    return !section.items || section.items.length === 0;
+  });
+
   const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
+
   const publicUrl = publicPath
     ? origin
       ? `${origin}${publicPath}`
@@ -94,7 +95,7 @@ export default function MenuEditor({ menu }) {
     await navigator.clipboard.writeText(publicUrl);
     setCopied(true);
 
-    setTimeout(() => setCopied(false), 1600);
+    setTimeout(() => setCopied(false), 1400);
   }
 
   const readyChecks = [
@@ -107,404 +108,579 @@ export default function MenuEditor({ menu }) {
   ];
 
   const readyCount = readyChecks.filter((item) => item.done).length;
+  const isReady = readyCount === readyChecks.length;
 
   return (
-    <AdminPageShell>
-      <AdminTopBar
-        backHref="/admin/menus"
-        backLabel="الرجوع للقوائم"
-        eyebrow="Menu Command Center"
-        title={menu.name || "قائمة بدون اسم"}
-        description="مركز تحكم القائمة: عدّل المحتوى، افتح الرابط، راقب الجاهزية، وادخل لكل جزء من مكان واضح."
-        primaryAction={
-          <AdminLinkButton href={`/admin/menus/${menu.id}/details`} variant="primary">
-            <Pencil size={18} />
-            تعديل المعلومات
-          </AdminLinkButton>
-        }
-        secondaryAction={
-          publicPath ? (
-            <AdminLinkButton href={publicPath} target="_blank" variant="secondary">
-              <ExternalLink size={18} />
-              فتح للزبائن
-            </AdminLinkButton>
-          ) : (
-            <AdminLinkButton href={`/admin/menus/${menu.id}/settings`} variant="warning">
-              إعداد الرابط
-            </AdminLinkButton>
-          )
-        }
-        meta={
-          <>
-            <AdminChip tone={statusTone(menu.status)}>
-              {statusLabel(menu.status)}
-            </AdminChip>
+    <section dir="rtl" className="min-h-screen px-4 pb-32 pt-4 sm:px-5 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <header className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] shadow-sm shadow-black/5">
+          <div className="grid gap-0 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <div className="relative min-h-[150px] border-b border-[#8f806c]/45 bg-[#d1c5b4] lg:border-b-0 lg:border-l">
+              {menu.cover_url ? (
+                <Image
+                  src={menu.cover_url}
+                  alt={menu.name || "Cover"}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 260px"
+                  className="pointer-events-none object-cover"
+                />
+              ) : (
+                <div className="flex h-full min-h-[150px] items-center justify-center">
+                  <ImageIcon size={34} className="text-[#1b1712]/30" />
+                </div>
+              )}
 
-            <AdminChip>{templateLabel(menu.template_id)}</AdminChip>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
 
-            {publicPath && (
-              <AdminChip dir="ltr">
-                <Globe size={12} />
-                {publicPath}
-              </AdminChip>
-            )}
-          </>
-        }
-      />
-
-      <section className="mt-4 overflow-hidden rounded-[2rem] border border-[#20160d]/10 bg-white shadow-sm">
-        <div className="grid lg:grid-cols-[360px_1fr]">
-          <div className="relative min-h-[230px] bg-[#f3eadc] lg:min-h-[300px]">
-            {menu.cover_url ? (
-              <Image
-                src={menu.cover_url}
-                alt={menu.name || "Cover"}
-                fill
-                sizes="(max-width: 1024px) 100vw, 360px"
-                className="pointer-events-none object-cover"
-              />
-            ) : (
-              <div className="flex h-full min-h-[230px] items-center justify-center">
-                <ImageIcon size={42} className="text-[#15120d]/25" />
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <div className="relative h-12 w-12 overflow-hidden rounded-xl border border-[#efe7da]/60 bg-[#ded4c5] shadow-lg shadow-black/15">
+                  {menu.logo_url ? (
+                    <Image
+                      src={menu.logo_url}
+                      alt={menu.name || "Logo"}
+                      fill
+                      sizes="48px"
+                      className="pointer-events-none object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <Store size={22} className="text-[#1b1712]/40" />
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
+            <div className="p-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <Link
+                    href="/admin/menus"
+                    className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-xs font-black text-[#1b1712]/65 transition hover:bg-[#d1c5b4] hover:text-[#1b1712] active:scale-[0.98]"
+                  >
+                    <ArrowLeft size={14} />
+                    الرجوع للقوائم
+                  </Link>
 
-            <div className="absolute bottom-4 right-4 flex items-center gap-3">
-              <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-white/40 bg-white shadow-xl">
-                {menu.logo_url ? (
-                  <Image
-                    src={menu.logo_url}
-                    alt={menu.name || "Logo"}
-                    fill
-                    sizes="64px"
-                    className="pointer-events-none object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <ImageIcon size={24} className="text-[#15120d]/30" />
+                  <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                    Menu Workspace
+                  </p>
+
+                  <h1 className="mt-1 truncate text-2xl font-black text-[#1b1712] sm:text-3xl">
+                    {menu.name || "قائمة بدون اسم"}
+                  </h1>
+
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#1b1712]/58">
+                    صفحة إدارة مختصرة للقائمة: المحتوى، المظهر، الرابط، والجاهزية قبل تسليم العميل.
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <StatusBadge status={menu.status} />
+                    <MiniTag>{getTemplateLabel(menu.template_id)}</MiniTag>
+
+                    {publicPath ? (
+                      <MiniTag dir="ltr">
+                        <Globe size={12} />
+                        {publicPath}
+                      </MiniTag>
+                    ) : (
+                      <WarningBadge>بدون رابط</WarningBadge>
+                    )}
+
+                    {isReady ? (
+                      <SuccessBadge>جاهزة</SuccessBadge>
+                    ) : (
+                      <WarningBadge>{readyCount}/{readyChecks.length} جاهزية</WarningBadge>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
 
-              <div className="rounded-2xl border border-white/30 bg-white/85 px-3 py-2 backdrop-blur">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#15120d]/45">
-                  Preview
-                </p>
-                <p className="max-w-[180px] truncate text-sm font-black text-[#15120d]">
-                  {menu.name || "Menu"}
-                </p>
+                <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[290px]">
+                  <PrimaryLink href={`/admin/menus/${menu.id}/details`}>
+                    <FileText size={17} />
+                    تعديل المعلومات
+                  </PrimaryLink>
+
+                  {publicPath ? (
+                    <SoftLink href={publicPath} target="_blank">
+                      <ExternalLink size={17} />
+                      فتح للزبائن
+                    </SoftLink>
+                  ) : (
+                    <WarningLink href={`/admin/menus/${menu.id}/settings`}>
+                      إعداد الرابط
+                    </WarningLink>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+        </header>
 
-          <div className="p-4 sm:p-5 lg:p-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              <PreviewInfo
-                label="الأقسام"
-                value={sections.length}
-                hint="مجموع الأقسام"
-                icon={<FolderOpen size={18} />}
-              />
+        <section className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricBox
+            label="الأقسام"
+            value={sections.length}
+            hint={`${emptySections.length} فارغة`}
+            icon={<FolderOpen size={18} />}
+            alert={emptySections.length > 0 && sections.length > 0}
+          />
 
-              <PreviewInfo
-                label="الأصناف"
-                value={itemsCount}
-                hint={`${availableItems} متوفر`}
-                icon={<Package size={18} />}
-              />
+          <MetricBox
+            label="الأصناف"
+            value={itemsCount}
+            hint={`${availableItems} متوفر`}
+            icon={<Package size={18} />}
+            alert={itemsCount === 0}
+          />
 
-              <PreviewInfo
-                label="الجاهزية"
-                value={`${readyCount}/${readyChecks.length}`}
-                hint="نقاط مكتملة"
-                icon={<CheckCircle2 size={18} />}
-              />
-            </div>
+          <MetricBox
+            label="الرابط"
+            value={menu.subdomain ? "جاهز" : "ناقص"}
+            hint={publicPath || "أضف رابط قبل الطباعة"}
+            icon={<Globe size={18} />}
+            alert={!menu.subdomain}
+          />
 
-            <div className="mt-5 grid gap-3">
-              {menu.description_ar && (
-                <p className="rounded-2xl border border-[#20160d]/10 bg-[#f8efe1] p-4 text-sm leading-7 text-[#15120d]/60">
-                  {menu.description_ar}
-                </p>
-              )}
+          <MetricBox
+            label="الجاهزية"
+            value={`${readyCount}/${readyChecks.length}`}
+            hint={isReady ? "جاهزة للتسليم" : "راجع الناقص"}
+            icon={<CheckCircle2 size={18} />}
+            alert={!isReady}
+          />
+        </section>
 
-              <div className="flex flex-wrap gap-2">
-                {menu.location && (
-                  <AdminChip>
-                    <MapPin size={12} />
-                    {menu.location}
-                  </AdminChip>
-                )}
-
-                {menu.phone && (
-                  <AdminChip>
-                    <Phone size={12} />
-                    {menu.phone}
-                  </AdminChip>
-                )}
-
-                {publicPath && (
+        <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+          <div className="grid gap-5">
+            <Panel
+              eyebrow="Manage"
+              title="إدارة القائمة"
+              action={
+                publicPath ? (
                   <button
                     type="button"
                     onClick={copyPublicLink}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#20160d]/10 bg-[#f3eadc] px-2.5 py-1 text-xs font-black text-[#15120d]/60 transition hover:bg-[#ead9bd] active:scale-[0.98]"
+                    className="inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-sm font-black text-[#1b1712]/70 transition hover:bg-[#d1c5b4] hover:text-[#1b1712] active:scale-[0.98]"
                   >
-                    <Copy size={12} />
+                    <Copy size={15} />
                     {copied ? "تم النسخ" : "نسخ الرابط"}
                   </button>
-                )}
+                ) : null
+              }
+            >
+              <div className="grid gap-2 md:grid-cols-2">
+                <ToolCard
+                  href={`/admin/menus/${menu.id}/details`}
+                  icon={<FileText size={19} />}
+                  title="معلومات القائمة"
+                  text="الاسم، الوصف، الهاتف، الموقع، وروابط التواصل."
+                  primary
+                />
+
+                <ToolCard
+                  href={`/admin/menus/${menu.id}/sections`}
+                  icon={<Layers3 size={19} />}
+                  title="الأقسام والأصناف"
+                  text="إدارة المنتجات، الأسعار، الصور، والتوفر."
+                />
+
+                <ToolCard
+                  href={`/admin/menus/${menu.id}/appearance`}
+                  icon={<Palette size={19} />}
+                  title="المظهر"
+                  text="الشعار، الغلاف، القالب، وطريقة عرض القائمة."
+                />
+
+                <ToolCard
+                  href={`/admin/menus/${menu.id}/hours`}
+                  icon={<Clock size={19} />}
+                  title="ساعات العمل"
+                  text="الأيام، الأوقات، وحالة الفتح والإغلاق."
+                />
+
+                <ToolCard
+                  href={`/admin/menus/${menu.id}/languages`}
+                  icon={<Languages size={19} />}
+                  title="اللغات"
+                  text="إعداد لغات القائمة للعميل."
+                />
+
+                <ToolCard
+                  href={`/admin/menus/${menu.id}/settings`}
+                  icon={<Settings size={19} />}
+                  title="الإعدادات"
+                  text="الرابط، حالة القائمة، والأرشفة أو الحذف."
+                />
               </div>
-            </div>
+            </Panel>
+
+            <Panel
+              eyebrow="Sections"
+              title="الأقسام"
+              action={
+                <SoftLink href={`/admin/menus/${menu.id}/sections`} small>
+                  إدارة الأقسام
+                </SoftLink>
+              }
+            >
+              {!sections.length ? (
+                <EmptySections menuId={menu.id} />
+              ) : (
+                <div className="grid gap-2">
+                  {sections.slice(0, 7).map((section) => {
+                    const counts = getSectionCounts(section);
+                    const isEmpty = counts.items === 0;
+
+                    return (
+                      <SectionRow
+                        key={section.id}
+                        menuId={menu.id}
+                        section={section}
+                        counts={counts}
+                        isEmpty={isEmpty}
+                      />
+                    );
+                  })}
+
+                  {sections.length > 7 && (
+                    <div className="rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-2 text-center text-sm font-black text-[#1b1712]/55">
+                      + {sections.length - 7} أقسام أخرى
+                    </div>
+                  )}
+                </div>
+              )}
+            </Panel>
           </div>
-        </div>
-      </section>
 
-      <AdminMetricRail
-        metrics={[
-          {
-            label: "جاهزية القائمة",
-            value: `${readyCount}/${readyChecks.length}`,
-            hint: "كلما زادت، القائمة أفضل",
-            icon: <CheckCircle2 size={19} />,
-          },
-          {
-            label: "الأصناف المتوفرة",
-            value: availableItems,
-            hint: `${itemsCount - availableItems} غير متوفر`,
-            icon: <Package size={19} />,
-          },
-          {
-            label: "الرابط",
-            value: menu.subdomain ? "جاهز" : "ناقص",
-            hint: publicPath || "أضف رابط من الإعدادات",
-            icon: <Globe size={19} />,
-          },
-        ]}
-      />
+          <aside className="grid gap-4 lg:sticky lg:top-24 lg:h-fit">
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Readiness
+              </p>
 
-      <AdminWorkspace
-        sidebar={
-          <>
-            <AdminSidePanel title="جاهزية القائمة" description="بدل كروت الحالة، هاي قائمة واضحة للأشياء الناقصة.">
-              <div className="grid gap-2">
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                جاهزية التسليم
+              </h2>
+
+              <div className="mt-4 grid gap-2">
                 {readyChecks.map((item) => (
                   <ReadyRow key={item.label} done={item.done} label={item.label} />
                 ))}
               </div>
-            </AdminSidePanel>
+            </section>
 
-            <AdminSidePanel title="تقدم المحتوى">
-              <div className="grid gap-3">
-                <AdminProgressLine
-                  label="الأقسام التي فيها أصناف"
-                  value={sections.filter((section) => section.items?.length).length}
-                  max={Math.max(sections.length, 1)}
-                  hint="القسم الفارغ لا يفيد الزبون"
-                />
-
-                <AdminProgressLine
-                  label="الأصناف المتوفرة"
-                  value={availableItems}
-                  max={Math.max(itemsCount, 1)}
-                  hint="اخفِ الأصناف غير المتاحة"
-                />
-              </div>
-            </AdminSidePanel>
-
-            <AdminSidePanel tone="dark" title="أفضل ترتيب للتعديل">
-              <div className="grid gap-2">
-                <DarkLink href={`/admin/menus/${menu.id}/details`} title="1. المعلومات" />
-                <DarkLink href={`/admin/menus/${menu.id}/sections`} title="2. الأقسام والأصناف" />
-                <DarkLink href={`/admin/menus/${menu.id}/appearance`} title="3. المظهر" />
-                <DarkLink href={`/admin/menus/${menu.id}/settings`} title="4. الرابط والحالة" />
-              </div>
-            </AdminSidePanel>
-          </>
-        }
-      >
-        <AdminModule
-          eyebrow="Manage"
-          title="إدارة القائمة"
-          description="كل جزء من القائمة له صفحة واضحة بدل صفحة واحدة مزعجة."
-        >
-          <div className="grid gap-2 md:grid-cols-2">
-            <ManageBlock
-              href={`/admin/menus/${menu.id}/details`}
-              title="المعلومات"
-              description="الاسم، الوصف، الموقع، وروابط التواصل."
-              icon={<Pencil size={20} />}
-              primary
-            />
-
-            <ManageBlock
-              href={`/admin/menus/${menu.id}/sections`}
-              title="الأقسام والأصناف"
-              description="المنتجات، الأسعار، الصور، والتوفر."
-              icon={<FolderOpen size={20} />}
-            />
-
-            <ManageBlock
-              href={`/admin/menus/${menu.id}/appearance`}
-              title="المظهر"
-              description="القالب، الغلاف، الشعار، والألوان."
-              icon={<Palette size={20} />}
-            />
-
-            <ManageBlock
-              href={`/admin/menus/${menu.id}/hours`}
-              title="ساعات العمل"
-              description="الأيام المفتوحة والمغلقة."
-              icon={<Clock size={20} />}
-            />
-
-            <ManageBlock
-              href={`/admin/menus/${menu.id}/settings`}
-              title="الإعدادات"
-              description="الرابط العام، الأرشفة، والحذف."
-              icon={<Settings size={20} />}
-            />
-          </div>
-        </AdminModule>
-
-        <AdminModule
-          eyebrow="Sections"
-          title="الأقسام"
-          description="نظرة مباشرة على أقسام القائمة بدون كروت كبيرة."
-          action={
-            <AdminLinkButton
-              href={`/admin/menus/${menu.id}/sections`}
-              variant="secondary"
-              className="min-h-10 px-3 py-2"
-            >
-              إدارة الأقسام
-            </AdminLinkButton>
-          }
-        >
-          {!sections.length ? (
-            <div className="rounded-[1.5rem] border border-dashed border-[#20160d]/18 bg-[#f3eadc] p-6 text-center">
-              <FolderOpen className="mx-auto text-[#15120d]/25" size={36} />
-
-              <h3 className="mt-3 text-xl font-black text-[#15120d]">
-                لا توجد أقسام
-              </h3>
-
-              <p className="mt-2 text-sm text-[#15120d]/50">
-                أضف أول قسم وابدأ بتعبئة الأصناف.
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d1c5b4] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Public link
               </p>
 
-              <AdminLinkButton
-                href={`/admin/menus/${menu.id}/sections`}
-                variant="primary"
-                className="mt-5"
-              >
-                إضافة أقسام
-              </AdminLinkButton>
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              {sections.slice(0, 6).map((section) => (
-                <AdminResourceRow
-                  key={section.id}
-                  icon={<FolderOpen size={20} />}
-                  title={section.name_ar || "قسم بدون اسم"}
-                  description="افتح القسم لإدارة الأصناف داخله."
-                  meta={
-                    <>
-                      <AdminChip>
-                        <Package size={12} />
-                        {(section.items || []).length} أصناف
-                      </AdminChip>
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                رابط الزبائن
+              </h2>
 
-                      {(section.items || []).length === 0 && (
-                        <AdminChip tone="yellow">فارغ</AdminChip>
-                      )}
-                    </>
-                  }
-                  actions={
-                    <AdminLinkButton
-                      href={`/admin/menus/${menu.id}/sections/${section.id}`}
-                      variant="secondary"
-                      className="min-h-10 px-3 py-2"
+              <div className="mt-4 rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-3">
+                <p
+                  dir="ltr"
+                  className="break-all text-left text-sm font-bold text-[#1b1712]/60"
+                >
+                  {publicUrl || "No public link yet"}
+                </p>
+              </div>
+
+              <div className="mt-3 grid gap-2">
+                {publicPath ? (
+                  <>
+                    <PrimaryLink href={publicPath} target="_blank">
+                      <ExternalLink size={17} />
+                      فتح القائمة
+                    </PrimaryLink>
+
+                    <button
+                      type="button"
+                      onClick={copyPublicLink}
+                      className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] px-4 py-2.5 text-sm font-black text-[#1b1712]/70 transition hover:bg-[#cfc3b2] hover:text-[#1b1712] active:scale-[0.98]"
                     >
-                      فتح
-                      <ArrowLeft size={15} />
-                    </AdminLinkButton>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </AdminModule>
-      </AdminWorkspace>
-    </AdminPageShell>
+                      <Copy size={16} />
+                      {copied ? "تم النسخ" : "نسخ الرابط"}
+                    </button>
+                  </>
+                ) : (
+                  <WarningLink href={`/admin/menus/${menu.id}/settings`}>
+                    إعداد الرابط
+                  </WarningLink>
+                )}
+              </div>
+            </section>
+
+            {(menu.location || menu.phone) && (
+              <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                  Client info
+                </p>
+
+                <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                  معلومات ظاهرة
+                </h2>
+
+                <div className="mt-4 grid gap-2">
+                  {menu.phone && (
+                    <InfoLine icon={<Phone size={16} />} text={menu.phone} />
+                  )}
+
+                  {menu.location && (
+                    <InfoLine icon={<MapPin size={16} />} text={menu.location} />
+                  )}
+                </div>
+              </section>
+            )}
+          </aside>
+        </section>
+      </div>
+    </section>
   );
 }
 
-function PreviewInfo({ label, value, hint, icon }) {
+function Panel({ eyebrow, title, action, children }) {
   return (
-    <div className="rounded-2xl border border-[#20160d]/10 bg-[#fffaf2] p-4">
-      <div className="flex items-center justify-between text-[#15120d]/40">
-        <p className="text-xs font-black">{label}</p>
+    <section className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] shadow-sm shadow-black/5">
+      <div className="flex items-center justify-between gap-3 border-b border-[#8f806c]/45 bg-[#d1c5b4] px-4 py-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+            {eyebrow}
+          </p>
+
+          <h2 className="mt-0.5 text-lg font-black text-[#1b1712]">
+            {title}
+          </h2>
+        </div>
+
+        {action}
+      </div>
+
+      <div className="p-3">{children}</div>
+    </section>
+  );
+}
+
+function ToolCard({ href, icon, title, text, primary }) {
+  return (
+    <Link
+      href={href}
+      className={`cursor-pointer rounded-xl border p-3 transition active:scale-[0.99] ${
+        primary
+          ? "border-[#1b1712] bg-[#1b1712] text-[#efe7da] hover:bg-[#332a22]"
+          : "border-[#8f806c]/50 bg-[#ded4c5] text-[#1b1712] hover:border-[#796a58]/75 hover:bg-[#d1c5b4]"
+      }`}
+    >
+      <div
+        className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+          primary
+            ? "bg-[#efe7da]/10 text-[#efe7da]"
+            : "border border-[#8f806c]/45 bg-[#d1c5b4] text-[#1b1712]/70"
+        }`}
+      >
         {icon}
       </div>
 
-      <p className="mt-2 text-3xl font-black text-[#15120d]">{value}</p>
-      <p className="mt-1 text-xs font-bold text-[#15120d]/40">{hint}</p>
+      <h3 className="mt-3 text-sm font-black">{title}</h3>
+
+      <p
+        className={`mt-1 text-xs leading-5 ${
+          primary ? "text-[#efe7da]/60" : "text-[#1b1712]/50"
+        }`}
+      >
+        {text}
+      </p>
+    </Link>
+  );
+}
+
+function SectionRow({ menuId, section, counts, isEmpty }) {
+  return (
+    <div className="grid gap-3 rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] p-3 transition hover:border-[#796a58]/75 hover:bg-[#d1c5b4] sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="truncate text-sm font-black text-[#1b1712]">
+            {section.name_ar || "قسم بدون اسم"}
+          </h3>
+
+          {isEmpty && <WarningBadge>فارغ</WarningBadge>}
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <MiniTag>
+            <Package size={12} />
+            {counts.items} أصناف
+          </MiniTag>
+
+          <MiniTag>{counts.availableItems} متوفر</MiniTag>
+        </div>
+      </div>
+
+      <SoftLink href={`/admin/menus/${menuId}/sections/${section.id}`} small>
+        فتح
+        <ArrowLeft size={15} />
+      </SoftLink>
     </div>
   );
 }
 
 function ReadyRow({ done, label }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#20160d]/10 bg-[#f3eadc] p-3">
-      <span className="text-sm font-black text-[#15120d]/65">{label}</span>
-
+    <div className="flex items-center gap-2 rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-2.5">
       {done ? (
-        <CheckCircle2 size={18} className="text-green-800" />
+        <CheckCircle2 size={17} className="shrink-0 text-green-950" />
       ) : (
-        <AlertCircle size={18} className="text-yellow-950" />
+        <AlertCircle size={17} className="shrink-0 text-yellow-950" />
       )}
+
+      <span className="text-sm font-bold text-[#1b1712]/70">{label}</span>
     </div>
   );
 }
 
-function ManageBlock({ href, title, description, icon, primary }) {
+function MetricBox({ icon, label, value, hint, alert }) {
   return (
-    <Link
-      href={href}
-      className={`cursor-pointer rounded-[1.5rem] border p-4 transition active:scale-[0.99] ${
-        primary
-          ? "border-[#15120d] bg-[#15120d] text-white hover:bg-[#2b2117]"
-          : "border-[#20160d]/10 bg-[#fffaf2] text-[#15120d] hover:border-[#20160d]/25 hover:bg-[#fff1d6]"
+    <div
+      className={`flex items-center gap-3 rounded-2xl border p-3 shadow-sm shadow-black/5 ${
+        alert
+          ? "border-yellow-900/25 bg-yellow-700/15"
+          : "border-[#8f806c]/55 bg-[#d8cebe]"
       }`}
     >
-      <div
-        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
-          primary ? "bg-white/10 text-white" : "bg-[#f3eadc] text-[#15120d]"
-        }`}
-      >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] text-[#1b1712]/70">
         {icon}
       </div>
 
-      <h3 className="mt-3 text-lg font-black">{title}</h3>
+      <div className="min-w-0">
+        <p className="text-xs font-black text-[#1b1712]/45">{label}</p>
+        <p className="truncate text-xl font-black text-[#1b1712]">{value}</p>
+        <p className="truncate text-xs font-bold text-[#1b1712]/42">{hint}</p>
+      </div>
+    </div>
+  );
+}
 
-      <p className={`mt-1 text-sm leading-6 ${primary ? "text-white/60" : "text-[#15120d]/50"}`}>
-        {description}
+function InfoLine({ icon, text }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-2.5">
+      <span className="text-[#1b1712]/55">{icon}</span>
+      <span className="text-sm font-bold text-[#1b1712]/70">{text}</span>
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  if (status === "archived") {
+    return (
+      <span className="rounded-full border border-yellow-900/25 bg-yellow-700/15 px-2.5 py-1 text-xs font-black text-yellow-950">
+        {getStatusLabel(status)}
+      </span>
+    );
+  }
+
+  if (status === "active") {
+    return (
+      <span className="rounded-full border border-green-900/25 bg-green-800/12 px-2.5 py-1 text-xs font-black text-green-950">
+        {getStatusLabel(status)}
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full border border-[#8f806c]/45 bg-[#d1c5b4] px-2.5 py-1 text-xs font-black text-[#1b1712]/55">
+      {getStatusLabel(status)}
+    </span>
+  );
+}
+
+function WarningBadge({ children }) {
+  return (
+    <span className="rounded-full border border-yellow-900/25 bg-yellow-700/15 px-2.5 py-1 text-xs font-black text-yellow-950">
+      {children}
+    </span>
+  );
+}
+
+function SuccessBadge({ children }) {
+  return (
+    <span className="rounded-full border border-green-900/25 bg-green-800/12 px-2.5 py-1 text-xs font-black text-green-950">
+      {children}
+    </span>
+  );
+}
+
+function MiniTag({ children, dir }) {
+  return (
+    <span
+      dir={dir}
+      className="inline-flex items-center gap-1 rounded-full border border-[#8f806c]/45 bg-[#d1c5b4] px-2.5 py-1 text-xs font-black text-[#1b1712]/55"
+    >
+      {children}
+    </span>
+  );
+}
+
+function EmptySections({ menuId }) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#8f806c]/65 bg-[#ded4c5] p-6 text-center">
+      <FolderOpen className="mx-auto text-[#1b1712]/30" size={34} />
+
+      <h3 className="mt-3 text-lg font-black text-[#1b1712]">
+        لا توجد أقسام
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#1b1712]/55">
+        أضف أول قسم، ثم ابدأ بتعبئة الأصناف داخله.
       </p>
+
+      <div className="mt-4 flex justify-center">
+        <PrimaryLink href={`/admin/menus/${menuId}/sections`}>
+          إضافة أقسام
+        </PrimaryLink>
+      </div>
+    </div>
+  );
+}
+
+function PrimaryLink({ href, children, small, ...props }) {
+  return (
+    <Link
+      href={href}
+      {...props}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] active:scale-[0.98] ${
+        small ? "min-h-9 px-3 py-2" : "min-h-10 px-4 py-2.5"
+      }`}
+    >
+      {children}
     </Link>
   );
 }
 
-function DarkLink({ href, title }) {
+function SoftLink({ href, children, small, ...props }) {
   return (
     <Link
       href={href}
-      className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/10 p-3 text-sm font-black text-white transition hover:bg-white/15"
+      {...props}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] text-sm font-black text-[#1b1712]/70 transition hover:border-[#796a58]/70 hover:bg-[#d1c5b4] hover:text-[#1b1712] active:scale-[0.98] ${
+        small ? "min-h-9 px-3 py-2" : "min-h-10 px-4 py-2.5"
+      }`}
     >
-      {title}
-      <ArrowLeft size={15} className="text-white/40" />
+      {children}
+    </Link>
+  );
+}
+
+function WarningLink({ href, children, small }) {
+  return (
+    <Link
+      href={href}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-yellow-900/25 bg-yellow-700/15 text-sm font-black text-yellow-950 transition hover:bg-yellow-700/22 active:scale-[0.98] ${
+        small ? "min-h-9 px-3 py-2" : "min-h-10 px-4 py-2.5"
+      }`}
+    >
+      {children}
     </Link>
   );
 }

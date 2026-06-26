@@ -2,6 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SectionEditor from "./section-editor";
 
+export const metadata = {
+  title: "Section Items",
+};
+
 export default async function SectionPage({ params }) {
   const { menuId, sectionId } = await params;
 
@@ -13,16 +17,16 @@ export default async function SectionPage({ params }) {
 
   if (!user) redirect("/start");
 
-  const { data: menu } = await supabase
+  const { data: menu, error: menuError } = await supabase
     .from("menus")
-    .select("id, name, owner_id")
+    .select("id, name, owner_id, subdomain")
     .eq("id", menuId)
     .eq("owner_id", user.id)
     .single();
 
-  if (!menu) notFound();
+  if (menuError || !menu) notFound();
 
-  const { data: section } = await supabase
+  const { data: section, error: sectionError } = await supabase
     .from("sections")
     .select(
       `
@@ -34,7 +38,7 @@ export default async function SectionPage({ params }) {
     .eq("menu_id", menuId)
     .single();
 
-  if (!section) notFound();
+  if (sectionError || !section) notFound();
 
   return <SectionEditor section={section} menu={menu} menuId={menuId} />;
 }

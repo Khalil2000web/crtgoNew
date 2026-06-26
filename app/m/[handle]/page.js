@@ -3,22 +3,39 @@ import { CircleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 import ClassicTemplate from "@/components/templates/ClassicTemplate";
+import LuxuryTemplate from "@/components/templates/LuxuryTemplate";
 import { getPublicMenu } from "@/lib/public-menu";
 
 function hasAccess(profile) {
   if (!profile) return false;
 
-  if (profile.subscription_status === "active") return true;
+  const plan = String(profile.plan || "free").toLowerCase();
 
-  if (
-    profile.subscription_status === "trialing" &&
+  const subscriptionStatus = String(
+    profile.paypal_subscription_status ||
+      profile.subscription_status ||
+      ""
+  ).toUpperCase();
+
+  const trialActive =
     profile.trial_ends_at &&
-    new Date(profile.trial_ends_at) > new Date()
-  ) {
-    return true;
+    new Date(profile.trial_ends_at) > new Date();
+
+  const proActive =
+    plan === "pro" &&
+    ["ACTIVE", "APPROVED"].includes(subscriptionStatus);
+
+  return proActive || trialActive;
+}
+
+function renderTemplate(menu) {
+  const templateId = String(menu?.template_id || "classic").toLowerCase();
+
+  if (templateId === "luxury" || templateId === "luxurytemplate") {
+    return <LuxuryTemplate menu={menu} />;
   }
 
-  return false;
+  return <ClassicTemplate menu={menu} />;
 }
 
 export async function generateMetadata({ params }) {
@@ -46,11 +63,15 @@ export async function generateMetadata({ params }) {
 
 function MenuUnavailable() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-5">
+    <main className="flex min-h-screen items-center justify-center bg-[#cfc6b8] p-5 text-[#1b1712]">
       <div className="max-w-md text-center">
         <h1 className="flex items-center justify-center gap-2 text-2xl font-black">
           This menu is unavailable <CircleAlert />
         </h1>
+
+        <p className="mt-3 text-sm font-bold text-[#1b1712]/55">
+          The owner needs to activate their account or restore this menu.
+        </p>
       </div>
     </main>
   );
@@ -63,11 +84,17 @@ export default async function PublicMenuPage({ params }) {
 
   if (!menu) notFound();
 
+  if (menu.status && menu.status !== "active") {
+    return <MenuUnavailable />;
+  }
+
   const supabase = await createClient();
 
   const { data: owner } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      "id, plan, trial_ends_at, subscription_status, paypal_subscription_status"
+    )
     .eq("id", menu.owner_id)
     .single();
 
@@ -75,5 +102,5 @@ export default async function PublicMenuPage({ params }) {
     return <MenuUnavailable />;
   }
 
-  return <ClassicTemplate menu={menu} />;
+  return renderTemplate(menu);
 }

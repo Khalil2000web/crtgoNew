@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import StartForm from "./start-form";
 
+export const metadata = {
+  title: "Start",
+};
+
 export default async function StartPage() {
   const supabase = await createClient();
 

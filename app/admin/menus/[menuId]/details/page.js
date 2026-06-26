@@ -21,7 +21,8 @@ export default async function DetailsPage({ params }) {
 
   const { data: menu, error } = await supabase
     .from("menus")
-    .select(`
+    .select(
+      `
       id,
       owner_id,
       name,
@@ -38,11 +39,13 @@ export default async function DetailsPage({ params }) {
       name_i18n,
       description_i18n,
       location_i18n
-    `)
+    `
+    )
     .eq("id", menuId)
+    .eq("owner_id", user.id)
     .single();
 
-  if (error || !menu || menu.owner_id !== user.id) {
+  if (error || !menu) {
     notFound();
   }
 

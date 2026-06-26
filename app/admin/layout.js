@@ -23,10 +23,12 @@ export default async function AdminLayout({ children }) {
     .single();
 
   return (
-    <div className={`${dashboardFont.className} min-h-screen bg-[#f6f4ef] text-[#171411]`}>
+    <div
+      className={`${dashboardFont.className} min-h-screen bg-[#cfc6b8] text-[#1b1712]`}
+    >
       <AdminSidebar profile={profile} />
 
-      <main className="min-h-screen pb-24 md:ml-80 md:pb-0">
+      <main className="min-h-screen pb-28 pt-[82px]">
         <TrialNotice profile={profile} />
 
         <AdminAccessGate profile={profile}>{children}</AdminAccessGate>

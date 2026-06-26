@@ -4,16 +4,19 @@ import { createClient } from "@/lib/supabase/server";
 import {
   ArrowLeft,
   Circle,
+  Clock,
   CreditCard,
   ExternalLink,
   FolderOpen,
   Globe,
-  LayoutDashboard,
   MenuSquare,
   Plus,
   Settings,
   Sparkles,
   Store,
+  TriangleAlert,
+  CheckCircle2,
+  Package,
 } from "lucide-react";
 
 function getPlanLabel(plan) {
@@ -46,6 +49,27 @@ function getTrialDaysLeft(profile) {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
+function getMenuCounts(menu) {
+  const sections = menu.sections || [];
+
+  const items = sections.reduce((total, section) => {
+    return total + (section.items?.length || 0);
+  }, 0);
+
+  const availableItems = sections.reduce((total, section) => {
+    return (
+      total +
+      (section.items || []).filter((item) => item.is_available !== false).length
+    );
+  }, 0);
+
+  return {
+    sections: sections.length,
+    items,
+    availableItems,
+  };
+}
+
 export default async function AdminPage() {
   const supabase = await createClient();
 
@@ -63,7 +87,22 @@ export default async function AdminPage() {
 
   const { data: menus } = await supabase
     .from("menus")
-    .select("id, name, subdomain, status, created_at")
+    .select(
+      `
+      id,
+      name,
+      subdomain,
+      status,
+      created_at,
+      sections (
+        id,
+        items (
+          id,
+          is_available
+        )
+      )
+    `
+    )
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -72,264 +111,315 @@ export default async function AdminPage() {
 
   const activeMenus = menuList.filter((menu) => menu.status !== "archived");
   const archivedMenus = menuList.filter((menu) => menu.status === "archived");
+  const menusWithoutLinks = menuList.filter((menu) => !menu.subdomain);
+
+  const totalSections = menuList.reduce((total, menu) => {
+    return total + getMenuCounts(menu).sections;
+  }, 0);
+
+  const totalItems = menuList.reduce((total, menu) => {
+    return total + getMenuCounts(menu).items;
+  }, 0);
+
+  const menusWithContent = menuList.filter((menu) => {
+    return getMenuCounts(menu).items > 0;
+  });
 
   const trialDaysLeft = getTrialDaysLeft(profile);
   const subscriptionStatus = profile?.subscription_status || "unknown";
   const plan = profile?.plan_id || "trial";
 
+  const needsAttention =
+    menusWithoutLinks.length > 0 ||
+    menuList.some((menu) => getMenuCounts(menu).items === 0) ||
+    subscriptionStatus === "expired" ||
+    subscriptionStatus === "inactive";
+
   return (
-    <main dir="rtl" className="min-h-screen px-4 pb-28 pt-5 sm:px-5 lg:px-8">
+    <main dir="rtl" className="min-h-screen px-4 pb-32 pt-4 sm:px-5 lg:px-8">
       <section className="mx-auto max-w-7xl">
-        <section className="overflow-hidden rounded-[32px] border border-black/10 bg-white shadow-sm">
-          <div className="grid gap-0 lg:grid-cols-[1fr_330px]">
-            <div className="p-5 sm:p-7">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">
+        <header className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1b1712]/45">
                 CRTGO Workspace
               </p>
 
-              <h1 className="mt-3 text-4xl font-black leading-[1.05] text-[#171411] sm:text-5xl">
+              <h1 className="mt-1 text-2xl font-black text-[#1b1712] sm:text-3xl">
                 أهلاً {profile?.display_name || "بك"}
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-black/55">
-                لوحة تحكم لإدارة قوائم العملاء، الروابط، الاشتراك، والإعدادات بطريقة واضحة وسريعة.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#1b1712]/58">
+                إدارة قوائم العملاء، الروابط، الاشتراك، وتجهيز القوائم للطباعة أو المشاركة.
               </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                <StatusPill status={subscriptionStatus} />
-                <SmallPill icon={<CreditCard size={13} />}>
-                  {getPlanLabel(plan)}
-                </SmallPill>
-
-                {subscriptionStatus === "trialing" && trialDaysLeft !== null && (
-                  <SmallPill>باقي {trialDaysLeft} أيام</SmallPill>
-                )}
-              </div>
-
-              <div className="mt-6 grid gap-2 sm:grid-cols-2">
-                <MainButton href="/admin/create-menu" dark>
-                  <Plus size={18} />
-                  إنشاء قائمة جديدة
-                </MainButton>
-
-                <MainButton href="/admin/menus">
-                  <FolderOpen size={18} />
-                  إدارة كل القوائم
-                </MainButton>
-              </div>
             </div>
 
-            <div className="border-t border-black/10 bg-[#171411] p-5 text-white lg:border-r lg:border-t-0">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-white/35">
-                Account
-              </p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[320px]">
+              <PrimaryLink href="/admin/create-menu">
+                <Plus size={17} />
+                قائمة جديدة
+              </PrimaryLink>
 
-              <div className="mt-5 grid gap-3">
-                <MiniAccountRow label="الخطة" value={getPlanLabel(plan)} />
-                <MiniAccountRow
-                  label="الحالة"
-                  value={getStatusLabel(subscriptionStatus)}
-                />
-                <MiniAccountRow label="عدد القوائم" value={menuList.length} />
-              </div>
-
-              <Link
-                href="/admin/upgrade"
-                className="mt-5 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#171411] transition hover:bg-white/90 active:scale-[0.98]"
-              >
-                <Sparkles size={17} />
-                إدارة الخطة
-              </Link>
+              <SoftLink href="/admin/menus">
+                <MenuSquare size={17} />
+                كل القوائم
+              </SoftLink>
             </div>
           </div>
-        </section>
 
-        <section className="mt-4 grid gap-3 sm:grid-cols-3">
-          <MetricStrip
-            icon={<Store size={19} />}
-            label="القوائم النشطة"
-            value={activeMenus.length}
-            hint={`${archivedMenus.length} مؤرشفة`}
-          />
+          <div className="mt-4 flex flex-wrap gap-2">
+            <StatusPill status={subscriptionStatus} />
 
-          <MetricStrip
-            icon={<MenuSquare size={19} />}
-            label="كل القوائم"
+            <SmallPill icon={<CreditCard size={13} />}>
+              {getPlanLabel(plan)}
+            </SmallPill>
+
+            {subscriptionStatus === "trialing" && trialDaysLeft !== null && (
+              <SmallPill icon={<Clock size={13} />}>
+                باقي {trialDaysLeft} أيام
+              </SmallPill>
+            )}
+
+            {needsAttention ? (
+              <SmallPill warning icon={<TriangleAlert size={13} />}>
+                يحتاج مراجعة
+              </SmallPill>
+            ) : (
+              <SmallPill success icon={<CheckCircle2 size={13} />}>
+                كل شيء جاهز
+              </SmallPill>
+            )}
+          </div>
+        </header>
+
+        <section className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricBox
+            label="القوائم"
             value={menuList.length}
-            hint="في حسابك"
+            hint={`${activeMenus.length} نشطة / ${archivedMenus.length} مؤرشفة`}
+            icon={<Store size={18} />}
           />
 
-          <MetricStrip
-            icon={<LayoutDashboard size={19} />}
-            label="الصفحة الحالية"
-            value="Dashboard"
-            hint="نظرة عامة"
+          <MetricBox
+            label="الأقسام"
+            value={totalSections}
+            hint="داخل كل القوائم"
+            icon={<FolderOpen size={18} />}
+          />
+
+          <MetricBox
+            label="الأصناف"
+            value={totalItems}
+            hint={`${menusWithContent.length} قوائم فيها محتوى`}
+            icon={<Package size={18} />}
+          />
+
+          <MetricBox
+            label="روابط ناقصة"
+            value={menusWithoutLinks.length}
+            hint="قبل الطباعة لازم رابط"
+            icon={<Globe size={18} />}
+            alert={menusWithoutLinks.length > 0}
           />
         </section>
 
-        <section className="mt-5 grid gap-5 lg:grid-cols-[1fr_340px]">
-          <div className="space-y-5">
-            <section className="rounded-[28px] border border-black/10 bg-white shadow-sm">
-              <div className="flex flex-col gap-3 border-b border-black/10 bg-[#fffaf2] p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
-                    Recent work
-                  </p>
-
-                  <h2 className="mt-1 text-2xl font-black text-[#171411]">
-                    آخر القوائم
-                  </h2>
-                </div>
-
-                <Link
-                  href="/admin/menus"
-                  className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-[#171411] transition hover:bg-[#f7ead8] active:scale-[0.98]"
-                >
+        <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+          <div className="grid gap-5">
+            <Panel
+              eyebrow="Recent menus"
+              title="آخر القوائم"
+              action={
+                <SoftLink href="/admin/menus" small>
                   عرض الكل
-                </Link>
-              </div>
+                </SoftLink>
+              }
+            >
+              {!latestMenus.length ? (
+                <EmptyMenus />
+              ) : (
+                <div className="grid gap-2">
+                  {latestMenus.map((menu) => {
+                    const publicPath = menu.subdomain
+                      ? `/m/${menu.subdomain}`
+                      : null;
 
-              <div className="p-3">
-                {!latestMenus.length ? (
-                  <EmptyMenus />
-                ) : (
-                  <div className="grid gap-2">
-                    {latestMenus.map((menu) => {
-                      const publicPath = menu.subdomain
-                        ? `/m/${menu.subdomain}`
-                        : null;
+                    const counts = getMenuCounts(menu);
+                    const isEmpty = counts.items === 0;
 
-                      return (
-                        <div
-                          key={menu.id}
-                          className="grid gap-3 rounded-2xl border border-black/10 bg-white p-3 transition hover:border-black/20 hover:bg-[#fff7ea] sm:grid-cols-[1fr_auto] sm:items-center"
-                        >
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="truncate text-lg font-black text-[#171411]">
-                                {menu.name || "قائمة بدون اسم"}
-                              </h3>
+                    return (
+                      <MenuRow
+                        key={menu.id}
+                        menu={menu}
+                        publicPath={publicPath}
+                        counts={counts}
+                        isEmpty={isEmpty}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </Panel>
 
-                              <MenuStatus status={menu.status} />
-                            </div>
-
-                            <p
-                              dir="ltr"
-                              className="mt-2 text-left text-sm font-bold text-black/40"
-                            >
-                              {publicPath || "/m/not-set"}
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 sm:flex">
-                            <Link
-                              href={`/admin/menus/${menu.id}`}
-                              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#171411] px-4 py-2 text-sm font-black text-white transition hover:bg-[#30271e] active:scale-[0.98]"
-                            >
-                              إدارة
-                              <ArrowLeft size={15} />
-                            </Link>
-
-                            {publicPath ? (
-                              <Link
-                                href={publicPath}
-                                target="_blank"
-                                className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-[#171411] transition hover:bg-[#f7ead8] active:scale-[0.98]"
-                              >
-                                <ExternalLink size={15} />
-                                فتح
-                              </Link>
-                            ) : (
-                              <Link
-                                href={`/admin/menus/${menu.id}/settings`}
-                                className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-xl border border-yellow-800/20 bg-yellow-600/15 px-4 py-2 text-sm font-black text-yellow-950 transition hover:bg-yellow-600/25 active:scale-[0.98]"
-                              >
-                                الرابط
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className="rounded-[28px] border border-black/10 bg-white p-4 shadow-sm">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
-                Best workflow
-              </p>
-
-              <h2 className="mt-1 text-2xl font-black text-[#171411]">
-                طريقة العمل الأسرع
-              </h2>
-
-              <div className="mt-4 grid gap-2 md:grid-cols-2">
+            <Panel eyebrow="Client workflow" title="طريقة تجهيز قائمة عميل">
+              <div className="grid gap-2 md:grid-cols-2">
                 <WorkflowStep
                   href="/admin/create-menu"
                   number="01"
-                  title="أنشئ قائمة"
-                  text="ابدأ قائمة للعميل أو للمشروع."
+                  title="أنشئ القائمة"
+                  text="ابدأ باسم العميل والرابط الأساسي."
                 />
 
                 <WorkflowStep
                   href="/admin/menus"
                   number="02"
-                  title="أضف الأقسام"
-                  text="رتّب القائمة بطريقة مفهومة للزبائن."
+                  title="رتّب الأقسام"
+                  text="أقسام قليلة وواضحة أفضل من زحمة."
                 />
 
                 <WorkflowStep
                   href="/admin/menus"
                   number="03"
                   title="أضف الأصناف"
-                  text="اسم، وصف، سعر، وصورة إذا موجودة."
+                  text="اسم، سعر، وصف قصير، وصورة عند الحاجة."
                 />
 
                 <WorkflowStep
                   href="/admin/menus"
                   number="04"
-                  title="افتح الرابط"
-                  text="اختبر القائمة كأنك زبون."
+                  title="اختبر الرابط"
+                  text="افتحه كزبون قبل تسليم QR للعميل."
                 />
               </div>
-            </section>
+            </Panel>
           </div>
 
-          <aside className="space-y-4 lg:sticky lg:top-6 lg:h-fit">
-            <section className="rounded-[28px] border border-black/10 bg-white p-4 shadow-sm">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
-                Quick actions
+          <aside className="grid gap-4 lg:sticky lg:top-24 lg:h-fit">
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1b1712]/45">
+                Account
               </p>
 
-              <h2 className="mt-1 text-xl font-black text-[#171411]">
-                اختصارات
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                حالة الحساب
               </h2>
 
               <div className="mt-4 grid gap-2">
-                <QuickAction href="/admin/create-menu" icon={<Plus size={18} />} title="قائمة جديدة" />
-                <QuickAction href="/admin/menus" icon={<FolderOpen size={18} />} title="كل القوائم" />
-                <QuickAction href="/admin/upgrade" icon={<Sparkles size={18} />} title="الخطط" />
-                <QuickAction href="/admin/settings" icon={<Settings size={18} />} title="إعدادات الحساب" />
+                <InfoRow label="الخطة" value={getPlanLabel(plan)} />
+                <InfoRow label="الحالة" value={getStatusLabel(subscriptionStatus)} />
+                <InfoRow label="عدد القوائم" value={menuList.length} />
+              </div>
+
+              <div className="mt-4 grid gap-2">
+                <PrimaryLink href="/admin/upgrade">
+                  <Sparkles size={17} />
+                  إدارة الخطة
+                </PrimaryLink>
+
+                <SoftLink href="/admin/settings">
+                  <Settings size={17} />
+                  إعدادات الحساب
+                </SoftLink>
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-black/10 bg-[#171411] p-4 text-white shadow-sm">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-white/35">
-                Tip
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d1c5b4] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#1b1712]/45">
+                Quick checks
               </p>
 
-              <h2 className="mt-1 text-xl font-black">لعملائك</h2>
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                قبل تسليم العميل
+              </h2>
 
-              <p className="mt-2 text-sm leading-7 text-white/60">
-                خليك دايماً تبدأ بالشعار، رابط قصير، أقسام واضحة، وبعدين الأصناف. هيك القائمة تطلع منظمة للزبون.
-              </p>
+              <div className="mt-4 grid gap-2">
+                <CheckRow
+                  done={menusWithoutLinks.length === 0}
+                  text="كل القوائم لديها رابط"
+                />
+
+                <CheckRow
+                  done={menusWithContent.length === menuList.length || menuList.length === 0}
+                  text="كل قائمة فيها أصناف"
+                />
+
+                <CheckRow
+                  done={subscriptionStatus === "active" || subscriptionStatus === "trialing"}
+                  text="الحساب مفعل"
+                />
+              </div>
             </section>
           </aside>
         </section>
       </section>
     </main>
+  );
+}
+
+function Panel({ eyebrow, title, action, children }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] shadow-sm shadow-black/5">
+      <div className="flex items-center justify-between gap-3 border-b border-[#8f806c]/45 bg-[#d1c5b4] px-4 py-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+            {eyebrow}
+          </p>
+
+          <h2 className="mt-0.5 text-lg font-black text-[#1b1712]">
+            {title}
+          </h2>
+        </div>
+
+        {action}
+      </div>
+
+      <div className="p-3">{children}</div>
+    </section>
+  );
+}
+
+function MenuRow({ menu, publicPath, counts, isEmpty }) {
+  return (
+    <div className="grid gap-3 rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] p-3 transition hover:border-[#796a58]/70 hover:bg-[#d1c5b4] sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="truncate text-base font-black text-[#1b1712]">
+            {menu.name || "قائمة بدون اسم"}
+          </h3>
+
+          <MenuStatus status={menu.status} />
+
+          {isEmpty && (
+            <span className="rounded-full border border-yellow-900/25 bg-yellow-700/15 px-2.5 py-1 text-xs font-black text-yellow-950">
+              فارغة
+            </span>
+          )}
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <MiniTag>{counts.sections} أقسام</MiniTag>
+          <MiniTag>{counts.items} أصناف</MiniTag>
+          <MiniTag dir="ltr">{publicPath || "/m/not-set"}</MiniTag>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:flex">
+        <PrimaryLink href={`/admin/menus/${menu.id}`} small>
+          إدارة
+          <ArrowLeft size={15} />
+        </PrimaryLink>
+
+        {publicPath ? (
+          <SoftLink href={publicPath} target="_blank" small>
+            <ExternalLink size={15} />
+            فتح
+          </SoftLink>
+        ) : (
+          <WarningLink href={`/admin/menus/${menu.id}/settings`} small>
+            الرابط
+          </WarningLink>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -341,10 +431,10 @@ function StatusPill({ status }) {
     <span
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${
         isActive
-          ? "border-green-800/20 bg-green-700/10 text-green-900"
+          ? "border-green-900/25 bg-green-800/12 text-green-950"
           : isTrial
-            ? "border-yellow-800/20 bg-yellow-600/15 text-yellow-950"
-            : "border-red-500/20 bg-red-600/10 text-red-700"
+            ? "border-yellow-900/25 bg-yellow-700/15 text-yellow-950"
+            : "border-red-900/25 bg-red-700/12 text-red-950"
       }`}
     >
       <Circle size={8} fill="currentColor" />
@@ -353,36 +443,64 @@ function StatusPill({ status }) {
   );
 }
 
-function SmallPill({ children, icon }) {
+function SmallPill({ children, icon, warning, success }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f3eadc] px-3 py-1.5 text-xs font-black text-black/60">
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${
+        warning
+          ? "border-yellow-900/25 bg-yellow-700/15 text-yellow-950"
+          : success
+            ? "border-green-900/25 bg-green-800/12 text-green-950"
+            : "border-[#8f806c]/55 bg-[#ded4c5] text-[#1b1712]/65"
+      }`}
+    >
       {icon}
       {children}
     </span>
   );
 }
 
-function MiniAccountRow({ label, value }) {
+function MetricBox({ icon, label, value, hint, alert }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-3">
-      <p className="text-xs font-black text-white/35">{label}</p>
-      <p className="mt-1 text-lg font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function MetricStrip({ icon, label, value, hint }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f3eadc] text-[#171411]">
+    <div
+      className={`flex items-center gap-3 rounded-2xl border p-3 shadow-sm shadow-black/5 ${
+        alert
+          ? "border-yellow-900/25 bg-yellow-700/15"
+          : "border-[#8f806c]/55 bg-[#d8cebe]"
+      }`}
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] text-[#1b1712]/70">
         {icon}
       </div>
 
       <div>
-        <p className="text-xs font-black text-black/35">{label}</p>
-        <p className="text-2xl font-black text-[#171411]">{value}</p>
-        <p className="text-xs font-bold text-black/35">{hint}</p>
+        <p className="text-xs font-black text-[#1b1712]/45">{label}</p>
+        <p className="text-xl font-black text-[#1b1712]">{value}</p>
+        <p className="text-xs font-bold text-[#1b1712]/42">{hint}</p>
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-2.5">
+      <span className="text-xs font-black text-[#1b1712]/45">{label}</span>
+      <span className="text-sm font-black text-[#1b1712]">{value}</span>
+    </div>
+  );
+}
+
+function CheckRow({ done, text }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-2.5">
+      {done ? (
+        <CheckCircle2 size={17} className="shrink-0 text-green-950" />
+      ) : (
+        <TriangleAlert size={17} className="shrink-0 text-yellow-950" />
+      )}
+
+      <span className="text-sm font-bold text-[#1b1712]/70">{text}</span>
     </div>
   );
 }
@@ -390,41 +508,51 @@ function MetricStrip({ icon, label, value, hint }) {
 function MenuStatus({ status }) {
   if (status === "archived") {
     return (
-      <span className="rounded-full border border-yellow-800/20 bg-yellow-600/15 px-2.5 py-1 text-xs font-black text-yellow-950">
+      <span className="rounded-full border border-yellow-900/25 bg-yellow-700/15 px-2.5 py-1 text-xs font-black text-yellow-950">
         مؤرشفة
       </span>
     );
   }
 
   return (
-    <span className="rounded-full border border-green-800/20 bg-green-700/10 px-2.5 py-1 text-xs font-black text-green-900">
+    <span className="rounded-full border border-green-900/25 bg-green-800/12 px-2.5 py-1 text-xs font-black text-green-950">
       مفعلة
+    </span>
+  );
+}
+
+function MiniTag({ children, dir }) {
+  return (
+    <span
+      dir={dir}
+      className="rounded-full border border-[#8f806c]/45 bg-[#d1c5b4] px-2.5 py-1 text-xs font-black text-[#1b1712]/55"
+    >
+      {children}
     </span>
   );
 }
 
 function EmptyMenus() {
   return (
-    <div className="rounded-[24px] border border-dashed border-black/15 bg-[#f3eadc] p-7 text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#171411]">
-        <Globe size={24} />
+    <div className="rounded-xl border border-dashed border-[#8f806c]/65 bg-[#ded4c5] p-6 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#8f806c]/45 bg-[#d1c5b4] text-[#1b1712]">
+        <Globe size={22} />
       </div>
 
-      <h3 className="mt-4 text-xl font-black text-[#171411]">
+      <h3 className="mt-3 text-lg font-black text-[#1b1712]">
         لا توجد قوائم بعد
       </h3>
 
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-black/50">
-        أنشئ أول قائمة رقمية وابدأ بتجهيزها للزبائن.
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#1b1712]/55">
+        أنشئ أول قائمة رقمية، ثم أضف الأقسام والأصناف والرابط.
       </p>
 
-      <Link
-        href="/admin/create-menu"
-        className="mt-5 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#171411] px-5 py-3 text-sm font-black text-white transition hover:bg-[#30271e] active:scale-[0.98]"
-      >
-        <Plus size={17} />
-        إنشاء أول قائمة
-      </Link>
+      <div className="mt-4 flex justify-center">
+        <PrimaryLink href="/admin/create-menu">
+          <Plus size={16} />
+          إنشاء أول قائمة
+        </PrimaryLink>
+      </div>
     </div>
   );
 }
@@ -433,46 +561,56 @@ function WorkflowStep({ href, number, title, text }) {
   return (
     <Link
       href={href}
-      className="cursor-pointer rounded-2xl border border-black/10 bg-[#fffaf2] p-4 transition hover:border-black/20 hover:bg-[#fff1d6] active:scale-[0.99]"
+      className="cursor-pointer rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] p-3 transition hover:border-[#796a58]/70 hover:bg-[#d1c5b4] active:scale-[0.99]"
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#171411] text-sm font-black text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1b1712] text-xs font-black text-[#efe7da]">
           {number}
         </span>
 
         <div>
-          <h3 className="font-black text-[#171411]">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-black/50">{text}</p>
+          <h3 className="text-sm font-black text-[#1b1712]">{title}</h3>
+          <p className="mt-1 text-xs leading-5 text-[#1b1712]/50">{text}</p>
         </div>
       </div>
     </Link>
   );
 }
 
-function QuickAction({ href, icon, title }) {
+function PrimaryLink({ href, children, small, ...props }) {
   return (
     <Link
       href={href}
-      className="flex cursor-pointer items-center justify-between rounded-2xl border border-black/10 bg-[#f3eadc] p-3 font-black text-[#171411] transition hover:border-black/20 hover:bg-[#ead9bd] active:scale-[0.99]"
+      {...props}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] active:scale-[0.98] ${
+        small ? "min-h-9 px-3 py-2" : "min-h-10 px-4 py-2.5"
+      }`}
     >
-      <span className="flex items-center gap-2">
-        {icon}
-        {title}
-      </span>
-
-      <ArrowLeft size={16} className="text-black/35" />
+      {children}
     </Link>
   );
 }
 
-function MainButton({ href, children, dark }) {
+function SoftLink({ href, children, small, ...props }) {
   return (
     <Link
       href={href}
-      className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition active:scale-[0.98] ${
-        dark
-          ? "bg-[#171411] text-white hover:bg-[#30271e]"
-          : "border border-black/10 bg-white text-[#171411] hover:bg-[#f7ead8]"
+      {...props}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] text-sm font-black text-[#1b1712]/70 transition hover:border-[#796a58]/70 hover:bg-[#d1c5b4] hover:text-[#1b1712] active:scale-[0.98] ${
+        small ? "min-h-9 px-3 py-2" : "min-h-10 px-4 py-2.5"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function WarningLink({ href, children, small }) {
+  return (
+    <Link
+      href={href}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-yellow-900/25 bg-yellow-700/15 text-sm font-black text-yellow-950 transition hover:bg-yellow-700/22 active:scale-[0.98] ${
+        small ? "min-h-9 px-3 py-2" : "min-h-10 px-4 py-2.5"
       }`}
     >
       {children}

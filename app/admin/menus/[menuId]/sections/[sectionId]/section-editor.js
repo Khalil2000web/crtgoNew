@@ -3,22 +3,25 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 import {
+  AlertCircle,
   ArrowRight,
-  ImagePlus,
-  Trash2,
-  Save,
-  Plus,
+  CheckCircle2,
+  Circle,
   Copy,
+  ImageIcon,
+  ImagePlus,
   Loader2,
   Package,
-  CheckCircle2,
-  AlertCircle,
+  Plus,
   RotateCcw,
-  Circle,
+  Save,
+  Trash2,
+  TriangleAlert,
 } from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
+import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 
 function normalizeItem(item) {
   return {
@@ -90,11 +93,12 @@ export default function SectionEditor({ section, menu, menuId }) {
   }, [items]);
 
   const unavailableCount = items.length - availableCount;
+  const newItemsCount = items.filter((item) => isTempItem(item)).length;
+  const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
 
   const hasChanges = useMemo(() => {
     if (sectionName.trim() !== initialSectionName.trim()) return true;
     if (deletedItemIds.length > 0) return true;
-
     if (items.some((item) => isTempItem(item))) return true;
 
     for (const item of items) {
@@ -121,6 +125,8 @@ export default function SectionEditor({ section, menu, menuId }) {
   }
 
   function updateLocalItem(itemId, key, value) {
+    clearAlerts();
+
     setItems((current) =>
       current.map((item) =>
         item.id === itemId ? { ...item, [key]: value } : item
@@ -149,7 +155,10 @@ export default function SectionEditor({ section, menu, menuId }) {
   }
 
   function deleteItem(itemId) {
-    const sure = confirm("هل تريد حذف هذا الصنف؟ لن يتم الحذف النهائي إلا بعد الحفظ.");
+    const sure = confirm(
+      "هل تريد حذف هذا الصنف؟ لن يتم الحذف النهائي إلا بعد الحفظ."
+    );
+
     if (!sure) return;
 
     clearAlerts();
@@ -185,7 +194,10 @@ export default function SectionEditor({ section, menu, menuId }) {
   }
 
   function deleteItemImage(itemId) {
-    const sure = confirm("هل تريد حذف صورة هذا الصنف؟ لن يتم الحذف النهائي إلا بعد الحفظ.");
+    const sure = confirm(
+      "هل تريد حذف صورة هذا الصنف؟ لن يتم الحذف النهائي إلا بعد الحفظ."
+    );
+
     if (!sure) return;
 
     setItems((current) =>
@@ -220,6 +232,7 @@ export default function SectionEditor({ section, menu, menuId }) {
 
   async function uploadImageForItem(realItemId, file) {
     const fileExt = file.name.split(".").pop();
+
     const filePath = `items/${menuId}/${section.id}/${realItemId}-${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
@@ -371,7 +384,7 @@ export default function SectionEditor({ section, menu, menuId }) {
     setSavingKey("delete-section");
     clearAlerts();
 
-    const { error } = await supabase
+    const { error: deleteError } = await supabase
       .from("sections")
       .delete()
       .eq("id", section.id)
@@ -379,452 +392,632 @@ export default function SectionEditor({ section, menu, menuId }) {
 
     setSavingKey("");
 
-if (error) {
-  setError(error.message);
-  return;
-}
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
 
-await revalidatePublicMenu(menuId);
+    await revalidatePublicMenu(menuId);
 
-router.push(`/admin/menus/${menuId}/sections`);
-router.refresh();
+    router.push(`/admin/menus/${menuId}/sections`);
+    router.refresh();
   }
 
   return (
-    <main dir="rtl" className="min-h-screen px-5 py-8 pb-36 text-white">
-      <section className="mx-auto max-w-6xl">
-        <Link
-          href={`/admin/menus/${menuId}/sections`}
-          className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
-        >
-          <ArrowRight size={18} />
-          الرجوع للأقسام
-        </Link>
-
-        <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_320px]">
-          <section className="rounded-xl border border-white/10 bg-[#0f0f0f] p-6 shadow-2xl shadow-black/20">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm text-white/45">محرر القسم</p>
-
-                <h1 className="mt-2 text-5xl font-bold text-white">
-                  {sectionName || "قسم بدون اسم"}
-                </h1>
-
-                <p className="mt-3 text-white/45">
-                  قائمة: {menu?.name || "القائمة"}
-                </p>
-              </div>
-
-              <div
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-bold ${
-                  hasChanges
-                    ? "bg-yellow-500/15 text-yellow-300"
-                    : "bg-green-500/15 text-green-300"
-                }`}
+    <main dir="rtl" className="min-h-screen px-4 pb-32 pt-4 sm:px-5 lg:px-8">
+      <section className="mx-auto max-w-7xl">
+        <header className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <Link
+                href={`/admin/menus/${menuId}/sections`}
+                className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-xs font-black text-[#1b1712]/65 transition hover:bg-[#d1c5b4] hover:text-[#1b1712] active:scale-[0.98]"
               >
-                <Circle size={9} fill="currentColor" />
-                {hasChanges ? "تغييرات غير محفوظة" : "كل شيء محفوظ"}
-              </div>
+                <ArrowRight size={15} />
+                الرجوع للأقسام
+              </Link>
+
+              <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Section Editor
+              </p>
+
+              <h1 className="mt-1 text-2xl font-black text-[#1b1712] sm:text-3xl">
+                {sectionName || "قسم بدون اسم"}
+              </h1>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#1b1712]/58">
+                عدّل اسم القسم، الأصناف، الأسعار، الصور، وحالة التوفر. الحفظ يتم مرة واحدة من الشريط السفلي.
+              </p>
             </div>
 
-            <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
-              <input
-                value={sectionName}
-                onChange={(e) => setSectionName(e.target.value)}
-                placeholder="اسم القسم"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-4 text-2xl font-bold text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-white/[0.07]"
-              />
+            <div className="flex flex-wrap gap-2">
+              <SaveBadge hasChanges={hasChanges} />
 
-              <button
-                type="button"
-                onClick={deleteSection}
-                disabled={savingKey === "delete-section"}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-4 font-extrabold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {savingKey === "delete-section" ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Trash2 size={18} />
-                )}
-                حذف القسم
-              </button>
+              {publicPath && (
+                <span
+                  dir="ltr"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-1.5 text-xs font-black text-[#1b1712]/60"
+                >
+                  {publicPath}
+                </span>
+              )}
             </div>
-          </section>
+          </div>
+        </header>
 
-          <section className="grid gap-3">
-            <StatCard
-              icon={<Package size={20} />}
-              label="عدد الأصناف"
-              value={items.length}
-            />
-
-            <StatCard
-              icon={<CheckCircle2 size={20} />}
-              label="متوفر"
-              value={availableCount}
-            />
-
-            <StatCard
-              icon={<AlertCircle size={20} />}
-              label="غير متوفر"
-              value={unavailableCount}
-            />
-          </section>
-        </div>
-
-        {message && (
-          <p className="mt-6 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-300">
-            {message}
-          </p>
+        {(message || error) && (
+          <div className="mt-3 grid gap-2">
+            {message && <Alert type="success">{message}</Alert>}
+            {error && <Alert type="error">{error}</Alert>}
+          </div>
         )}
 
-        {error && (
-          <p className="mt-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
-            {error}
-          </p>
-        )}
+        <section className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricBox
+            icon={<Package size={18} />}
+            label="الأصناف"
+            value={items.length}
+            hint="داخل هذا القسم"
+          />
 
-        <div className="mt-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm text-white/45">الأصناف</p>
+          <MetricBox
+            icon={<CheckCircle2 size={18} />}
+            label="متوفر"
+            value={availableCount}
+            hint="ظاهر للزبائن"
+          />
 
-            <h2 className="mt-1 text-4xl font-bold text-white">
-              إدارة أصناف القسم
-            </h2>
+          <MetricBox
+            icon={<AlertCircle size={18} />}
+            label="غير متوفر"
+            value={unavailableCount}
+            hint="يبقى محفوظ"
+            alert={unavailableCount > 0}
+          />
 
-            <p className="mt-2 text-white/45">
-              عدّل كل الأصناف بحرية، ثم احفظ كل التغييرات مرة واحدة من الشريط السفلي.
-            </p>
+          <MetricBox
+            icon={<Circle size={18} />}
+            label="جديد"
+            value={newItemsCount}
+            hint="لم يتم حفظه بعد"
+            alert={newItemsCount > 0}
+          />
+        </section>
+
+        <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+          <div className="grid gap-5">
+            <Panel
+              eyebrow="Section"
+              title="معلومات القسم"
+              description={`القائمة: ${menu?.name || "القائمة"}`}
+            >
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <label className="grid gap-2">
+                  <span className="text-sm font-black text-[#1b1712]/60">
+                    اسم القسم
+                  </span>
+
+                  <input
+                    value={sectionName}
+                    onChange={(e) => {
+                      clearAlerts();
+                      setSectionName(e.target.value);
+                    }}
+                    placeholder="اسم القسم"
+                    className="min-h-11 w-full rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] px-3 py-2.5 text-sm font-black text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={deleteSection}
+                  disabled={savingKey === "delete-section"}
+                  className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 self-end rounded-xl bg-red-700 px-4 py-3 text-sm font-black text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingKey === "delete-section" ? (
+                    <Loader2 className="animate-spin" size={17} />
+                  ) : (
+                    <Trash2 size={17} />
+                  )}
+                  حذف القسم
+                </button>
+              </div>
+            </Panel>
+
+            <Panel
+              eyebrow="Items"
+              title="أصناف القسم"
+              description="أضف أو عدّل الأصناف. الصور والتغييرات لا تُحفظ إلا بعد الضغط على حفظ كل التغييرات."
+              action={
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] px-4 py-2.5 text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] active:scale-[0.98]"
+                >
+                  <Plus size={17} />
+                  إضافة صنف
+                </button>
+              }
+            >
+              {!items.length ? (
+                <EmptyItems onAdd={addItem} />
+              ) : (
+                <div className="grid gap-3">
+                  {items.map((item, index) => (
+                    <ItemCard
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      onUpdate={updateLocalItem}
+                      onDuplicate={() => duplicateItem(item)}
+                      onDelete={() => deleteItem(item.id)}
+                      onSelectImage={(file) => selectItemImage(item.id, file)}
+                      onDeleteImage={() => deleteItemImage(item.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </Panel>
           </div>
 
-          <button
-            type="button"
-            onClick={addItem}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
-          >
-            <Plus size={18} />
-            إضافة صنف
-          </button>
-        </div>
+          <aside className="grid gap-4 lg:sticky lg:top-24 lg:h-fit">
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Summary
+              </p>
 
-        {!items.length && (
-          <section className="mt-6 rounded-xl border border-white/10 bg-[#0f0f0f] p-10 text-center">
-            <Package className="mx-auto text-white/25" size={42} />
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                ملخص القسم
+              </h2>
 
-            <h3 className="mt-4 text-2xl font-bold text-white">
-              لا توجد أصناف بعد
-            </h3>
+              <div className="mt-4 grid gap-2">
+                <SummaryRow label="الأصناف" value={items.length} />
+                <SummaryRow label="متوفر" value={availableCount} />
+                <SummaryRow label="غير متوفر" value={unavailableCount} />
+                <SummaryRow label="جديد" value={newItemsCount} />
+              </div>
+            </section>
 
-            <p className="mt-2 text-white/45">
-              ابدأ بإضافة أول صنف داخل هذا القسم.
-            </p>
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d1c5b4] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Save status
+              </p>
+
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                حالة التعديلات
+              </h2>
+
+              <div className="mt-4">
+                <SaveBadge hasChanges={hasChanges} large />
+              </div>
+
+              <p className="mt-3 text-xs font-bold leading-5 text-[#1b1712]/48">
+                الحفظ سيطبّق اسم القسم، الأصناف، الصور، والأسعار مرة واحدة.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-yellow-900/25 bg-yellow-700/15 p-4">
+              <div className="flex gap-3">
+                <TriangleAlert
+                  size={19}
+                  className="mt-1 shrink-0 text-yellow-950"
+                />
+
+                <div>
+                  <h2 className="text-base font-black text-yellow-950">
+                    انتبه قبل الخروج
+                  </h2>
+
+                  <p className="mt-1 text-sm leading-6 text-yellow-950/70">
+                    أي صنف جديد أو صورة جديدة لن تُحفظ إلا بعد الضغط على حفظ كل التغييرات.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </section>
+
+      <SaveBar
+        hasChanges={hasChanges}
+        saving={savingKey === "save-all"}
+        onDiscard={discardChanges}
+        onSave={saveAllChanges}
+      />
+    </main>
+  );
+}
+
+function ItemCard({
+  item,
+  index,
+  onUpdate,
+  onDuplicate,
+  onDelete,
+  onSelectImage,
+  onDeleteImage,
+}) {
+  const displayImage = item.image_preview || item.image_url;
+  const isNew = isTempItem(item);
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#ded4c5] shadow-sm shadow-black/5">
+      <div className="border-b border-[#8f806c]/45 bg-[#d1c5b4] p-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1b1712] text-sm font-black text-[#efe7da]">
+              {index + 1}
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate text-base font-black text-[#1b1712]">
+                  {item.name_ar || "صنف بدون اسم"}
+                </h3>
+
+                {isNew && <InfoBadge>جديد</InfoBadge>}
+                {item.image_file && <WarningBadge>صورة جديدة</WarningBadge>}
+
+                {item.is_available ? (
+                  <SuccessBadge>متوفر</SuccessBadge>
+                ) : (
+                  <DangerBadge>غير متوفر</DangerBadge>
+                )}
+              </div>
+
+              <p className="mt-1 text-xs font-bold text-[#1b1712]/45">
+                {item.price || 0} ₪
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 sm:flex">
+            <AvailabilityButton
+              available={item.is_available}
+              onClick={() =>
+                onUpdate(item.id, "is_available", !item.is_available)
+              }
+            />
 
             <button
               type="button"
-              onClick={addItem}
-              className="mx-auto mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-extrabold text-black transition hover:bg-white/90"
+              onClick={onDuplicate}
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-sm font-black text-[#1b1712]/65 transition hover:bg-[#cfc3b2] active:scale-[0.98]"
             >
-              <Plus size={18} />
-              إضافة صنف
+              <Copy size={15} />
+              نسخ
             </button>
-          </section>
-        )}
 
-        <div className="mt-8 grid gap-8">
-          {items.map((item, index) => {
-            const displayImage = item.image_preview || item.image_url;
-            const isNew = isTempItem(item);
-
-            return (
-              <article
-                key={item.id}
-                className="overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f0f] shadow-2xl shadow-black/20"
-              >
-                <div className="flex flex-col gap-4 border-b border-white/10 bg-white/[0.03] p-5 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-xl font-black text-black">
-                      {index + 1}
-                    </div>
-
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-2xl font-bold text-white">
-                          {item.name_ar || "صنف بدون اسم"}
-                        </h3>
-
-                        {isNew && (
-                          <span className="rounded-full bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-300">
-                            جديد
-                          </span>
-                        )}
-
-                        {item.image_file && (
-                          <span className="rounded-full bg-yellow-500/15 px-3 py-1 text-xs font-bold text-yellow-300">
-                            صورة جديدة
-                          </span>
-                        )}
-                      </div>
-
-                      <p className="hidden mt-1 text-sm text-white/40">
-                        هذا البلوك خاص بهذا الصنف فقط.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap justify-center gap-2">
-<button
-  type="button"
-  onClick={() =>
-    updateLocalItem(item.id, "is_available", !item.is_available)
-  }
-  className={`group flex min-w-[180px] cursor-pointer items-center justify-between gap-3 rounded-xl border p-2 text-right transition ${
-    item.is_available
-      ? "border-green-400/20 bg-green-500/10 hover:bg-green-500/20"
-      : "border-red-400/20 bg-red-500/10 hover:bg-red-500/20"
-  }`}
->
-  <div>
-    <p className="text-xs font-bold text-white/45">حالة الصنف</p>
-
-    <p
-      className={`mt-1 text-sm font-extrabold ${
-        item.is_available ? "text-green-300" : "text-red-300"
-      }`}
-    >
-      {item.is_available ? "متوفر حالياً" : "غير متوفر حالياً"}
-    </p>
-
-    <p className="mt-1 text-[11px] hidden text-white/35">
-      اضغط لتغيير الحالة
-    </p>
-  </div>
-
-  <span
-    className={`relative flex h-7 w-12 shrink-0 items-center rounded-full transition ${
-      item.is_available ? "bg-green-400/80" : "bg-red-400/80"
-    }`}
-  >
-    <span
-      className={`absolute h-5 w-5 rounded-full bg-white transition ${
-        item.is_available ? "right-6" : "right-1"
-      }`}
-    />
-  </span>
-</button>
-
-                    <button
-                      type="button"
-                      onClick={() => duplicateItem(item)}
-                      className="inline-flex items-center cursor-pointer justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-extrabold text-white transition hover:bg-white/10"
-                    >
-                      <Copy size={16} />
-                      نسخ
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteItem(item.id)}
-                      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3 text-sm font-extrabold text-white transition hover:bg-red-700"
-                    >
-                      <Trash2 size={16} />
-                      حذف
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-6 p-5 lg:grid-cols-[320px_1fr]">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
-                      {displayImage ? (
-                        <img
-                          src={displayImage}
-                          alt={item.name_ar || "صورة الصنف"}
-                          className="h-72 w-full pointer-events-none object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-72 items-center justify-center text-sm text-white/35">
-                          لا توجد صورة
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mt-3 grid gap-2">
-                      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-4 text-center text-sm font-bold text-white/80 transition hover:bg-white/10 hover:text-white">
-                        <ImagePlus size={17} />
-                        {displayImage ? "تغيير صورة هذا الصنف" : "إضافة صورة لهذا الصنف"}
-
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            selectItemImage(item.id, e.target.files?.[0]);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
-
-                      {displayImage && (
-                        <button
-                          type="button"
-                          onClick={() => deleteItemImage(item.id)}
-                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-3 py-4 text-sm font-bold text-white transition hover:bg-red-700"
-                        >
-                          <Trash2 size={16} />
-                          حذف صورة هذا الصنف
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4">
-                    <Field label="اسم الصنف">
-                      <input
-                        value={item.name_ar}
-                        onChange={(e) =>
-                          updateLocalItem(item.id, "name_ar", e.target.value)
-                        }
-                        placeholder="مثال: برغر كلاسيك"
-                        className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-4 text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-white/[0.07]"
-                      />
-                    </Field>
-
-                    <Field label="وصف الصنف">
-                      <textarea
-                        value={item.description_ar}
-                        onChange={(e) =>
-                          updateLocalItem(
-                            item.id,
-                            "description_ar",
-                            e.target.value
-                          )
-                        }
-                        placeholder="اكتب وصفاً قصيراً للصنف..."
-                        rows={2}
-                        className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-4 py-4 text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-white/[0.07]"
-                      />
-                    </Field>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="السعر">
-                        <div className="relative">
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70">
-                            ₪
-                          </span>
-                          <input
-                            value={item.price}
-                            onChange={(e) =>
-                              updateLocalItem(item.id, "price", e.target.value)
-                            }
-                            placeholder="0"
-                            type="number"
-                            dir="rtl"
-                            step="0.1"
-                            className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-4 pr-10 text-right text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-white/[0.07]"
-                          />
-
-                          
-                        </div>
-                      </Field>
-
-                      <label className="hidden flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] p-4 transition hover:bg-white/[0.07]">
-                        <div>
-                          <p className="font-bold text-white">حالة التوفر</p>
-                          <p className="mt-1 text-xs text-white/40">
-                            يظهر للزبائن كمتوفر أو غير متوفر.
-                          </p>
-                        </div>
-
-                        <input
-                          type="checkbox"
-                          checked={item.is_available}
-                          onChange={(e) =>
-                            updateLocalItem(
-                              item.id,
-                              "is_available",
-                              e.target.checked
-                            )
-                          }
-                          className="h-5 w-5 accent-white"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="fixed bottom-24 left-4 right-4 z-[80] md:left-[22rem]">
-        <div className="mx-auto max-w-6xl rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p
-                className={`text-sm font-bold ${
-                  hasChanges ? "text-yellow-300" : "text-green-300"
-                }`}
-              >
-                {hasChanges ? "لديك تغييرات غير محفوظة" : "كل شيء محفوظ"}
-              </p>
-
-              <p className="mt-1 text-xs text-white/40">
-                الحفظ سيطبّق اسم القسم وكل تعديلات الأصناف والصور مرة واحدة.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 md:flex">
-              <button
-                type="button"
-                onClick={discardChanges}
-                disabled={!hasChanges || savingKey === "save-all"}
-                className="inline-flex items-center justify-center text-sm gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 font-extrabold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <RotateCcw size={18} />
-                تراجع
-              </button>
-
-              <button
-                type="button"
-                onClick={saveAllChanges}
-                disabled={!hasChanges || savingKey === "save-all"}
-                className="inline-flex items-center justify-center text-sm gap-2 rounded-xl bg-white px-3 py-2 font-extrabold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {savingKey === "save-all" ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Save size={18} />
-                )}
-                {savingKey === "save-all" ? "جارٍ الحفظ..." : "حفظ كل التغييرات"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-700 px-3 py-2 text-sm font-black text-white transition hover:bg-red-800 active:scale-[0.98]"
+            >
+              <Trash2 size={15} />
+              حذف
+            </button>
           </div>
         </div>
       </div>
-    </main>
+
+      <div className="grid gap-3 p-3 lg:grid-cols-[230px_minmax(0,1fr)]">
+        <div className="rounded-xl border border-[#8f806c]/50 bg-[#d1c5b4] p-2">
+          <div className="overflow-hidden rounded-xl border border-[#8f806c]/45 bg-[#cfc3b2]">
+            {displayImage ? (
+              <img
+                src={displayImage}
+                alt={item.name_ar || "صورة الصنف"}
+                className="pointer-events-none h-52 w-full object-cover lg:h-56"
+              />
+            ) : (
+              <div className="flex h-52 items-center justify-center text-[#1b1712]/35 lg:h-56">
+                <div className="text-center">
+                  <ImageIcon className="mx-auto" size={34} />
+                  <p className="mt-2 text-sm font-bold">لا توجد صورة</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-2 grid gap-2">
+            <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] px-3 py-2 text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] active:scale-[0.98]">
+              <ImagePlus size={15} />
+              {displayImage ? "تغيير الصورة" : "إضافة صورة"}
+
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  onSelectImage(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+
+            {displayImage && (
+              <button
+                type="button"
+                onClick={onDeleteImage}
+                className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-900/25 bg-red-700/15 px-3 py-2 text-sm font-black text-red-950 transition hover:bg-red-700/25 active:scale-[0.98]"
+              >
+                <Trash2 size={15} />
+                حذف الصورة
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <Field label="اسم الصنف">
+            <input
+              value={item.name_ar}
+              onChange={(e) => onUpdate(item.id, "name_ar", e.target.value)}
+              placeholder="مثال: برغر كلاسيك"
+              className="min-h-11 w-full rounded-xl border border-[#8f806c]/50 bg-[#d1c5b4] px-3 py-2.5 text-sm font-bold text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+            />
+          </Field>
+
+          <Field label="وصف الصنف">
+            <textarea
+              value={item.description_ar}
+              onChange={(e) =>
+                onUpdate(item.id, "description_ar", e.target.value)
+              }
+              placeholder="اكتب وصفاً قصيراً للصنف..."
+              rows={3}
+              className="resize-none rounded-xl border border-[#8f806c]/50 bg-[#d1c5b4] px-3 py-2.5 text-sm font-bold leading-6 text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+            />
+          </Field>
+
+          <Field label="السعر">
+            <div className="relative">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-[#1b1712]/50">
+                ₪
+              </span>
+
+              <input
+                value={item.price}
+                onChange={(e) => onUpdate(item.id, "price", e.target.value)}
+                placeholder="0"
+                type="number"
+                dir="rtl"
+                step="0.1"
+                className="min-h-11 w-full rounded-xl border border-[#8f806c]/50 bg-[#d1c5b4] px-3 py-2.5 pr-9 text-right text-sm font-bold text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+              />
+            </div>
+          </Field>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function AvailabilityButton({ available, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-black transition active:scale-[0.98] ${
+        available
+          ? "border-green-900/25 bg-green-800/12 text-green-950 hover:bg-green-800/20"
+          : "border-red-900/25 bg-red-700/12 text-red-950 hover:bg-red-700/20"
+      }`}
+    >
+      <span
+        className={`h-2.5 w-2.5 rounded-full ${
+          available ? "bg-green-950" : "bg-red-950"
+        }`}
+      />
+      {available ? "متوفر" : "مغلق"}
+    </button>
+  );
+}
+
+function Panel({ eyebrow, title, description, action, children }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] shadow-sm shadow-black/5">
+      <div className="flex flex-col gap-3 border-b border-[#8f806c]/45 bg-[#d1c5b4] px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+            {eyebrow}
+          </p>
+
+          <h2 className="mt-0.5 text-lg font-black text-[#1b1712]">
+            {title}
+          </h2>
+
+          {description && (
+            <p className="mt-1 text-sm leading-6 text-[#1b1712]/52">
+              {description}
+            </p>
+          )}
+        </div>
+
+        {action}
+      </div>
+
+      <div className="p-3">{children}</div>
+    </section>
   );
 }
 
 function Field({ label, children }) {
   return (
-    <label className="block">
-      <p className="mb-2 text-sm font-bold text-white/45">{label}</p>
+    <label className="grid gap-2">
+      <p className="text-sm font-black text-[#1b1712]/60">{label}</p>
       {children}
     </label>
   );
 }
 
-function StatCard({ icon, label, value }) {
+function MetricBox({ icon, label, value, hint, alert }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0f0f0f] p-5 shadow-xl shadow-black/10">
-      <div className="flex items-center justify-between gap-3 text-white/45">
-        <span>{label}</span>
+    <div
+      className={`flex items-center gap-3 rounded-2xl border p-3 shadow-sm shadow-black/5 ${
+        alert
+          ? "border-yellow-900/25 bg-yellow-700/15"
+          : "border-[#8f806c]/55 bg-[#d8cebe]"
+      }`}
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] text-[#1b1712]/70">
         {icon}
       </div>
 
-      <p className="mt-3 text-4xl font-bold text-white">{value}</p>
+      <div className="min-w-0">
+        <p className="text-xs font-black text-[#1b1712]/45">{label}</p>
+        <p className="truncate text-xl font-black text-[#1b1712]">{value}</p>
+        <p className="truncate text-xs font-bold text-[#1b1712]/42">{hint}</p>
+      </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] px-3 py-2.5">
+      <span className="text-sm font-black text-[#1b1712]/55">{label}</span>
+
+      <span className="truncate text-sm font-black text-[#1b1712]">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function EmptyItems({ onAdd }) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#8f806c]/65 bg-[#ded4c5] p-6 text-center">
+      <Package className="mx-auto text-[#1b1712]/30" size={34} />
+
+      <h3 className="mt-3 text-lg font-black text-[#1b1712]">
+        لا توجد أصناف بعد
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#1b1712]/55">
+        أضف أول صنف داخل هذا القسم، ثم اكتب السعر والوصف وارفع صورة إذا موجودة.
+      </p>
+
+      <button
+        type="button"
+        onClick={onAdd}
+        className="mx-auto mt-4 inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] px-4 py-2.5 text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] active:scale-[0.98]"
+      >
+        <Plus size={16} />
+        إضافة صنف
+      </button>
+    </div>
+  );
+}
+
+function SaveBadge({ hasChanges, large }) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${
+        hasChanges
+          ? "border-yellow-900/25 bg-yellow-700/15 text-yellow-950"
+          : "border-green-900/25 bg-green-800/12 text-green-950"
+      } ${large ? "w-full justify-center py-3" : ""}`}
+    >
+      <Circle size={8} fill="currentColor" />
+      {hasChanges ? "تغييرات غير محفوظة" : "كل شيء محفوظ"}
+    </div>
+  );
+}
+
+function InfoBadge({ children }) {
+  return (
+    <span className="rounded-full border border-blue-900/25 bg-blue-700/12 px-2.5 py-1 text-xs font-black text-blue-950">
+      {children}
+    </span>
+  );
+}
+
+function WarningBadge({ children }) {
+  return (
+    <span className="rounded-full border border-yellow-900/25 bg-yellow-700/15 px-2.5 py-1 text-xs font-black text-yellow-950">
+      {children}
+    </span>
+  );
+}
+
+function SuccessBadge({ children }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-green-900/25 bg-green-800/12 px-2.5 py-1 text-xs font-black text-green-950">
+      <CheckCircle2 size={12} />
+      {children}
+    </span>
+  );
+}
+
+function DangerBadge({ children }) {
+  return (
+    <span className="rounded-full border border-red-900/25 bg-red-700/12 px-2.5 py-1 text-xs font-black text-red-950">
+      {children}
+    </span>
+  );
+}
+
+function Alert({ type, children }) {
+  const styles =
+    type === "success"
+      ? "border-green-900/25 bg-green-800/12 text-green-950"
+      : "border-red-900/25 bg-red-700/12 text-red-950";
+
+  return (
+    <p className={`rounded-xl border p-3 text-sm font-bold leading-6 ${styles}`}>
+      {children}
+    </p>
+  );
+}
+
+function SaveBar({ hasChanges, saving, onDiscard, onSave }) {
+  return (
+    <div className="fixed bottom-24 left-4 right-4 z-[80]">
+      <div className="mx-auto max-w-7xl rounded-2xl border border-[#8f806c]/60 bg-[#d8cebe]/95 p-3 shadow-2xl shadow-black/25 backdrop-blur">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p
+              className={`text-sm font-black ${
+                hasChanges ? "text-yellow-950" : "text-green-950"
+              }`}
+            >
+              {hasChanges ? "لديك تغييرات غير محفوظة" : "كل شيء محفوظ"}
+            </p>
+
+            <p className="mt-1 text-xs font-bold text-[#1b1712]/45">
+              الحفظ سيطبّق اسم القسم وكل تعديلات الأصناف والصور مرة واحدة.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <button
+              type="button"
+              onClick={onDiscard}
+              disabled={!hasChanges || saving}
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-sm font-black text-[#1b1712]/70 transition hover:bg-[#cfc3b2] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <RotateCcw size={17} />
+              تراجع
+            </button>
+
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={!hasChanges || saving}
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] px-3 py-2 text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {saving ? (
+                <Loader2 className="animate-spin" size={17} />
+              ) : (
+                <Save size={17} />
+              )}
+
+              {saving ? "جارٍ الحفظ..." : "حفظ كل التغييرات"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

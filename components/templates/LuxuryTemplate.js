@@ -1,73 +1,673 @@
-import MenuCover from "@/components/MenuCover";
+"use client";
 
-export default function LuxuryTemplate({ menu }) {
-  const sections = [...(menu.sections || [])].sort(
-    (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-  );
+import Image from "next/image";
+import { useMemo, useState } from "react";
+import {
+  BadgeCheck,
+  Clock3,
+  ImageIcon,
+  Languages,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Search,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
+import Footer from "./Footer";
+
+const RTL_LANGUAGES = ["ar", "he", "fa", "ur"];
+
+const LANGUAGE_LABELS = {
+  ar: { label: "العربية", short: "AR", dir: "rtl" },
+  en: { label: "English", short: "EN", dir: "ltr" },
+  he: { label: "עברית", short: "HE", dir: "rtl" },
+};
+
+const DAY_KEYS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+const DAY_LABELS = {
+  ar: {
+    sunday: "الأحد",
+    monday: "الإثنين",
+    tuesday: "الثلاثاء",
+    wednesday: "الأربعاء",
+    thursday: "الخميس",
+    friday: "الجمعة",
+    saturday: "السبت",
+  },
+  en: {
+    sunday: "Sunday",
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday",
+  },
+  he: {
+    sunday: "ראשון",
+    monday: "שני",
+    tuesday: "שלישי",
+    wednesday: "רביעי",
+    thursday: "חמישי",
+    friday: "שישי",
+    saturday: "שבת",
+  },
+};
+
+function asArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  return [];
+}
+
+function getEnabledLanguages(menu) {
+  const raw = asArray(menu?.enabled_languages);
+
+  const clean = raw
+    .map((item) => {
+      if (typeof item === "string") return item;
+      return item?.code || item?.id || item?.value;
+    })
+    .filter(Boolean);
+
+  return clean.length ? clean : ["ar"];
+}
+
+function getLanguageMeta(code) {
+  const fallbackDir = RTL_LANGUAGES.includes(code) ? "rtl" : "ltr";
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#080604] text-[#f5ead8]">
-      <MenuCover menu={menu} />
+    LANGUAGE_LABELS[code] || {
+      label: code?.toUpperCase() || "AR",
+      short: code?.toUpperCase() || "AR",
+      dir: fallbackDir,
+    }
+  );
+}
 
-      <section className="px-5 py-10">
-        <div className="mx-auto max-w-5xl">
-          {menu.logo_url && (
-            <img
-              src={menu.logo_url}
-              alt={menu.name}
-              className="mx-auto h-28 w-28 rounded-full object-cover"
+function getTranslated(value, languageCode, fallback = "") {
+  if (!value) return fallback;
+
+  if (typeof value === "string") return value;
+
+  if (typeof value === "object") {
+    return (
+      value[languageCode] ||
+      value.ar ||
+      value.en ||
+      value.he ||
+      Object.values(value).find(Boolean) ||
+      fallback
+    );
+  }
+
+  return fallback;
+}
+
+function sortByOrder(list) {
+  return [...asArray(list)].sort((a, b) => {
+    const first = Number(a?.sort_order ?? 9999);
+    const second = Number(b?.sort_order ?? 9999);
+    return first - second;
+  });
+}
+
+function getMenuName(menu, languageCode) {
+  return getTranslated(menu?.name_i18n, languageCode, menu?.name || "Menu");
+}
+
+function getMenuDescription(menu, languageCode) {
+  return getTranslated(
+    menu?.description_i18n,
+    languageCode,
+    menu?.description_ar || menu?.description || ""
+  );
+}
+
+function getSectionName(section, languageCode) {
+  return getTranslated(
+    section?.name_i18n,
+    languageCode,
+    section?.name_ar || section?.name || "قسم"
+  );
+}
+
+function getItemName(item, languageCode) {
+  return getTranslated(
+    item?.name_i18n,
+    languageCode,
+    item?.name_ar || item?.name || "صنف"
+  );
+}
+
+function getItemDescription(item, languageCode) {
+  return getTranslated(
+    item?.description_i18n,
+    languageCode,
+    item?.description_ar || item?.description || ""
+  );
+}
+
+function getCoverImages(menu) {
+  const images = [];
+
+  if (Array.isArray(menu?.cover_images)) {
+    for (const image of menu.cover_images) {
+      if (typeof image === "string") images.push(image);
+      else if (image?.url) images.push(image.url);
+      else if (image?.publicUrl) images.push(image.publicUrl);
+      else if (image?.public_url) images.push(image.public_url);
+    }
+  }
+
+  if (menu?.cover_url) images.push(menu.cover_url);
+  if (menu?.logo_url) images.push(menu.logo_url);
+
+  return [...new Set(images.filter(Boolean))];
+}
+
+function formatPrice(value) {
+  const number = Number(value || 0);
+
+  try {
+    return new Intl.NumberFormat("he-IL", {
+      style: "currency",
+      currency: "ILS",
+      maximumFractionDigits: number % 1 ? 1 : 0,
+    }).format(number);
+  } catch {
+    return `₪${number}`;
+  }
+}
+
+function getTodayHours(workingHours, languageCode) {
+  const todayKey = DAY_KEYS[new Date().getDay()];
+  const labels = DAY_LABELS[languageCode] || DAY_LABELS.ar;
+  const today = workingHours?.[todayKey];
+
+  if (!today || today.enabled === false) {
+    return {
+      day: labels[todayKey],
+      text: languageCode === "en" ? "Closed today" : "مغلق اليوم",
+    };
+  }
+
+  return {
+    day: labels[todayKey],
+    text: `${today.from || "--:--"} - ${today.to || "--:--"}`,
+  };
+}
+
+function createPhoneLink(value) {
+  if (!value) return "";
+  return `tel:${String(value).replace(/\s/g, "")}`;
+}
+
+function createWhatsappLink(value) {
+  if (!value) return "";
+
+  const clean = String(value).replace(/[^\d]/g, "");
+  if (!clean) return "";
+
+  return `https://wa.me/${clean}`;
+}
+
+function createSocialUrl(value, type) {
+  if (!value) return "";
+
+  const clean = String(value).trim();
+  if (!clean) return "";
+
+  if (clean.startsWith("http://") || clean.startsWith("https://")) {
+    return clean;
+  }
+
+  const username = clean.replace("@", "");
+
+  if (type === "instagram") return `https://instagram.com/${username}`;
+  if (type === "facebook") return `https://facebook.com/${username}`;
+  if (type === "tiktok") return `https://tiktok.com/@${username}`;
+
+  return clean;
+}
+
+function sectionId(section) {
+  return `luxury-section-${section.id}`;
+}
+
+export default function LuxuryTemplate({ menu }) {
+  const enabledLanguages = getEnabledLanguages(menu);
+
+  const defaultLanguage =
+    menu?.default_language && enabledLanguages.includes(menu.default_language)
+      ? menu.default_language
+      : enabledLanguages[0];
+
+  const [languageCode, setLanguageCode] = useState(defaultLanguage || "ar");
+  const [query, setQuery] = useState("");
+
+  const languageMeta = getLanguageMeta(languageCode);
+  const isRtl = languageMeta.dir === "rtl";
+
+  const menuName = getMenuName(menu, languageCode);
+  const menuDescription = getMenuDescription(menu, languageCode);
+  const todayHours = getTodayHours(menu?.working_hours || {}, languageCode);
+
+  const coverImages = getCoverImages(menu);
+  const heroImage = coverImages[0];
+
+  const sections = useMemo(() => {
+    return sortByOrder(menu?.sections).map((section) => {
+      const items = sortByOrder(section?.items).map((item) => ({
+        ...item,
+        displayName: getItemName(item, languageCode),
+        displayDescription: getItemDescription(item, languageCode),
+      }));
+
+      return {
+        ...section,
+        displayName: getSectionName(section, languageCode),
+        items,
+      };
+    });
+  }, [menu, languageCode]);
+
+  const allItems = sections.flatMap((section) => section.items || []);
+
+  const filteredSections = useMemo(() => {
+    const cleanQuery = query.trim().toLowerCase();
+
+    if (!cleanQuery) return sections;
+
+    return sections
+      .map((section) => {
+        const items = section.items.filter((item) => {
+          const searchText = [
+            item.displayName,
+            item.displayDescription,
+            section.displayName,
+            item.price,
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          return searchText.includes(cleanQuery);
+        });
+
+        return {
+          ...section,
+          items,
+        };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [sections, query]);
+
+  const contactLinks = [
+    menu?.phone && {
+      label: languageCode === "en" ? "Call" : "اتصال",
+      href: createPhoneLink(menu.phone),
+      icon: <Phone size={15} />,
+    },
+    menu?.whatsapp && {
+      label: "WhatsApp",
+      href: createWhatsappLink(menu.whatsapp),
+      icon: <MessageCircle size={15} />,
+    },
+    menu?.instagram && {
+      label: "Instagram",
+      href: createSocialUrl(menu.instagram, "instagram"),
+      icon: <Sparkles size={15} />,
+    },
+    menu?.facebook && {
+      label: "Facebook",
+      href: createSocialUrl(menu.facebook, "facebook"),
+      icon: <Sparkles size={15} />,
+    },
+    menu?.tiktok && {
+      label: "TikTok",
+      href: createSocialUrl(menu.tiktok, "tiktok"),
+      icon: <Sparkles size={15} />,
+    },
+  ].filter(Boolean);
+
+  const pageStyle = {
+    "--bg": menu?.background_color || "#0b0907",
+    "--panel": "rgba(255, 250, 241, 0.08)",
+    "--panel2": "rgba(255, 250, 241, 0.12)",
+    "--text": menu?.text_color || "#fff7ec",
+    "--muted": "rgba(255, 247, 236, 0.62)",
+    "--line": "rgba(255, 247, 236, 0.15)",
+    "--accent": menu?.primary_color || "#d8b56d",
+    "--accentSoft": "rgba(216, 181, 109, 0.16)",
+    fontFamily: menu?.font_family || undefined,
+  };
+
+  return (
+    <main
+      dir={isRtl ? "rtl" : "ltr"}
+      style={pageStyle}
+      className="min-h-screen bg-[var(--bg)] text-[var(--text)] selection:bg-[var(--accent)] selection:text-black"
+    >
+      <section className="relative overflow-hidden border-b border-[var(--line)]">
+        <div className="absolute inset-0">
+          {heroImage ? (
+            <Image
+              src={heroImage}
+              alt={menuName}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover opacity-35"
             />
+          ) : (
+            <div className="h-full w-full bg-[radial-gradient(circle_at_25%_20%,rgba(216,181,109,0.2),transparent_28%),linear-gradient(135deg,#0b0907,#1b1510,#0b0907)]" />
           )}
 
-          <h1 className="mt-8 text-center text-5xl font-black tracking-tight">
-            {menu.name}
-          </h1>
+          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(11,9,7,0.3),var(--bg)_95%)]" />
+        </div>
 
-          {menu.description_ar && (
-            <p className="mx-auto mt-4 max-w-xl text-center text-[#f5ead8]/60">
-              {menu.description_ar}
-            </p>
-          )}
+        <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6">
+          <header className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
+                {menu?.logo_url ? (
+                  <Image
+                    src={menu.logo_url}
+                    alt={menuName}
+                    fill
+                    priority
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Star size={19} className="text-[var(--accent)]" />
+                  </div>
+                )}
+              </div>
 
-          <div className="mt-12 space-y-16">
-            {sections.map((section) => (
-              <section key={section.id}>
-                <h2 className="border-b border-[#f5ead8]/20 pb-4 text-3xl font-black">
-                  {section.name_ar}
-                </h2>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black">{menuName}</p>
+                <p className="text-xs font-bold text-[var(--muted)]">
+                  Digital Menu
+                </p>
+              </div>
+            </div>
 
-                <div className="mt-6 grid gap-5 md:grid-cols-2">
-                  {(section.items || []).map((item) => (
-                    <article
-                      key={item.id}
-                      className="rounded-[2rem] border border-[#f5ead8]/15 p-5"
+            {enabledLanguages.length > 1 && (
+              <div className="flex items-center gap-1 rounded-full border border-[var(--line)] bg-black/25 p-1 backdrop-blur-xl">
+                <Languages size={14} className="mx-2 text-[var(--accent)]" />
+
+                {enabledLanguages.map((code) => {
+                  const meta = getLanguageMeta(code);
+                  const active = code === languageCode;
+
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => setLanguageCode(code)}
+                      className={`h-8 cursor-pointer rounded-full px-3 text-xs font-black transition ${
+                        active
+                          ? "bg-[var(--text)] text-black"
+                          : "text-[var(--muted)] hover:bg-white/10 hover:text-[var(--text)]"
+                      }`}
                     >
-                      {item.image_url && (
-                        <img
-                          src={item.image_url}
-                          alt={item.name_ar}
-                          className="mb-4 h-52 w-full rounded-[1.5rem] object-cover"
-                        />
-                      )}
+                      {meta.short}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </header>
 
-                      <div className="flex items-start justify-between gap-4">
-                        <h3 className="text-xl font-bold">{item.name_ar}</h3>
-                        <p className="font-black">₪{item.price}</p>
-                      </div>
+          <div className="grid gap-7 py-12 md:grid-cols-[minmax(0,1fr)_320px] md:items-end md:py-16">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-black/25 px-3 py-1.5 text-xs font-black text-[var(--accent)] backdrop-blur-xl">
+                <BadgeCheck size={14} />
+                Premium Template
+              </div>
 
-                      {item.description_ar && (
-                        <p className="mt-3 text-sm text-[#f5ead8]/55">
-                          {item.description_ar}
-                        </p>
-                      )}
-                    </article>
+              <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-[-0.06em] sm:text-6xl md:text-7xl">
+                {menuName}
+              </h1>
+
+              {menuDescription && (
+                <p className="mt-5 max-w-2xl text-sm font-bold leading-7 text-[var(--muted)] sm:text-base">
+                  {menuDescription}
+                </p>
+              )}
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                <InfoPill icon={<Clock3 size={14} />}>
+                  {todayHours.day} · {todayHours.text}
+                </InfoPill>
+
+                {menu?.location && (
+                  <InfoPill icon={<MapPin size={14} />}>
+                    {menu.location}
+                  </InfoPill>
+                )}
+
+                <InfoPill icon={<Star size={14} />}>
+                  {allItems.length} أصناف
+                </InfoPill>
+              </div>
+            </div>
+
+            <div className="rounded-[1.7rem] border border-[var(--line)] bg-black/25 p-4 backdrop-blur-xl">
+              <p className="text-xs font-black text-[var(--accent)]">
+                روابط سريعة
+              </p>
+
+              {contactLinks.length > 0 ? (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {contactLinks.map((link) => (
+                    <a
+                      key={`${link.label}-${link.href}`}
+                      href={link.href}
+                      target={
+                        link.href?.startsWith("http") ? "_blank" : undefined
+                      }
+                      rel={
+                        link.href?.startsWith("http")
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
+                      className="flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--panel)] px-3 text-xs font-black transition hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black"
+                    >
+                      {link.icon}
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm font-bold text-[var(--muted)]">
+                  لا توجد روابط تواصل مضافة.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(11,9,7,0.82)] backdrop-blur-2xl">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
+          <div className="grid gap-3 md:grid-cols-[300px_minmax(0,1fr)] md:items-center">
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute start-4 top-1/2 -translate-y-1/2 text-[var(--accent)]"
+              />
+
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={
+                  languageCode === "en" ? "Search..." : "ابحث عن صنف..."
+                }
+                className="h-11 w-full rounded-full border border-[var(--line)] bg-[var(--panel)] px-10 text-sm font-bold outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent)]"
+              />
+
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="absolute end-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-[var(--muted)] transition hover:bg-white/10 hover:text-[var(--text)]"
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+
+            <nav className="flex gap-2 overflow-x-auto pb-1 md:justify-end">
+              {sections.map((section) => (
+                <a
+                  key={section.id}
+                  href={`#${sectionId(section)}`}
+                  className="shrink-0 rounded-full border border-[var(--line)] bg-[var(--panel)] px-4 py-2 text-xs font-black text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--text)]"
+                >
+                  {section.displayName}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {filteredSections.length ? (
+          <div className="space-y-10">
+            {filteredSections.map((section) => (
+              <section
+                key={section.id}
+                id={sectionId(section)}
+                className="scroll-mt-32"
+              >
+                <div className="mb-4 flex items-end justify-between gap-4 border-b border-[var(--line)] pb-3">
+                  <div>
+                    <h2 className="text-2xl font-black tracking-[-0.03em] sm:text-3xl">
+                      {section.displayName}
+                    </h2>
+
+                    <p className="mt-1 text-xs font-bold text-[var(--muted)]">
+                      {section.items.length} أصناف
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  {section.items.map((item) => (
+                    <LuxuryItem key={item.id} item={item} />
                   ))}
                 </div>
               </section>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="rounded-[1.7rem] border border-[var(--line)] bg-[var(--panel)] p-8 text-center">
+            <Search size={34} className="mx-auto text-[var(--accent)]" />
+
+            <h2 className="mt-4 text-2xl font-black">لا توجد نتائج</h2>
+
+            <p className="mt-2 text-sm font-bold text-[var(--muted)]">
+              جرّب كلمة بحث مختلفة.
+            </p>
+          </div>
+        )}
       </section>
+
+<Footer />
     </main>
+  );
+}
+
+function InfoPill({ icon, children }) {
+  return (
+    <span className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-black/25 px-3 text-xs font-black text-[var(--muted)] backdrop-blur-xl">
+      <span className="text-[var(--accent)]">{icon}</span>
+      {children}
+    </span>
+  );
+}
+
+function LuxuryItem({ item }) {
+  const unavailable = item.is_available === false;
+
+  return (
+    <article
+      id={`item-${item.id}`}
+      className={`group overflow-hidden rounded-[1.4rem] border border-[var(--line)] bg-[var(--panel)] transition hover:border-[var(--accent)] hover:bg-[var(--panel2)] ${
+        unavailable ? "opacity-50 grayscale" : ""
+      }`}
+    >
+      <div className="grid grid-cols-[96px_minmax(0,1fr)] sm:grid-cols-[112px_minmax(0,1fr)]">
+        <div className="relative min-h-28 bg-black/20">
+          {item.image_url ? (
+            <Image
+              src={item.image_url}
+              alt={item.displayName}
+              fill
+              sizes="(max-width: 640px) 96px, 112px"
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full min-h-28 w-full items-center justify-center">
+              <ImageIcon size={26} className="text-[var(--accent)]" />
+            </div>
+          )}
+
+          {unavailable && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/55">
+              <span className="rounded-full bg-black/50 px-2 py-1 text-[10px] font-black text-white">
+                غير متوفر
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
+          <div>
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="min-w-0 text-base font-black leading-tight sm:text-lg">
+                {item.displayName}
+              </h3>
+
+              <p className="shrink-0 rounded-full bg-[var(--accent)] px-2.5 py-1 text-xs font-black text-black">
+                {formatPrice(item.price)}
+              </p>
+            </div>
+
+            {item.displayDescription && (
+              <p className="mt-2 line-clamp-2 text-xs font-bold leading-5 text-[var(--muted)] sm:text-sm sm:leading-6">
+                {item.displayDescription}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-[11px] font-black text-[var(--accent)]">
+              {unavailable ? "غير متوفر" : "متوفر"}
+            </span>
+
+            <Sparkles
+              size={14}
+              className="text-[var(--accent)] opacity-45 transition group-hover:opacity-100"
+            />
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }

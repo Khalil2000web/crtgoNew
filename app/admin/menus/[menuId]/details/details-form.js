@@ -5,13 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Check,
+  CheckCircle2,
+  Circle,
   Globe,
   Info,
   Languages,
   Loader2,
   MapPin,
   Phone,
+  RotateCcw,
+  Save,
+  TextCursorInput,
+  TriangleAlert,
 } from "lucide-react";
 import {
   FaFacebook,
@@ -25,26 +30,12 @@ import { revalidatePublicMenu } from "@/lib/revalidate-public-menu";
 import {
   getLanguage,
   getTranslatedText,
-  LANGUAGES,
   normalizeEnabledLanguages,
   setTranslatedText,
 } from "@/lib/i18n";
 
-export default function DetailsForm({ menu }) {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const enabledLanguages = useMemo(() => {
-    return normalizeEnabledLanguages(menu.enabled_languages);
-  }, [menu.enabled_languages]);
-
-  const firstLanguage = enabledLanguages.includes(menu.default_language)
-    ? menu.default_language
-    : enabledLanguages[0];
-
-  const [activeLanguage, setActiveLanguage] = useState(firstLanguage);
-
-  const [form, setForm] = useState({
+function getInitialForm(menu) {
+  return {
     name_i18n: {
       ...(menu.name_i18n || {}),
       ar: getTranslatedText(menu.name_i18n, "ar", menu.name || ""),
@@ -66,16 +57,54 @@ export default function DetailsForm({ menu }) {
     instagram: menu.instagram || "",
     tiktok: menu.tiktok || "",
     facebook: menu.facebook || "",
-  });
+  };
+}
 
-  const [initialForm, setInitialForm] = useState(form);
+export default function DetailsForm({ menu }) {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const enabledLanguages = useMemo(() => {
+    return normalizeEnabledLanguages(menu.enabled_languages);
+  }, [menu.enabled_languages]);
+
+  const firstLanguage = enabledLanguages.includes(menu.default_language)
+    ? menu.default_language
+    : enabledLanguages[0] || "ar";
+
+  const [activeLanguage, setActiveLanguage] = useState(firstLanguage);
+
+  const [form, setForm] = useState(() => getInitialForm(menu));
+  const [initialForm, setInitialForm] = useState(() => getInitialForm(menu));
+
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const activeLanguageData = getLanguage(activeLanguage);
 
+  const arabicName = getTranslatedText(form.name_i18n, "ar", menu.name || "");
+  const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
   const hasChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
+
+  const filledTranslations = enabledLanguages.filter((languageCode) => {
+    const name = getTranslatedText(form.name_i18n, languageCode, "").trim();
+    const description = getTranslatedText(
+      form.description_i18n,
+      languageCode,
+      ""
+    ).trim();
+
+    return name || description;
+  });
+
+  const contactCount = [
+    form.phone,
+    form.whatsapp,
+    form.instagram,
+    form.tiktok,
+    form.facebook,
+  ].filter((item) => item.trim()).length;
 
   function clearAlerts() {
     setMessage("");
@@ -101,6 +130,8 @@ export default function DetailsForm({ menu }) {
   }
 
   function discardChanges() {
+    if (!hasChanges || saving) return;
+
     setForm(initialForm);
     setMessage("");
     setError("");
@@ -111,7 +142,7 @@ export default function DetailsForm({ menu }) {
     setMessage("");
     setError("");
 
-    const arabicName = getTranslatedText(
+    const nextArabicName = getTranslatedText(
       form.name_i18n,
       "ar",
       menu.name || ""
@@ -129,14 +160,14 @@ export default function DetailsForm({ menu }) {
       menu.location || ""
     ).trim();
 
-    if (!arabicName) {
+    if (!nextArabicName) {
       setSaving(false);
       setError("اسم القائمة بالعربية مطلوب لأنه لغة الرجوع الأساسية.");
       return;
     }
 
     const payload = {
-      name: arabicName,
+      name: nextArabicName,
       description_ar: arabicDescription,
       location: arabicLocation,
       name_i18n: form.name_i18n,
@@ -152,7 +183,8 @@ export default function DetailsForm({ menu }) {
     const { error: updateError } = await supabase
       .from("menus")
       .update(payload)
-      .eq("id", menu.id);
+      .eq("id", menu.id)
+      .eq("owner_id", menu.owner_id);
 
     if (updateError) {
       setSaving(false);
@@ -179,316 +211,492 @@ export default function DetailsForm({ menu }) {
   }
 
   return (
-    <main className="min-h-screen bg-[#050505] px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl pb-32">
-        <div className="mb-6">
-          <Link
-            href={`/admin/menus/${menu.id}`}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-black text-white/70 transition hover:bg-white hover:text-black"
-          >
-            <ArrowRight size={16} />
-            رجوع للقائمة
-          </Link>
-        </div>
+    <main dir="rtl" className="min-h-screen px-4 pb-32 pt-4 sm:px-5 lg:px-8">
+      <section className="mx-auto max-w-7xl">
+        <header className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <Link
+                href={`/admin/menus/${menu.id}`}
+                className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-xs font-black text-[#1b1712]/65 transition hover:bg-[#d1c5b4] hover:text-[#1b1712] active:scale-[0.98]"
+              >
+                <ArrowRight size={15} />
+                الرجوع للقائمة
+              </Link>
 
-        <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] shadow-2xl">
-          <div className="border-b border-white/10 bg-white/[0.03] p-5 sm:p-7">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-black">
-                  <Info size={26} />
-                </div>
+              <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Menu Details
+              </p>
 
-                <p className="text-sm font-black uppercase tracking-[0.3em] text-white/35">
-                  Details
-                </p>
+              <h1 className="mt-1 text-2xl font-black text-[#1b1712] sm:text-3xl">
+                معلومات القائمة
+              </h1>
 
-                <h1 className="mt-2 text-3xl font-black sm:text-5xl">
-                  معلومات القائمة
-                </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#1b1712]/58">
+                عدّل اسم القائمة، الوصف، الموقع، وأرقام التواصل. النص العربي هو لغة الرجوع إذا أي ترجمة ناقصة.
+              </p>
+            </div>
 
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">
-                  عدّل اسم القائمة والوصف والموقع بكل اللغات المفعّلة. إذا تركت
-                  ترجمة فارغة، القائمة العامة سترجع للعربية تلقائياً.
-                </p>
-              </div>
+            <div className="flex flex-wrap gap-2">
+              <SaveBadge hasChanges={hasChanges} />
 
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                <p className="text-xs font-black text-white/35">الرابط العام</p>
-                <p dir="ltr" className="mt-1 text-sm font-black text-white/70">
-                  /m/{menu.subdomain}
-                </p>
-              </div>
+              {publicPath ? (
+                <span
+                  dir="ltr"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-1.5 text-xs font-black text-[#1b1712]/60"
+                >
+                  <Globe size={13} />
+                  {publicPath}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full border border-yellow-900/25 bg-yellow-700/15 px-3 py-1.5 text-xs font-black text-yellow-950">
+                  <TriangleAlert size={13} />
+                  بدون رابط
+                </span>
+              )}
             </div>
           </div>
+        </header>
 
-          <div className="grid gap-6 p-5 sm:p-7">
-            {error && (
-              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm font-bold text-red-200">
-                {error}
-              </div>
-            )}
+        {(message || error) && (
+          <div className="mt-3 grid gap-2">
+            {message && <Alert type="success">{message}</Alert>}
+            {error && <Alert type="error">{error}</Alert>}
+          </div>
+        )}
 
-            {message && (
-              <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-4 text-sm font-bold text-green-200">
-                {message}
-              </div>
-            )}
+        <section className="mt-3 grid gap-3 sm:grid-cols-3">
+          <MetricBox
+            icon={<Languages size={18} />}
+            label="اللغات"
+            value={`${filledTranslations.length}/${enabledLanguages.length}`}
+            hint="لغات فيها نصوص"
+          />
 
-            <section className="rounded-[1.5rem] border border-white/10 bg-black/30 p-4 sm:p-5">
-              <div className="mb-4 flex items-center gap-3">
-                <Languages size={20} className="text-white/45" />
-                <div>
-                  <h2 className="text-xl font-black">اللغة</h2>
-                  <p className="mt-1 text-sm text-white/40">
-                    اختر اللغة التي تريد تعديل نصوصها.
-                  </p>
-                </div>
-              </div>
+          <MetricBox
+            icon={<Phone size={18} />}
+            label="التواصل"
+            value={contactCount}
+            hint="حقول مضافة"
+          />
 
+          <MetricBox
+            icon={<Info size={18} />}
+            label="الاسم العربي"
+            value={arabicName.trim() ? "موجود" : "ناقص"}
+            hint="مطلوب للحفظ"
+            alert={!arabicName.trim()}
+          />
+        </section>
+
+        <section className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+          <div className="grid gap-5">
+            <Panel
+              eyebrow="Languages"
+              title="اختيار اللغة"
+              description="اختر اللغة التي تريد تعديل نصوصها. أي حقل فارغ يرجع للعربية في القائمة العامة."
+            >
               <div className="flex flex-wrap gap-2">
                 {enabledLanguages.map((languageCode) => {
                   const language = getLanguage(languageCode);
                   const active = activeLanguage === languageCode;
+                  const hasText = Boolean(
+                    getTranslatedText(form.name_i18n, languageCode, "").trim()
+                  );
 
                   return (
                     <button
                       key={language.code}
                       type="button"
                       onClick={() => setActiveLanguage(language.code)}
-                      className={`rounded-full cursor-pointer px-4 py-2 text-sm font-black transition ${
+                      className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-black transition active:scale-[0.98] ${
                         active
-                          ? "bg-white text-black"
-                          : "bg-white/[0.07] text-white hover:bg-white/[0.12]"
+                          ? "border-[#1b1712] bg-[#1b1712] text-[#efe7da]"
+                          : "border-[#8f806c]/55 bg-[#ded4c5] text-[#1b1712]/65 hover:bg-[#d1c5b4] hover:text-[#1b1712]"
                       }`}
                     >
                       {language.shortLabel}
+
+                      {hasText && (
+                        <CheckCircle2
+                          size={14}
+                          className={active ? "text-[#efe7da]" : "text-green-950"}
+                        />
+                      )}
                     </button>
                   );
                 })}
               </div>
-            </section>
+            </Panel>
 
-            <section
-              dir={activeLanguageData.dir}
-              className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 sm:p-5"
+            <Panel
+              eyebrow={activeLanguageData.label}
+              title="نصوص القائمة"
+              description="هذه النصوص تظهر في أعلى القائمة العامة للزبائن."
             >
-              <div className="mb-5">
-                <p className="text-sm font-black text-white/35">
-                  {activeLanguageData.label}
-                </p>
+              <div dir={activeLanguageData.dir} className="grid gap-4">
+                <TextInput
+                  label="اسم القائمة"
+                  value={form.name_i18n?.[activeLanguage] || ""}
+                  onChange={(value) =>
+                    updateTranslatedField("name_i18n", value)
+                  }
+                  placeholder={
+                    activeLanguage === "ar"
+                      ? "مثلاً: كافيه خالد"
+                      : "Translation..."
+                  }
+                  required={activeLanguage === "ar"}
+                />
 
-                <h2 className="mt-1 text-2xl font-black">
-                  نصوص القائمة
-                </h2>
+                <TextArea
+                  label="وصف القائمة"
+                  value={form.description_i18n?.[activeLanguage] || ""}
+                  onChange={(value) =>
+                    updateTranslatedField("description_i18n", value)
+                  }
+                  placeholder={
+                    activeLanguage === "ar"
+                      ? "وصف قصير يظهر في أعلى القائمة..."
+                      : "Translation..."
+                  }
+                />
+
+                <TextInput
+                  label="الموقع"
+                  value={form.location_i18n?.[activeLanguage] || ""}
+                  onChange={(value) =>
+                    updateTranslatedField("location_i18n", value)
+                  }
+                  placeholder={
+                    activeLanguage === "ar"
+                      ? "مثلاً: شفاعمرو"
+                      : "Translation..."
+                  }
+                />
               </div>
+            </Panel>
 
-              <div className="grid gap-4">
-                <label className="grid gap-2">
-                  <span className="text-sm font-black text-white/60">
-                    اسم القائمة
-                  </span>
+            <Panel
+              eyebrow="Contact"
+              title="التواصل والسوشال"
+              description="هذه الحقول أرقام وروابط، لذلك لا تحتاج ترجمة."
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <ContactField
+                  label="رقم الهاتف"
+                  icon={<Phone size={16} />}
+                  value={form.phone}
+                  onChange={(value) => updateField("phone", value)}
+                  placeholder="0500000000"
+                />
 
-                  <input
-                    value={form.name_i18n?.[activeLanguage] || ""}
-                    onChange={(e) =>
-                      updateTranslatedField("name_i18n", e.target.value)
-                    }
-                    placeholder={
-                      activeLanguage === "ar"
-                        ? "مثلاً: كافيه خالد"
-                        : "Translation..."
-                    }
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
+                <ContactField
+                  label="واتساب"
+                  icon={<FaWhatsapp />}
+                  value={form.whatsapp}
+                  onChange={(value) => updateField("whatsapp", value)}
+                  placeholder="972500000000"
+                />
+
+                <ContactField
+                  label="Instagram"
+                  icon={<FaInstagram />}
+                  value={form.instagram}
+                  onChange={(value) => updateField("instagram", value)}
+                  placeholder="@username"
+                />
+
+                <ContactField
+                  label="TikTok"
+                  icon={<FaTiktok />}
+                  value={form.tiktok}
+                  onChange={(value) => updateField("tiktok", value)}
+                  placeholder="@username"
+                />
+
+                <div className="sm:col-span-2">
+                  <ContactField
+                    label="Facebook"
+                    icon={<FaFacebook />}
+                    value={form.facebook}
+                    onChange={(value) => updateField("facebook", value)}
+                    placeholder="page-name أو رابط كامل"
                   />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-sm font-black text-white/60">
-                    وصف القائمة
-                  </span>
-
-                  <textarea
-                    value={form.description_i18n?.[activeLanguage] || ""}
-                    onChange={(e) =>
-                      updateTranslatedField(
-                        "description_i18n",
-                        e.target.value
-                      )
-                    }
-                    placeholder={
-                      activeLanguage === "ar"
-                        ? "وصف قصير يظهر في أعلى القائمة..."
-                        : "Translation..."
-                    }
-                    rows={4}
-                    className="resize-none rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-sm font-black text-white/60">
-                    الموقع
-                  </span>
-
-                  <input
-                    value={form.location_i18n?.[activeLanguage] || ""}
-                    onChange={(e) =>
-                      updateTranslatedField("location_i18n", e.target.value)
-                    }
-                    placeholder={
-                      activeLanguage === "ar"
-                        ? "مثلاً: شفاعمرو"
-                        : "Translation..."
-                    }
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-              </div>
-            </section>
-
-            <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-              <div className="mb-5 flex items-center gap-3">
-                <Phone size={20} className="text-white/45" />
-                <div>
-                  <h2 className="text-2xl font-black">التواصل والسوشال</h2>
-                  <p className="mt-1 text-sm text-white/40">
-                    هذه الحقول لا تحتاج ترجمة لأنها روابط وأرقام.
-                  </p>
                 </div>
               </div>
+            </Panel>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-2">
-                  <span className="text-sm font-black text-white/60">
-                    رقم الهاتف
-                  </span>
-
-                  <input
-                    dir="ltr"
-                    value={form.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                    placeholder="0500000000"
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="flex items-center gap-2 text-sm font-black text-white/60">
-                    <FaWhatsapp />
-                    واتساب
-                  </span>
-
-                  <input
-                    dir="ltr"
-                    value={form.whatsapp}
-                    onChange={(e) => updateField("whatsapp", e.target.value)}
-                    placeholder="972500000000"
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="flex items-center gap-2 text-sm font-black text-white/60">
-                    <FaInstagram />
-                    Instagram
-                  </span>
-
-                  <input
-                    dir="ltr"
-                    value={form.instagram}
-                    onChange={(e) => updateField("instagram", e.target.value)}
-                    placeholder="@username"
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="flex items-center gap-2 text-sm font-black text-white/60">
-                    <FaTiktok />
-                    TikTok
-                  </span>
-
-                  <input
-                    dir="ltr"
-                    value={form.tiktok}
-                    onChange={(e) => updateField("tiktok", e.target.value)}
-                    placeholder="@username"
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-
-                <label className="grid gap-2 sm:col-span-2">
-                  <span className="flex items-center gap-2 text-sm font-black text-white/60">
-                    <FaFacebook />
-                    Facebook
-                  </span>
-
-                  <input
-                    dir="ltr"
-                    value={form.facebook}
-                    onChange={(e) => updateField("facebook", e.target.value)}
-                    placeholder="page-name أو رابط كامل"
-                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none transition placeholder:text-white/20 focus:border-white/35"
-                  />
-                </label>
-              </div>
-            </section>
-
-            <section className="rounded-[1.5rem] border border-orange-400/20 bg-orange-400/10 p-5">
+            <section className="rounded-2xl border border-yellow-900/25 bg-yellow-700/15 p-4">
               <div className="flex gap-3">
-                <MapPin size={20} className="mt-1 shrink-0 text-orange-100" />
+                <MapPin size={19} className="mt-1 shrink-0 text-yellow-950" />
 
                 <div>
-                  <h2 className="text-xl font-black text-orange-100">
+                  <h2 className="text-base font-black text-yellow-950">
                     كيف يعمل الرجوع للعربية؟
                   </h2>
 
-                  <p className="mt-2 text-sm leading-6 text-orange-100/70">
-                    إذا الزبون اختار Hebrew أو English وكان النص فارغاً، سيتم
-                    عرض النص العربي تلقائياً بدلاً من ترك مكان فارغ في القائمة.
+                  <p className="mt-1 text-sm leading-6 text-yellow-950/70">
+                    إذا الزبون اختار Hebrew أو English وكان النص فارغاً، سيتم عرض النص العربي تلقائياً بدلاً من ترك مكان فارغ.
                   </p>
                 </div>
               </div>
             </section>
           </div>
+
+          <aside className="grid gap-4 lg:sticky lg:top-24 lg:h-fit">
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Preview
+              </p>
+
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                معاينة النصوص
+              </h2>
+
+              <div
+                dir={activeLanguageData.dir}
+                className="mt-4 rounded-2xl border border-[#8f806c]/55 bg-[#ded4c5] p-4"
+              >
+                <p className="text-xs font-black text-[#1b1712]/45">
+                  {activeLanguageData.label}
+                </p>
+
+                <h3 className="mt-2 text-xl font-black text-[#1b1712]">
+                  {form.name_i18n?.[activeLanguage] ||
+                    form.name_i18n?.ar ||
+                    "اسم القائمة"}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-[#1b1712]/58">
+                  {form.description_i18n?.[activeLanguage] ||
+                    form.description_i18n?.ar ||
+                    "وصف القائمة يظهر هنا..."}
+                </p>
+
+                <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#8f806c]/45 bg-[#d1c5b4] px-3 py-1.5 text-xs font-black text-[#1b1712]/55">
+                  <MapPin size={13} />
+                  {form.location_i18n?.[activeLanguage] ||
+                    form.location_i18n?.ar ||
+                    "الموقع"}
+                </p>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-[#8f806c]/55 bg-[#d1c5b4] p-4 shadow-sm shadow-black/5">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+                Save status
+              </p>
+
+              <h2 className="mt-1 text-lg font-black text-[#1b1712]">
+                حالة التعديلات
+              </h2>
+
+              <div className="mt-4">
+                <SaveBadge hasChanges={hasChanges} large />
+              </div>
+
+              <p className="mt-3 text-xs font-bold leading-5 text-[#1b1712]/48">
+                اللغة الحالية: {activeLanguageData.label}
+              </p>
+            </section>
+          </aside>
         </section>
+      </section>
+
+      <SaveBar
+        hasChanges={hasChanges}
+        saving={saving}
+        activeLanguage={activeLanguageData.label}
+        onDiscard={discardChanges}
+        onSave={saveDetails}
+      />
+    </main>
+  );
+}
+
+function Panel({ eyebrow, title, description, children }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#8f806c]/55 bg-[#d8cebe] shadow-sm shadow-black/5">
+      <div className="border-b border-[#8f806c]/45 bg-[#d1c5b4] px-4 py-3">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-[#1b1712]/45">
+          {eyebrow}
+        </p>
+
+        <h2 className="mt-0.5 text-lg font-black text-[#1b1712]">
+          {title}
+        </h2>
+
+        {description && (
+          <p className="mt-1 text-sm leading-6 text-[#1b1712]/52">
+            {description}
+          </p>
+        )}
       </div>
 
-      <div className="fixed bottom-24 left-4 right-4 z-[80] md:left-[22rem]">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-3 shadow-2xl backdrop-blur">
+      <div className="p-3">{children}</div>
+    </section>
+  );
+}
+
+function TextInput({ label, value, onChange, placeholder, required }) {
+  return (
+    <label className="grid gap-2">
+      <span className="flex items-center gap-2 text-sm font-black text-[#1b1712]/60">
+        <TextCursorInput size={15} />
+        {label}
+        {required && (
+          <span className="rounded-full bg-[#1b1712] px-2 py-0.5 text-[10px] text-[#efe7da]">
+            مطلوب
+          </span>
+        )}
+      </span>
+
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="min-h-11 rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] px-3 py-2.5 text-sm font-bold text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+      />
+    </label>
+  );
+}
+
+function TextArea({ label, value, onChange, placeholder }) {
+  return (
+    <label className="grid gap-2">
+      <span className="flex items-center gap-2 text-sm font-black text-[#1b1712]/60">
+        <TextCursorInput size={15} />
+        {label}
+      </span>
+
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={4}
+        className="resize-none rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] px-3 py-2.5 text-sm font-bold leading-6 text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+      />
+    </label>
+  );
+}
+
+function ContactField({ label, icon, value, onChange, placeholder }) {
+  return (
+    <label className="grid gap-2">
+      <span className="flex items-center gap-2 text-sm font-black text-[#1b1712]/60">
+        {icon}
+        {label}
+      </span>
+
+      <input
+        dir="ltr"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="min-h-11 rounded-xl border border-[#8f806c]/50 bg-[#ded4c5] px-3 py-2.5 text-left text-sm font-bold text-[#1b1712] outline-none transition placeholder:text-[#1b1712]/30 focus:border-[#1b1712]"
+      />
+    </label>
+  );
+}
+
+function MetricBox({ icon, label, value, hint, alert }) {
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-2xl border p-3 shadow-sm shadow-black/5 ${
+        alert
+          ? "border-yellow-900/25 bg-yellow-700/15"
+          : "border-[#8f806c]/55 bg-[#d8cebe]"
+      }`}
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#8f806c]/45 bg-[#ded4c5] text-[#1b1712]/70">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-xs font-black text-[#1b1712]/45">{label}</p>
+        <p className="truncate text-xl font-black text-[#1b1712]">{value}</p>
+        <p className="truncate text-xs font-bold text-[#1b1712]/42">{hint}</p>
+      </div>
+    </div>
+  );
+}
+
+function SaveBadge({ hasChanges, large }) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${
+        hasChanges
+          ? "border-yellow-900/25 bg-yellow-700/15 text-yellow-950"
+          : "border-green-900/25 bg-green-800/12 text-green-950"
+      } ${large ? "w-full justify-center py-3" : ""}`}
+    >
+      <Circle size={8} fill="currentColor" />
+      {hasChanges ? "تغييرات غير محفوظة" : "كل شيء محفوظ"}
+    </div>
+  );
+}
+
+function Alert({ type, children }) {
+  const styles =
+    type === "success"
+      ? "border-green-900/25 bg-green-800/12 text-green-950"
+      : "border-red-900/25 bg-red-700/12 text-red-950";
+
+  return (
+    <p className={`rounded-xl border p-3 text-sm font-bold leading-6 ${styles}`}>
+      {children}
+    </p>
+  );
+}
+
+function SaveBar({ hasChanges, saving, activeLanguage, onDiscard, onSave }) {
+  return (
+    <div className="fixed bottom-24 left-4 right-4 z-[80]">
+      <div className="mx-auto max-w-7xl rounded-2xl border border-[#8f806c]/60 bg-[#d8cebe]/95 p-3 shadow-2xl shadow-black/25 backdrop-blur">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-black text-white">
+            <p
+              className={`text-sm font-black ${
+                hasChanges ? "text-yellow-950" : "text-green-950"
+              }`}
+            >
               {hasChanges ? "لديك تغييرات غير محفوظة" : "كل شيء محفوظ"}
             </p>
 
-            <p className="mt-1 text-xs text-white/40">
-              اللغة الحالية: {activeLanguageData.label}
+            <p className="mt-1 text-xs font-bold text-[#1b1712]/45">
+              اللغة الحالية: {activeLanguage}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
-              onClick={discardChanges}
+              onClick={onDiscard}
               disabled={!hasChanges || saving}
-              className="rounded-xl px-3 py-1 text-sm font-black text-white/55 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#8f806c]/55 bg-[#ded4c5] px-3 py-2 text-sm font-black text-[#1b1712]/70 transition hover:bg-[#cfc3b2] disabled:cursor-not-allowed disabled:opacity-40"
             >
+              <RotateCcw size={17} />
               تراجع
             </button>
 
             <button
               type="button"
-              onClick={saveDetails}
+              onClick={onSave}
               disabled={!hasChanges || saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-black text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] px-3 py-2 text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {saving && <Loader2 size={15} className="animate-spin" />}
-              حفظ المعلومات
+              {saving ? (
+                <Loader2 className="animate-spin" size={17} />
+              ) : (
+                <Save size={17} />
+              )}
+
+              {saving ? "جارٍ الحفظ..." : "حفظ المعلومات"}
             </button>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

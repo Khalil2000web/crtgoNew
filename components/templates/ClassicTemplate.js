@@ -29,6 +29,8 @@ import {
   FaPhoneAlt,
 } from "react-icons/fa";
 
+import Footer from "./Footer";
+
 const DAY_KEYS = [
   { key: "sunday", label: "الأحد", jsDay: 0 },
   { key: "monday", label: "الإثنين", jsDay: 1 },
@@ -332,7 +334,7 @@ useEffect(() => {
                   <button
                     type="button"
                     onClick={() => setHoursOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/25"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-black text-white transition hover:bg-white/25"
                   >
                     <CalendarDays size={16} />
                     ساعات العمل
@@ -505,69 +507,7 @@ useEffect(() => {
         {filteredSections.length === 0 && <EmptyState />}
       </main>
 
-      <footer className="mt-8 bg-[#080808] px-4 py-10 text-white">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-white/35">
-                Powered by
-              </p>
-
-              <a
-                href="https://crtgo.com"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-2 text-4xl font-black tracking-tight text-white transition hover:text-white/80"
-              >
-                CRTGO
-                <ExternalLink size={20} />
-              </a>
-
-              <p className="mt-3 max-w-md text-sm leading-6 text-white/45">
-                قائمة رقمية ذكية وسريعة للمطاعم والكافيهات. امسح، تصفّح، واطلب بسهولة.
-              </p>
-
-              <p dir="ltr" className="mt-3 text-sm font-bold text-white/35">
-                crtgo.com
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2 md:justify-end">
-              {socials.map((social) => {
-                const Icon = social.icon;
-
-                return (
-                  <a
-                    key={social.type}
-                    href={social.href}
-                    target={social.type === "phone" ? undefined : "_blank"}
-                    rel={social.type === "phone" ? undefined : "noreferrer"}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white hover:text-black"
-                  >
-                    <Icon size={15} />
-                    {social.label}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-
-          {hasWorkingHours(menu.working_hours) && (
-            <button
-              type="button"
-              onClick={() => setHoursOpen(true)}
-              className="mt-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-black text-white transition hover:bg-white hover:text-black"
-            >
-              <CalendarDays size={16} />
-              عرض ساعات العمل كاملة
-            </button>
-          )}
-
-          <div className="mt-8 border-t border-white/10 pt-5 text-xs text-white/30">
-            © {new Date().getFullYear()} CRTGO. Digital menu experience.
-          </div>
-        </div>
-      </footer>
+<Footer />
 
       {hoursOpen && (
         <WorkingHoursModal
@@ -763,8 +703,8 @@ function ItemText({ item, primaryColor, available }) {
 
 function WorkingHoursModal({ workingHours, onClose }) {
   return (
-    <div className="fixed inset-0 z-[999] flex items-end justify-center bg-black/65 p-3 sm:items-center">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2rem] bg-white text-black shadow-2xl">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/65 p-3 sm:items-center">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2rem] bg-white text-black shadow-2xl no-scrollbar">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-black/10 bg-white/90 p-5 backdrop-blur">
           <div>
             <p className="text-sm font-black opacity-45">القائمة</p>
@@ -775,7 +715,7 @@ function WorkingHoursModal({ workingHours, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="grid h-11 w-11 place-items-center rounded-full bg-black text-white"
+            className="grid cursor-pointer h-11 w-11 place-items-center rounded-full bg-black text-white"
           >
             <X size={20} />
           </button>

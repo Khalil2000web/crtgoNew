@@ -21,13 +21,12 @@ export default async function SectionsPage({ params }) {
 
   const { data: menu, error: menuError } = await supabase
     .from("menus")
-    .select(
-      "id, owner_id, name, subdomain, enabled_languages, default_language"
-    )
+    .select("id, owner_id, name, subdomain, enabled_languages, default_language")
     .eq("id", menuId)
+    .eq("owner_id", user.id)
     .single();
 
-  if (menuError || !menu || menu.owner_id !== user.id) {
+  if (menuError || !menu) {
     notFound();
   }
 

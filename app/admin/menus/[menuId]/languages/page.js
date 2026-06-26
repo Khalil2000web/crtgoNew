@@ -21,13 +21,12 @@ export default async function LanguagesPage({ params }) {
 
   const { data: menu, error } = await supabase
     .from("menus")
-    .select(
-      "id, owner_id, name, subdomain, enabled_languages, default_language"
-    )
+    .select("id, owner_id, name, subdomain, enabled_languages, default_language")
     .eq("id", menuId)
+    .eq("owner_id", user.id)
     .single();
 
-  if (error || !menu || menu.owner_id !== user.id) {
+  if (error || !menu) {
     notFound();
   }
 
