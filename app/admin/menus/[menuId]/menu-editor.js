@@ -81,7 +81,7 @@ export default function MenuEditor({ menu }) {
     return !section.items || section.items.length === 0;
   });
 
-  const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
+  const publicPath = menu.subdomain ? `m.crtgo.com/${menu.subdomain}` : null;
 
   const publicUrl = publicPath
     ? origin

@@ -114,7 +114,7 @@ export default function HoursForm({ menu }) {
     }).length;
   }, [hours]);
 
-  const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
+  const publicPath = menu.subdomain ? `m.crtgo.com/${menu.subdomain}` : null;
 
   function clearAlerts() {
     setMessage("");
@@ -597,7 +597,7 @@ function ActionButton({ children, ...props }) {
 
 function SaveBar({ hasChanges, saving, onDiscard }) {
   return (
-    <div className="fixed bottom-24 left-4 right-4 z-[80]">
+    <div className="fixed bottom-24 md:bottom-4 left-4 right-4 z-[80]">
       <div className="mx-auto max-w-7xl rounded-2xl border border-[#8f806c]/60 bg-[#d8cebe]/95 p-3 shadow-2xl shadow-black/25 backdrop-blur">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

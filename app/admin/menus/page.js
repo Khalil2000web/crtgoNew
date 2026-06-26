@@ -224,7 +224,7 @@ export default async function AdminMenusPage({ searchParams }) {
               ) : (
                 <div className="grid gap-2">
                   {filteredMenus.map((menu) => {
-                    const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
+                    const publicPath = menu.subdomain ? `m.crtgo.com/${menu.subdomain}` : null;
                     const counts = getMenuCounts(menu);
                     const needsLink = !menu.subdomain;
                     const isEmpty = counts.items === 0;

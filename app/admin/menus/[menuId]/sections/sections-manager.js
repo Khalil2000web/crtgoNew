@@ -59,7 +59,7 @@ export default function SectionsManager({ menu, initialSections }) {
     return sections.filter((section) => !section.items?.length).length;
   }, [sections]);
 
-  const publicPath = menu.subdomain ? `/m/${menu.subdomain}` : null;
+  const publicPath = menu.subdomain ? `m.crtgo.com/${menu.subdomain}` : null;
 
   function clearAlerts() {
     setMessage("");

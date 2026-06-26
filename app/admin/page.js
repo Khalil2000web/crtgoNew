@@ -240,7 +240,7 @@ export default async function AdminPage() {
                 <div className="grid gap-2">
                   {latestMenus.map((menu) => {
                     const publicPath = menu.subdomain
-                      ? `/m/${menu.subdomain}`
+                      ? `m.crtgo.com/${menu.subdomain}`
                       : null;
 
                     const counts = getMenuCounts(menu);
