@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "crtgo.com";
 const WS_DOMAIN = process.env.NEXT_PUBLIC_WS_DOMAIN || `ws.${ROOT_DOMAIN}`;
-const MENU_DOMAIN = process.env.NEXT_PUBLIC_MENU_DOMAIN || `m.${ROOT_DOMAIN}`;
+const MENU_DOMAIN = process.env.NEXT_PUBLIC_MENU_DOMAIN || `menu.${ROOT_DOMAIN}`;
 
 function cleanHost(host) {
   return String(host || "")
