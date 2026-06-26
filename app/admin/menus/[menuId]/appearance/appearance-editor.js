@@ -568,10 +568,12 @@ export default function AppearanceEditor({ menu }) {
               </div>
             </Panel>
 
+<div className="hidden">
             <Panel
               eyebrow="Typography"
               title="الخط"
               description="اختر الخط المناسب لهوية المطعم."
+            
             >
               <div className="grid gap-2 md:grid-cols-3">
                 {fonts.map((font) => (
@@ -584,6 +586,8 @@ export default function AppearanceEditor({ menu }) {
                 ))}
               </div>
             </Panel>
+</div>
+
 
             <Panel
               eyebrow="Layout"

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Noto_Kufi_Arabic } from "next/font/google";
 import { useMemo, useState } from "react";
 import {
   BadgeCheck,
@@ -15,7 +16,20 @@ import {
   Star,
   X,
 } from "lucide-react";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaPhoneAlt,
+  FaTiktok,
+  FaWhatsapp,
+} from "react-icons/fa";
 import Footer from "./Footer";
+
+const luxuryFont = Noto_Kufi_Arabic({
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 const RTL_LANGUAGES = ["ar", "he", "fa", "ur"];
 
@@ -256,6 +270,7 @@ export default function LuxuryTemplate({ menu }) {
 
   const [languageCode, setLanguageCode] = useState(defaultLanguage || "ar");
   const [query, setQuery] = useState("");
+  const [showHours, setShowHours] = useState(false);
 
   const languageMeta = getLanguageMeta(languageCode);
   const isRtl = languageMeta.dir === "rtl";
@@ -313,33 +328,35 @@ export default function LuxuryTemplate({ menu }) {
       .filter((section) => section.items.length > 0);
   }, [sections, query]);
 
-  const contactLinks = [
-    menu?.phone && {
-      label: languageCode === "en" ? "Call" : "اتصال",
-      href: createPhoneLink(menu.phone),
-      icon: <Phone size={15} />,
-    },
-    menu?.whatsapp && {
-      label: "WhatsApp",
-      href: createWhatsappLink(menu.whatsapp),
-      icon: <MessageCircle size={15} />,
-    },
-    menu?.instagram && {
-      label: "Instagram",
-      href: createSocialUrl(menu.instagram, "instagram"),
-      icon: <Sparkles size={15} />,
-    },
-    menu?.facebook && {
-      label: "Facebook",
-      href: createSocialUrl(menu.facebook, "facebook"),
-      icon: <Sparkles size={15} />,
-    },
-    menu?.tiktok && {
-      label: "TikTok",
-      href: createSocialUrl(menu.tiktok, "tiktok"),
-      icon: <Sparkles size={15} />,
-    },
-  ].filter(Boolean);
+const contactLinks = [
+  menu?.phone && {
+    label: languageCode === "en" ? "Call" : "اتصال",
+    href: createPhoneLink(menu.phone),
+    icon: <FaPhoneAlt />,
+    featured: true,
+  },
+  menu?.whatsapp && {
+    label: "WhatsApp",
+    href: createWhatsappLink(menu.whatsapp),
+    icon: <FaWhatsapp />,
+    featured: true,
+  },
+  menu?.instagram && {
+    label: "Instagram",
+    href: createSocialUrl(menu.instagram, "instagram"),
+    icon: <FaInstagram />,
+  },
+  menu?.facebook && {
+    label: "Facebook",
+    href: createSocialUrl(menu.facebook, "facebook"),
+    icon: <FaFacebookF />,
+  },
+  menu?.tiktok && {
+    label: "TikTok",
+    href: createSocialUrl(menu.tiktok, "tiktok"),
+    icon: <FaTiktok />,
+  },
+].filter(Boolean);
 
   const pageStyle = {
     "--bg": menu?.background_color || "#0b0907",
@@ -350,15 +367,15 @@ export default function LuxuryTemplate({ menu }) {
     "--line": "rgba(255, 247, 236, 0.15)",
     "--accent": menu?.primary_color || "#d8b56d",
     "--accentSoft": "rgba(216, 181, 109, 0.16)",
-    fontFamily: menu?.font_family || undefined,
+    //fontFamily: menu?.font_family || undefined,
   };
 
   return (
-    <main
-      dir={isRtl ? "rtl" : "ltr"}
-      style={pageStyle}
-      className="min-h-screen bg-[var(--bg)] text-[var(--text)] selection:bg-[var(--accent)] selection:text-black"
-    >
+<main
+  dir={isRtl ? "rtl" : "ltr"}
+  style={pageStyle}
+  className={`${luxuryFont.className} min-h-screen bg-[var(--bg)] text-[var(--text)] selection:bg-[var(--accent)] selection:text-black`}
+>
       <section className="relative overflow-hidden border-b border-[var(--line)]">
         <div className="absolute inset-0">
           {heroImage ? (
@@ -380,28 +397,21 @@ export default function LuxuryTemplate({ menu }) {
         <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6">
           <header className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
+              <div className="relative h-15 w-15 shrink-0 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
                 {menu?.logo_url ? (
                   <Image
                     src={menu.logo_url}
                     alt={menuName}
                     fill
                     priority
-                    sizes="48px"
-                    className="object-cover"
+                    sizes="68px"
+                    className="object-cover pointer-events-none"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
                     <Star size={19} className="text-[var(--accent)]" />
                   </div>
                 )}
-              </div>
-
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black">{menuName}</p>
-                <p className="text-xs font-bold text-[var(--muted)]">
-                  Digital Menu
-                </p>
               </div>
             </div>
 
@@ -434,10 +444,6 @@ export default function LuxuryTemplate({ menu }) {
 
           <div className="grid gap-7 py-12 md:grid-cols-[minmax(0,1fr)_320px] md:items-end md:py-16">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-black/25 px-3 py-1.5 text-xs font-black text-[var(--accent)] backdrop-blur-xl">
-                <BadgeCheck size={14} />
-                Premium Template
-              </div>
 
               <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-[-0.06em] sm:text-6xl md:text-7xl">
                 {menuName}
@@ -449,60 +455,73 @@ export default function LuxuryTemplate({ menu }) {
                 </p>
               )}
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                <InfoPill icon={<Clock3 size={14} />}>
-                  {todayHours.day} · {todayHours.text}
-                </InfoPill>
+<div className="mt-5 flex flex-wrap gap-2">
+  <button
+    type="button"
+    onClick={() => setShowHours(true)}
+    className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-[var(--line)] bg-black/25 px-3 text-xs font-black text-[var(--muted)] backdrop-blur-xl transition hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black active:scale-[0.98]"
+  >
+    <Clock3 size={14} />
+    {todayHours.day} · {todayHours.text}
+  </button>
 
-                {menu?.location && (
-                  <InfoPill icon={<MapPin size={14} />}>
-                    {menu.location}
-                  </InfoPill>
-                )}
+  {menu?.location && (
+    <InfoPill icon={<MapPin size={14} />}>
+      {menu.location}
+    </InfoPill>
+  )}
 
-                <InfoPill icon={<Star size={14} />}>
-                  {allItems.length} أصناف
-                </InfoPill>
-              </div>
-            </div>
+</div>
+</div>
 
-            <div className="rounded-[1.7rem] border border-[var(--line)] bg-black/25 p-4 backdrop-blur-xl">
-              <p className="text-xs font-black text-[var(--accent)]">
-                روابط سريعة
-              </p>
 
-              {contactLinks.length > 0 ? (
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  {contactLinks.map((link) => (
-                    <a
-                      key={`${link.label}-${link.href}`}
-                      href={link.href}
-                      target={
-                        link.href?.startsWith("http") ? "_blank" : undefined
-                      }
-                      rel={
-                        link.href?.startsWith("http")
-                          ? "noopener noreferrer"
-                          : undefined
-                      }
-                      className="flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[var(--line)] bg-[var(--panel)] px-3 text-xs font-black transition hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black"
-                    >
-                      {link.icon}
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-sm font-bold text-[var(--muted)]">
-                  لا توجد روابط تواصل مضافة.
-                </p>
-              )}
-            </div>
+
+
+
+
+
+
+
+<div className="rounded-[1.4rem] border border-[var(--line)] bg-black/20 p-3 backdrop-blur-xl">
+  {contactLinks.length > 0 ? (
+    <div className="flex items-center justify-center gap-5">
+      {contactLinks.map((link) => (
+        <a
+          key={`${link.label}-${link.href}`}
+          href={link.href}
+          title={link.label}
+          aria-label={link.label}
+          target={link.href?.startsWith("http") ? "_blank" : undefined}
+          rel={
+            link.href?.startsWith("http")
+              ? "noopener noreferrer"
+              : undefined
+          }
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--panel)] text-lg text-[var(--text)] transition hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black active:scale-95"
+        >
+          {link.icon}
+        </a>
+      ))}
+    </div>
+  ) : (
+    <p className="text-center text-sm font-bold text-[var(--muted)]">
+      لا توجد روابط تواصل مضافة.
+    </p>
+  )}
+</div>
+
+
+
+
+
+
+
+
           </div>
         </div>
       </section>
 
-      <section className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(11,9,7,0.82)] backdrop-blur-2xl">
+      <section className="sticky top-0 z-40 border-b border-[var(--line)] bg-[rgba(11,9,7,0.50)] backdrop-blur-2xl">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
           <div className="grid gap-3 md:grid-cols-[300px_minmax(0,1fr)] md:items-center">
             <div className="relative">
@@ -531,12 +550,12 @@ export default function LuxuryTemplate({ menu }) {
               )}
             </div>
 
-            <nav className="flex gap-2 overflow-x-auto pb-1 md:justify-end">
+            <nav className="flex gap-2 overflow-x-auto mt-2 pb-1 md:justify-end">
               {sections.map((section) => (
                 <a
                   key={section.id}
                   href={`#${sectionId(section)}`}
-                  className="shrink-0 rounded-full border border-[var(--line)] bg-[var(--panel)] px-4 py-2 text-xs font-black text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--text)]"
+                  className="shrink-0 rounded-full border border-[var(--line)] bg-[var(--panel)] px-4 py-2 text-[15px] font-black text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--text)]"
                 >
                   {section.displayName}
                 </a>
@@ -588,6 +607,14 @@ export default function LuxuryTemplate({ menu }) {
         )}
       </section>
 
+{showHours && (
+  <WorkingHoursModal
+    workingHours={menu?.working_hours || {}}
+    languageCode={languageCode}
+    onClose={() => setShowHours(false)}
+  />
+)}
+
 <Footer />
     </main>
   );
@@ -612,14 +639,14 @@ function LuxuryItem({ item }) {
         unavailable ? "opacity-50 grayscale" : ""
       }`}
     >
-      <div className="grid grid-cols-[96px_minmax(0,1fr)] sm:grid-cols-[112px_minmax(0,1fr)]">
-        <div className="relative min-h-28 bg-black/20">
+      <div className="grid grid-cols-[120px_minmax(0,1fr)] sm:grid-cols-[112px_minmax(0,1fr)]">
+        <div className="relative min-h-30 bg-black/20">
           {item.image_url ? (
             <Image
               src={item.image_url}
               alt={item.displayName}
               fill
-              sizes="(max-width: 640px) 96px, 112px"
+              sizes="(max-width: 710px) 120px, 160px"
               className="object-cover transition duration-500 group-hover:scale-105"
             />
           ) : (
@@ -638,22 +665,24 @@ function LuxuryItem({ item }) {
         </div>
 
         <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
-          <div>
-            <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-start justify-between">
               <h3 className="min-w-0 text-base font-black leading-tight sm:text-lg">
                 {item.displayName}
               </h3>
-
-              <p className="shrink-0 rounded-full bg-[var(--accent)] px-2.5 py-1 text-xs font-black text-black">
-                {formatPrice(item.price)}
-              </p>
-            </div>
 
             {item.displayDescription && (
               <p className="mt-2 line-clamp-2 text-xs font-bold leading-5 text-[var(--muted)] sm:text-sm sm:leading-6">
                 {item.displayDescription}
               </p>
             )}
+
+            </div>
+
+<p className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[16px] font-black text-black">
+                {formatPrice(item.price)}
+              </p>
+            
           </div>
 
           <div className="mt-3 flex items-center justify-between">
@@ -669,5 +698,70 @@ function LuxuryItem({ item }) {
         </div>
       </div>
     </article>
+  );
+}
+
+
+function WorkingHoursModal({ workingHours, languageCode, onClose }) {
+  const labels = DAY_LABELS[languageCode] || DAY_LABELS.ar;
+
+  function formatHours(day) {
+    if (!day || day.enabled === false) {
+      return languageCode === "en" ? "Closed" : "مغلق";
+    }
+
+    return `${day.from || "--:--"} - ${day.to || "--:--"}`;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm sm:items-center">
+      <div className="w-full max-w-md overflow-hidden rounded-[1.7rem] border border-[var(--line)] bg-[var(--bg)] text-[var(--text)] shadow-2xl shadow-black/50">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] bg-[var(--panel)] p-4">
+          <div>
+            <p className="text-xs font-black text-[var(--accent)]">
+              ساعات العمل
+            </p>
+
+            <h2 className="mt-1 text-xl font-black">
+              أوقات الدوام
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[var(--line)] bg-black/20 text-[var(--muted)] transition hover:bg-[var(--accent)] hover:text-black active:scale-95"
+          >
+            <X size={17} />
+          </button>
+        </div>
+
+        <div className="grid gap-2 p-4">
+          {DAY_KEYS.map((dayKey) => {
+            const day = workingHours?.[dayKey];
+            const closed = !day || day.enabled === false;
+
+            return (
+              <div
+                key={dayKey}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--panel)] px-4 py-3"
+              >
+                <span className="text-sm font-black">
+                  {labels[dayKey]}
+                </span>
+
+                <span
+                  className={`text-sm font-black ${
+                    closed ? "text-red-200/80" : "text-[var(--accent)]"
+                  }`}
+                >
+                  {formatHours(day)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
