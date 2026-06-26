@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -37,6 +37,21 @@ function isValidSlug(value) {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 }
 
+const MENU_PUBLIC_BASE_URL =
+  process.env.NEXT_PUBLIC_MENU_URL || "https://m.crtgo.com";
+
+function buildPublicMenuUrl(slug) {
+  if (!slug) return "";
+
+  const cleanBase = MENU_PUBLIC_BASE_URL.replace(/\/+$/, "");
+
+  return `${cleanBase}/${slug}`;
+}
+
+function getDisplayPublicUrl(url) {
+  return String(url || "").replace(/^https?:\/\//, "");
+}
+
 function getInitialSettings(menu) {
   return {
     subdomain: menu.subdomain || "",
@@ -57,11 +72,6 @@ export default function SettingsForm({ menu }) {
   const [savingKey, setSavingKey] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
 
   const hasChanges = useMemo(() => {
     return (
@@ -70,14 +80,10 @@ export default function SettingsForm({ menu }) {
     );
   }, [settings, initialSettings]);
 
-  const cleanPreviewSlug = normalizeSlug(settings.subdomain);
-  const hasPublicLink = Boolean(cleanPreviewSlug);
-  const publicPath = hasPublicLink ? `m.crtgo.com/${cleanPreviewSlug}` : "";
-  const publicUrl = hasPublicLink
-    ? origin
-      ? `${origin}${publicPath}`
-      : publicPath
-    : "";
+const cleanPreviewSlug = normalizeSlug(settings.subdomain);
+const hasPublicLink = Boolean(cleanPreviewSlug);
+const publicUrl = hasPublicLink ? buildPublicMenuUrl(cleanPreviewSlug) : "";
+const publicPath = hasPublicLink ? getDisplayPublicUrl(publicUrl) : "";
 
   const sectionsCount = (menu.sections || []).length;
   const isArchived = settings.status === "archived";
@@ -450,8 +456,8 @@ export default function SettingsForm({ menu }) {
               <div className="mt-3 grid gap-2">
                 {hasPublicLink ? (
                   <Link
-                    href={publicPath}
-                    target="_blank"
+  href={publicUrl}
+  target="_blank"
                     className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1b1712] px-4 py-2.5 text-sm font-black text-[#efe7da] transition hover:bg-[#332a22] active:scale-[0.98]"
                   >
                     <ExternalLink size={16} />

@@ -206,18 +206,6 @@ function ToolsSheet({ profile, open, onClose }) {
           title: "الحساب",
           items: [
             {
-              href: "/admin/billing",
-              label: "الفوترة",
-              description: "المدفوعات والاشتراك",
-              icon: CreditCard,
-            },
-            {
-              href: "/admin/upgrade",
-              label: "الخطط",
-              description: "ترقية خطة CRTGO",
-              icon: Crown,
-            },
-            {
               href: "/admin/account",
               label: "إعدادات الحساب",
               description: "الاسم وكلمة المرور",
@@ -250,29 +238,11 @@ function ToolsSheet({ profile, open, onClose }) {
             description: "إضافة قائمة جديدة",
             icon: Plus,
           },
-          {
-            href: "/admin/domains",
-            label: "الدومينات",
-            description: "روابط القوائم والدومينات",
-            icon: Globe,
-          },
         ],
       },
       {
         title: "الحساب والاشتراك",
         items: [
-          {
-            href: "/admin/upgrade",
-            label: "الخطط",
-            description: "ترقية أو تغيير الخطة",
-            icon: Crown,
-          },
-          {
-            href: "/admin/billing",
-            label: "الفوترة",
-            description: "المدفوعات والاشتراك",
-            icon: CreditCard,
-          },
           {
             href: "/admin/account",
             label: "إعدادات الحساب",
