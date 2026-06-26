@@ -1,31 +1,44 @@
 import { notFound } from "next/navigation";
 import { CircleAlert } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import ClassicTemplate from "@/components/templates/ClassicTemplate";
 import LuxuryTemplate from "@/components/templates/LuxuryTemplate";
 import { getPublicMenu } from "@/lib/public-menu";
+
+export const dynamic = "force-dynamic";
 
 function hasAccess(profile) {
   if (!profile) return false;
 
   const plan = String(profile.plan || "free").toLowerCase();
 
+  const paypalStatus = String(
+    profile.paypal_subscription_status || ""
+  ).toUpperCase();
+
   const subscriptionStatus = String(
-    profile.paypal_subscription_status ||
-      profile.subscription_status ||
-      ""
+    profile.subscription_status || ""
   ).toUpperCase();
 
   const trialActive =
     profile.trial_ends_at &&
-    new Date(profile.trial_ends_at) > new Date();
+    new Date(profile.trial_ends_at).getTime() > Date.now();
 
   const proActive =
     plan === "pro" &&
-    ["ACTIVE", "APPROVED"].includes(subscriptionStatus);
+    (paypalStatus === "ACTIVE" ||
+      subscriptionStatus === "ACTIVE" ||
+      paypalStatus === "APPROVED" ||
+      subscriptionStatus === "APPROVED");
 
   return proActive || trialActive;
+}
+
+function isMenuActive(menu) {
+  const status = String(menu?.status || "active").toLowerCase();
+
+  return status === "active";
 }
 
 function renderTemplate(menu) {
@@ -43,12 +56,14 @@ export async function generateMetadata({ params }) {
 
   const menu = await getPublicMenu(handle);
 
-  if (!menu) {
+  if (!menu || !isMenuActive(menu)) {
     return {
       title: "Menu unavailable",
       description: "This digital menu is unavailable.",
     };
   }
+
+  const image = menu.cover_url || menu.logo_url || null;
 
   return {
     title: menu.name || "Menu",
@@ -56,7 +71,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: menu.name || "Menu",
       description: menu.description_ar || "Digital menu powered by CRTGO.",
-      images: menu.cover_url || menu.logo_url ? [menu.cover_url || menu.logo_url] : [],
+      images: image ? [image] : [],
     },
   };
 }
@@ -84,21 +99,31 @@ export default async function PublicMenuPage({ params }) {
 
   if (!menu) notFound();
 
-  if (menu.status && menu.status !== "active") {
+  if (!isMenuActive(menu)) {
     return <MenuUnavailable />;
   }
 
-  const supabase = await createClient();
-
-  const { data: owner } = await supabase
+  const { data: owner, error: ownerError } = await supabaseAdmin
     .from("profiles")
     .select(
       "id, plan, trial_ends_at, subscription_status, paypal_subscription_status"
     )
     .eq("id", menu.owner_id)
-    .single();
+    .maybeSingle();
+
+  if (ownerError) {
+    console.error("Public menu owner check failed:", ownerError);
+    return <MenuUnavailable />;
+  }
 
   if (!hasAccess(owner)) {
+    console.log("Public menu blocked:", {
+      handle,
+      menuId: menu.id,
+      ownerId: menu.owner_id,
+      owner,
+    });
+
     return <MenuUnavailable />;
   }
 
