@@ -1,9 +1,19 @@
+import WSLandingClient from "./ws-landing-client";
 
-export default function Home() {
-  return <>
-  <div className="flex min-h-screen flex-col items-center justify-center gap-6">
-    <h1 className="text-4xl font-bold">مرحبًا بك في CRTGO</h1>
-    <p className="text-lg text-gray-600">منصة إنشاء القوائم الرقمية للمطاعم والمقاهي</p>
-  </div>
-  </>
+export const metadata = {
+  title: "CRTGO Web Services",
+  description:
+    "Premium web services, digital menus, websites, and business web systems by CRTGO.",
+  openGraph: {
+    title: "CRTGO Web Services",
+    description:
+      "Premium web services, digital menus, websites, and business web systems by CRTGO.",
+    url: "https://ws.crtgo.com",
+    siteName: "CRTGO Web Services",
+    type: "website",
+  },
+};
+
+export default function Page() {
+  return <WSLandingClient />;
 }
