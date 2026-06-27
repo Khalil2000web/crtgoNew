@@ -25,8 +25,6 @@ import {
   Zap,
 } from "lucide-react";
 
-import Footer from "@/components/Footer";
-
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -556,7 +554,6 @@ export default function WSLandingClient() {
           </div>
         </section>
 
-        <Footer />
       </div>
     </main>
   );
