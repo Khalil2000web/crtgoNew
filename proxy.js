@@ -1,111 +1,59 @@
 import { NextResponse } from "next/server";
 
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "crtgo.com";
-const WS_DOMAIN = process.env.NEXT_PUBLIC_WS_DOMAIN || `ws.${ROOT_DOMAIN}`;
-const MENU_DOMAIN = process.env.NEXT_PUBLIC_MENU_DOMAIN || `menu.${ROOT_DOMAIN}`;
+const MENU_HOSTS = new Set([
+  "menu.crtgo.com",
+  "www.menu.crtgo.com",
+]);
 
-function cleanHost(host) {
-  return String(host || "")
-    .toLowerCase()
-    .replace(/^www\./, "")
-    .split(":")[0];
-}
+export function proxy(request) {
+  const url = request.nextUrl;
+  const host = request.headers.get("host") || "";
 
-function isFileOrSystemPath(pathname) {
-  return (
+  const pathname = url.pathname;
+
+  const isAsset =
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/favicon") ||
-    pathname.startsWith("/robots.txt") ||
-    pathname.startsWith("/sitemap.xml") ||
-    pathname.includes(".")
-  );
-}
+    pathname.startsWith("/robots") ||
+    pathname.startsWith("/sitemap") ||
+    pathname.includes(".");
 
-function redirectToWs(request, pathname = "/menus") {
-  const url = request.nextUrl.clone();
-  url.protocol = "https:";
-  url.host = WS_DOMAIN;
-  url.pathname = pathname;
-  return NextResponse.redirect(url);
-}
-
-export function proxy(request) {
-  const url = request.nextUrl.clone();
-  const host = cleanHost(request.headers.get("host"));
-  const pathname = url.pathname;
-
-  if (isFileOrSystemPath(pathname)) {
+  if (isAsset) {
     return NextResponse.next();
   }
 
-  /*
-    m.crtgo.com
-    Public menu domain.
+  const isMenuHost = MENU_HOSTS.has(host);
 
-    m.crtgo.com/restaurant-name
-    secretly renders:
-    /m/restaurant-name
-  */
-  if (host === MENU_DOMAIN) {
-    const parts = pathname.split("/").filter(Boolean);
+  if (!isMenuHost) {
+    return NextResponse.next();
+  }
 
-    if (parts.length === 0) {
-      return redirectToWs(request, "/menus");
-    }
+  if (pathname.startsWith("/m/")) {
+    return NextResponse.next();
+  }
 
-    const firstPart = parts[0];
+  const parts = pathname.split("/").filter(Boolean);
 
-    const blockedMenuDomainPaths = [
-      "admin",
-      "start",
-      "account",
-      "billing",
-      "checkout",
-      "upgrade",
-      "settings",
-      "menus",
-      "login",
-      "signup",
-    ];
+  if (parts.length === 2) {
+    const [businessSlug, branchSlug] = parts;
 
-    if (blockedMenuDomainPaths.includes(firstPart)) {
-      return redirectToWs(request, pathname);
-    }
-
-    if (firstPart === "m") {
-      return NextResponse.next();
-    }
-
-    url.pathname = `/m/${firstPart}`;
+    url.pathname = `/m/${businessSlug}/${branchSlug}`;
 
     return NextResponse.rewrite(url);
   }
 
-  /*
-    crtgo.com
-    Parent brand domain.
+  if (pathname === "/") {
+    url.pathname = "/m";
 
-    For now, send it to Web Services.
-    Later you can build a real parent-brand homepage here.
-  */
-  if (host === ROOT_DOMAIN) {
-    url.protocol = "https:";
-    url.host = WS_DOMAIN;
-    return NextResponse.redirect(url);
+    return NextResponse.rewrite(url);
   }
 
-  /*
-    ws.crtgo.com
-    Main Web Services app:
-    /start
-    /admin
-    /admin/account
-    /menus
-  */
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+  ],
 };

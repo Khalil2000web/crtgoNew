@@ -1,5 +1,3 @@
-import WSLandingClient from "./ws-landing-client";
-
 export const metadata = {
   title: "CRTGO Web Services",
   description:
@@ -15,5 +13,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <WSLandingClient />;
+  return null;
 }
