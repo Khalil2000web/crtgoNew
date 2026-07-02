@@ -1,19 +1,15 @@
+import { fontVariables } from "./fonts";
 import "./globals.css";
 
 export const metadata = {
-  title: {
-    default: "CRTGO",
-    template: "%s | CRTGO",
-  },
-  description: "DIGITAL MENUS SERVICES",
+  title: "CRTGO Menu",
+  description: "Digital menus powered by CRTGO.",
 };
 
 export default function RootLayout({ children }) {
   return (
-<html>
-<body>
-{children}
-</body>
-</html>
+    <html lang="ar">
+      <body className={fontVariables}>{children}</body>
+    </html>
   );
 }

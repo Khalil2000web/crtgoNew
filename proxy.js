@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 
-const MENU_HOSTS = new Set([
-  "menu.crtgo.com",
-  "www.menu.crtgo.com",
-]);
+const MENU_HOSTS = new Set(["menu.crtgo.com", "www.menu.crtgo.com"]);
 
 export function proxy(request) {
   const url = request.nextUrl;
   const host = request.headers.get("host") || "";
-
   const pathname = url.pathname;
 
   const isAsset =
@@ -19,33 +15,23 @@ export function proxy(request) {
     pathname.startsWith("/sitemap") ||
     pathname.includes(".");
 
-  if (isAsset) {
-    return NextResponse.next();
-  }
+  if (isAsset) return NextResponse.next();
 
   const isMenuHost = MENU_HOSTS.has(host);
 
-  if (!isMenuHost) {
-    return NextResponse.next();
-  }
+  if (!isMenuHost) return NextResponse.next();
 
-  if (pathname.startsWith("/m/")) {
-    return NextResponse.next();
+  if (pathname.startsWith("/m/")) return NextResponse.next();
+
+  if (pathname === "/") {
+    url.pathname = "/m";
+    return NextResponse.rewrite(url);
   }
 
   const parts = pathname.split("/").filter(Boolean);
 
-  if (parts.length === 2) {
-    const [businessSlug, branchSlug] = parts;
-
-    url.pathname = `/m/${businessSlug}/${branchSlug}`;
-
-    return NextResponse.rewrite(url);
-  }
-
-  if (pathname === "/") {
-    url.pathname = "/m";
-
+  if (parts.length >= 1 && parts.length <= 3) {
+    url.pathname = `/m/${parts.join("/")}`;
     return NextResponse.rewrite(url);
   }
 
