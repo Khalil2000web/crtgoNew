@@ -9,7 +9,7 @@ import {
 } from "../_lib/publicMenuData";
 import { getMenuFont } from "../../fonts";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 180;
 
 function pickText(record, baseKey, i18nKey, language = "ar") {
   return record?.[i18nKey]?.[language] || record?.[baseKey] || "";
@@ -143,6 +143,7 @@ export default async function BusinessLandingPage({ params }) {
 
             return (
               <Link
+              prefetch={true}
                 key={branch.id}
                 href={getBranchHref(business.slug, branch.slug)}
                 className="group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"

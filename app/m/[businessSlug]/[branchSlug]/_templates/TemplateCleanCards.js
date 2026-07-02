@@ -607,6 +607,7 @@ function SectionView({
       <header className="px-4 pb-3 pt-4">
         <section className="mx-auto max-w-4xl">
           <Link
+          prefetch={true}
             href={getBranchHref(business.slug, branch.slug)}
             className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-black shadow-sm"
           >
@@ -700,6 +701,7 @@ function SectionCard({
 
   return (
     <Link
+    prefetch={true}
       href={getSectionHref(business.slug, branch.slug, section.slug)}
       className="crtgo-rise group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
       style={{
@@ -831,6 +833,7 @@ function BottomNav({
         }}
       >
         <Link
+        prefetch={true}
           href={getBranchHref(business.slug, branch.slug)}
           className="grid min-h-14 place-items-center rounded-2xl text-xs font-black text-black/55"
         >
@@ -1041,6 +1044,7 @@ function BranchPanel({ business, currentBranch, branches, language, accent }) {
 
         return (
           <Link
+          prefetch={true}
             key={branch.id}
             href={getBranchHref(business.slug, branch.slug)}
             className="flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-white px-4 text-sm font-black shadow-sm"

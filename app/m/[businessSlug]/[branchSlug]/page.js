@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import TemplateCleanCards from "./_templates/TemplateCleanCards";
 import { getBranchMenuPayload } from "../../_lib/publicMenuData";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 180;
 
 export async function generateMetadata({ params }) {
   const { businessSlug, branchSlug } = await params;
