@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 
 import TemplateCleanCards from "../_templates/TemplateCleanCards";
 import { getBranchMenuPayload } from "../../../_lib/publicMenuData";
+import PublicUnavailablePage from "../../../_components/PublicUnavailablePage";
 
-export const revalidate = 180;
+export const revalidate = 0;
 
 export async function generateMetadata({ params }) {
   const { businessSlug, branchSlug, sectionSlug } = await params;
@@ -15,9 +16,14 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const section = data.sections.find(
-    (item) => item.slug === sectionSlug
-  );
+  if (!data.billing?.isAvailable) {
+    return {
+      title: `${data.business.name} unavailable | CRTGO Menu`,
+      description: "This menu is currently unavailable.",
+    };
+  }
+
+  const section = data.sections.find((item) => item.slug === sectionSlug);
 
   if (!section) {
     return {
@@ -36,6 +42,15 @@ export default async function SectionMenuPage({ params }) {
   const data = await getBranchMenuPayload(businessSlug, branchSlug);
 
   if (!data) notFound();
+
+  if (!data.billing?.isAvailable) {
+    return (
+      <PublicUnavailablePage
+        business={data.business}
+        status={data.billing?.status}
+      />
+    );
+  }
 
   const selectedSection = data.sections.find(
     (item) => item.slug === sectionSlug

@@ -7,6 +7,7 @@ import {
   getBranchHref,
   getBusinessPayload,
 } from "../_lib/publicMenuData";
+import PublicUnavailablePage from "../_components/PublicUnavailablePage";
 import { getMenuFont } from "../../fonts";
 
 export const revalidate = 180;
@@ -23,7 +24,12 @@ function getBranchImage(branch) {
   const firstSection = menu?.sections?.[0];
   const firstItem = firstSection?.items?.find((item) => item.image_url);
 
-  return menu?.cover_url || menu?.logo_url || firstSection?.cover_url || firstItem?.image_url;
+  return (
+    menu?.cover_url ||
+    menu?.logo_url ||
+    firstSection?.cover_url ||
+    firstItem?.image_url
+  );
 }
 
 export async function generateMetadata({ params }) {
@@ -33,6 +39,13 @@ export async function generateMetadata({ params }) {
   if (!data) {
     return {
       title: "Business not found | CRTGO",
+    };
+  }
+
+  if (!data.billing?.isAvailable) {
+    return {
+      title: `${data.business.name} unavailable | CRTGO Menu`,
+      description: "This menu is currently unavailable.",
     };
   }
 
@@ -50,12 +63,20 @@ export default async function BusinessLandingPage({ params }) {
 
   if (!data) notFound();
 
-  const { business, branches } = data;
+  const { business, branches, billing } = data;
+
+  if (!billing?.isAvailable) {
+    return (
+      <PublicUnavailablePage
+        business={business}
+        status={billing?.status}
+      />
+    );
+  }
 
   if (!branches.length) notFound();
 
-  const mainBranch =
-    branches.find((branch) => branch.is_main) || branches[0];
+  const mainBranch = branches.find((branch) => branch.is_main) || branches[0];
 
   if (business.landing_mode === "redirect_main" || branches.length === 1) {
     redirect(getBranchHref(business.slug, mainBranch.slug));
@@ -143,7 +164,7 @@ export default async function BusinessLandingPage({ params }) {
 
             return (
               <Link
-              prefetch={true}
+                prefetch={true}
                 key={branch.id}
                 href={getBranchHref(business.slug, branch.slug)}
                 className="group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"

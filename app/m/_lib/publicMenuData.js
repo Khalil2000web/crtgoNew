@@ -1,5 +1,23 @@
 import { supabasePublic } from "@/lib/supabasePublic";
 
+const PUBLIC_BLOCKED_STATUSES = new Set([
+  "past_due",
+  "paused",
+  "canceled",
+]);
+
+const DEFAULT_PUBLIC_PLAN = {
+  id: "free",
+  name: "Free",
+  limits: {
+    max_branches: 1,
+    max_items: 20,
+    templates: ["classic"],
+    custom_cover: false,
+    section_pages: true,
+  },
+};
+
 export function getCleanLinksEnabled() {
   return process.env.NEXT_PUBLIC_MENU_CLEAN_LINKS === "true";
 }
@@ -39,6 +57,66 @@ export function cleanSections(menu) {
     .filter((section) => section.items.length > 0);
 }
 
+export function getPublicBillingState(subscription) {
+  const status = subscription?.status || "active";
+  const plan = subscription?.billing_plans || DEFAULT_PUBLIC_PLAN;
+  const limits = plan?.limits || DEFAULT_PUBLIC_PLAN.limits;
+
+  return {
+    subscription,
+    status,
+    plan,
+    limits,
+    isAvailable: !PUBLIC_BLOCKED_STATUSES.has(status),
+    unavailableReason: PUBLIC_BLOCKED_STATUSES.has(status) ? status : null,
+  };
+}
+
+export function getSafeTemplateId(menu, billing) {
+  const wantedTemplate = menu?.template_id || "classic";
+  const allowedTemplates = Array.isArray(billing?.limits?.templates)
+    ? billing.limits.templates
+    : ["classic"];
+
+  if (allowedTemplates.includes(wantedTemplate)) {
+    return wantedTemplate;
+  }
+
+  return "classic";
+}
+
+async function getBusinessBilling(businessId) {
+  if (!businessId) {
+    return getPublicBillingState(null);
+  }
+
+  const { data, error } = await supabasePublic
+    .from("business_subscriptions")
+    .select(`
+      business_id,
+      plan_id,
+      status,
+      current_period_end,
+      billing_plans (
+        id,
+        name,
+        monthly_price,
+        currency,
+        limits
+      )
+    `)
+    .eq("business_id", businessId)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+
+    return getPublicBillingState(null);
+  }
+
+  return getPublicBillingState(data || null);
+}
+
 export async function getBusinessPayload(businessSlug) {
   const { data, error } = await supabasePublic
     .from("businesses")
@@ -68,6 +146,7 @@ export async function getBusinessPayload(businessSlug) {
           logo_url,
           cover_url,
           primary_color,
+          template_id,
           sections (
             id,
             sort_order,
@@ -93,6 +172,8 @@ export async function getBusinessPayload(businessSlug) {
 
   if (!data) return null;
 
+  const billing = await getBusinessBilling(data.id);
+
   const branches = [...(data.branches || [])]
     .filter((branch) => branch.status === "active")
     .sort((a, b) => Number(b.is_main) - Number(a.is_main));
@@ -100,6 +181,7 @@ export async function getBusinessPayload(businessSlug) {
   return {
     business: data,
     branches,
+    billing,
   };
 }
 
@@ -180,12 +262,19 @@ export async function getBranchMenuPayload(businessSlug, branchSlug) {
 
   if (!data) return null;
 
+  const billing = await getBusinessBilling(data.business_id);
+
   const menu =
     data.menu_versions?.find((item) => item.status === "active") ||
     data.menu_versions?.[0] ||
     null;
 
   if (!menu) return null;
+
+  const safeMenu = {
+    ...menu,
+    template_id: getSafeTemplateId(menu, billing),
+  };
 
   const { data: allBranches, error: branchesError } = await supabasePublic
     .from("branches")
@@ -210,10 +299,11 @@ export async function getBranchMenuPayload(businessSlug, branchSlug) {
   return {
     business: data.businesses,
     branch: data,
-    menu,
-    sections: cleanSections(menu),
+    menu: safeMenu,
+    sections: cleanSections(safeMenu),
     branches: [...(allBranches || [])].sort(
       (a, b) => Number(b.is_main) - Number(a.is_main)
     ),
+    billing,
   };
 }
