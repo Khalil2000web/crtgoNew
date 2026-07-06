@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { AlertCircle, QrCode, Store } from "lucide-react";
 
 import { supabasePublic } from "@/lib/supabasePublic";
@@ -15,14 +15,41 @@ async function resolveQr(code) {
   });
 
   if (error) {
-    console.error(error);
-    return null;
+    console.error("QR resolver error:", error);
+
+    return {
+      qr: null,
+      reason: "resolver_error",
+      debug: error.message,
+    };
   }
 
-  return data?.[0] || null;
+  const qr = data?.[0] || null;
+
+  if (!qr) {
+    return {
+      qr: null,
+      reason: "qr_not_found",
+      debug: `No QR row returned for code: ${code}`,
+    };
+  }
+
+  return {
+    qr,
+    reason: null,
+    debug: null,
+  };
 }
 
 function getUnavailableText(reason) {
+  if (reason === "qr_not_found") {
+    return "This QR code does not exist or was not found in the database.";
+  }
+
+  if (reason === "resolver_error") {
+    return "The QR resolver could not load this QR code.";
+  }
+
   if (reason === "qr_disabled") {
     return "This QR code has been disabled by the menu owner.";
   }
@@ -61,9 +88,22 @@ export async function generateMetadata({ params }) {
 
 export default async function QrRedirectPage({ params }) {
   const { code } = await params;
-  const qr = await resolveQr(code);
+  const result = await resolveQr(code);
 
-  if (!qr) notFound();
+  if (!result.qr) {
+    return (
+      <QrUnavailablePage
+        qr={{
+          business_name: "QR not found",
+          business_logo_url: null,
+          unavailable_reason: result.reason,
+          debug: result.debug,
+        }}
+      />
+    );
+  }
+
+  const qr = result.qr;
 
   if (qr.is_available) {
     redirect(getBranchHref(qr.business_slug, qr.branch_slug));
@@ -115,6 +155,15 @@ function QrUnavailablePage({ qr }) {
         <p className="mx-auto mt-4 max-w-sm text-sm font-bold leading-7 text-black/55">
           {getUnavailableText(qr.unavailable_reason)}
         </p>
+
+        {qr.debug && (
+          <p
+            dir="ltr"
+            className="mt-4 break-words rounded-2xl bg-black/5 p-3 text-xs font-bold leading-5 text-black/45"
+          >
+            {qr.debug}
+          </p>
+        )}
 
         <p className="mt-8 text-xs font-black uppercase tracking-[0.18em] text-black/30">
           Powered by CRTGO
