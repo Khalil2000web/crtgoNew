@@ -4,7 +4,7 @@ const MENU_HOSTS = new Set(["menu.crtgo.com", "www.menu.crtgo.com"]);
 
 export function proxy(request) {
   const url = request.nextUrl;
-  const host = request.headers.get("host") || "";
+  const host = (request.headers.get("host") || "").split(":")[0];
   const pathname = url.pathname;
 
   const isAsset =
@@ -21,18 +21,28 @@ export function proxy(request) {
 
   if (!isMenuHost) return NextResponse.next();
 
-  if (pathname.startsWith("/m/")) return NextResponse.next();
+  // Real app routes that must NOT be rewritten into /m
+  if (
+    pathname.startsWith("/m/") ||
+    pathname === "/m" ||
+    pathname.startsWith("/q/") ||
+    pathname === "/q"
+  ) {
+    return NextResponse.next();
+  }
 
   if (pathname === "/") {
-    url.pathname = "/m";
-    return NextResponse.rewrite(url);
+    const rewriteUrl = url.clone();
+    rewriteUrl.pathname = "/m";
+    return NextResponse.rewrite(rewriteUrl);
   }
 
   const parts = pathname.split("/").filter(Boolean);
 
   if (parts.length >= 1 && parts.length <= 3) {
-    url.pathname = `/m/${parts.join("/")}`;
-    return NextResponse.rewrite(url);
+    const rewriteUrl = url.clone();
+    rewriteUrl.pathname = `/m/${parts.join("/")}`;
+    return NextResponse.rewrite(rewriteUrl);
   }
 
   return NextResponse.next();
