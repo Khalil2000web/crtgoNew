@@ -39,6 +39,10 @@ export const UI_TEXT = {
     poweredBy: "مدعوم بواسطة CRTGO",
     menu: "القائمة",
     address: "العنوان",
+    branches: "الفروع",
+    chooseBranch: "اختر الفرع",
+    openBranch: "افتح الفرع",
+    language: "اللغة",
     days: {
       sunday: "الأحد",
       monday: "الإثنين",
@@ -68,6 +72,10 @@ export const UI_TEXT = {
     poweredBy: "מופעל על ידי CRTGO",
     menu: "תפריט",
     address: "כתובת",
+    branches: "סניפים",
+    chooseBranch: "בחר סניף",
+    openBranch: "פתח סניף",
+    language: "שפה",
     days: {
       sunday: "ראשון",
       monday: "שני",
@@ -97,6 +105,10 @@ export const UI_TEXT = {
     poweredBy: "Powered by CRTGO",
     menu: "Menu",
     address: "Address",
+    branches: "Branches",
+    chooseBranch: "Choose branch",
+    openBranch: "Open branch",
+    language: "Language",
     days: {
       sunday: "Sunday",
       monday: "Monday",
@@ -129,20 +141,34 @@ const SHORT_DAY_KEYS = {
   saturday: "sat",
 };
 
+export function normalizeLanguageCode(value) {
+  const code = String(value || "").toLowerCase();
+
+  return LANGUAGE_META[code] ? code : "ar";
+}
+
 export function getUi(language, key) {
-  return UI_TEXT[language]?.[key] || UI_TEXT.ar[key] || key;
+  const cleanLanguage = normalizeLanguageCode(language);
+
+  return UI_TEXT[cleanLanguage]?.[key] || UI_TEXT.ar[key] || key;
 }
 
 export function getDayLabel(language, dayKey) {
+  const cleanLanguage = normalizeLanguageCode(language);
+
   return (
-    UI_TEXT[language]?.days?.[dayKey] ||
+    UI_TEXT[cleanLanguage]?.days?.[dayKey] ||
     UI_TEXT.ar.days[dayKey] ||
     dayKey
   );
 }
 
 export function isRtl(language) {
-  return LANGUAGE_META[language]?.dir === "rtl";
+  return LANGUAGE_META[normalizeLanguageCode(language)]?.dir === "rtl";
+}
+
+export function getTextDirection(language) {
+  return isRtl(language) ? "rtl" : "ltr";
 }
 
 export function normalizeEnabledLanguages(menu) {
@@ -150,19 +176,48 @@ export function normalizeEnabledLanguages(menu) {
     ? menu.enabled_languages
     : ["ar"];
 
-  const cleaned = enabled.filter((code) => LANGUAGE_META[code]);
+  const cleaned = enabled
+    .map(normalizeLanguageCode)
+    .filter((code) => LANGUAGE_META[code]);
 
-  return cleaned.length ? cleaned : ["ar"];
+  const unique = [...new Set(cleaned)];
+
+  return unique.length ? unique : ["ar"];
 }
 
 export function getDefaultLanguage(menu, enabledLanguages) {
   const fallback = enabledLanguages?.[0] || "ar";
 
-  if (menu?.default_language && enabledLanguages.includes(menu.default_language)) {
+  if (
+    menu?.default_language &&
+    enabledLanguages.includes(menu.default_language)
+  ) {
     return menu.default_language;
   }
 
   return fallback;
+}
+
+export function getRequestedLanguage(searchParams, enabledLanguages) {
+  const requested = normalizeLanguageCode(
+    searchParams?.lang || searchParams?.language
+  );
+
+  if (enabledLanguages?.includes(requested)) {
+    return requested;
+  }
+
+  return enabledLanguages?.[0] || "ar";
+}
+
+export function withLanguageParam(href, language) {
+  const cleanLanguage = normalizeLanguageCode(language);
+
+  if (!href || cleanLanguage === "ar") return href;
+
+  const separator = href.includes("?") ? "&" : "?";
+
+  return `${href}${separator}lang=${cleanLanguage}`;
 }
 
 export function getTheme(menu) {
@@ -174,7 +229,9 @@ export function getTheme(menu) {
 }
 
 export function pickText(record, baseKey, i18nKey, language) {
-  const translated = record?.[i18nKey]?.[language];
+  const cleanLanguage = normalizeLanguageCode(language);
+
+  const translated = record?.[i18nKey]?.[cleanLanguage];
 
   if (typeof translated === "string" && translated.trim()) {
     return translated.trim();

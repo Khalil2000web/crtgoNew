@@ -28,6 +28,7 @@ import {
   getSectionHref,
 } from "@/app/m/_lib/publicMenuData";
 import { getMenuFont } from "@/app/fonts";
+import { withLanguageParam } from "../_components/menuUtils";
 
 const LANGUAGE_META = {
   ar: {
@@ -76,10 +77,11 @@ const UI = {
     poweredBy: "مدعوم بواسطة CRTGO",
     currentBranch: "الفرع الحالي",
     itemDetails: "تفاصيل الصنف",
+    items: "أصناف",
     days: {
       sunday: "الأحد",
       monday: "الإثنين",
-      tuesday: "الإثنين",
+      tuesday: "الثلاثاء",
       wednesday: "الأربعاء",
       thursday: "الخميس",
       friday: "الجمعة",
@@ -111,6 +113,7 @@ const UI = {
     poweredBy: "מופעל על ידי CRTGO",
     currentBranch: "הסניף הנוכחי",
     itemDetails: "פרטי פריט",
+    items: "פריטים",
     days: {
       sunday: "ראשון",
       monday: "שני",
@@ -146,6 +149,7 @@ const UI = {
     poweredBy: "Powered by CRTGO",
     currentBranch: "Current branch",
     itemDetails: "Item details",
+    items: "items",
     days: {
       sunday: "Sunday",
       monday: "Monday",
@@ -183,16 +187,18 @@ export default function TemplateCleanCards({
   business,
   branch,
   menu,
-  sections,
+  sections = [],
   branches = [],
   selectedSection = null,
+  language = "ar",
+  setLanguage,
+  enabledLanguages = ["ar"],
+  theme,
 }) {
-  const accent = menu.primary_color || "#ff7a00";
+  const accent = theme?.primary || menu.primary_color || "#ff7a00";
+  const activeLanguage = LANGUAGE_META[language] ? language : "ar";
+  const dir = LANGUAGE_META[activeLanguage]?.dir || "rtl";
 
-  const enabledLanguages = normalizeEnabledLanguages(menu);
-  const defaultLanguage = getDefaultLanguage(menu, enabledLanguages);
-
-  const [language, setLanguage] = useState(defaultLanguage);
   const [mounted, setMounted] = useState(false);
   const [sheet, setSheet] = useState(null);
   const [query, setQuery] = useState("");
@@ -200,33 +206,37 @@ export default function TemplateCleanCards({
 
   useEffect(() => {
     setMounted(true);
-
-    const saved = localStorage.getItem(`crtgo-language-${menu.id}`);
-
-    if (saved && enabledLanguages.includes(saved)) {
-      setLanguage(saved);
-    }
-  }, [menu.id]);
+  }, []);
 
   function changeLanguage(nextLanguage) {
-    setLanguage(nextLanguage);
-    localStorage.setItem(`crtgo-language-${menu.id}`, nextLanguage);
+    if (!LANGUAGE_META[nextLanguage]) return;
+    if (!enabledLanguages.includes(nextLanguage)) return;
+
+    setLanguage?.(nextLanguage);
   }
 
-  const dir = LANGUAGE_META[language]?.dir || "rtl";
-
-  const businessName = pickText(business, "name", "name_i18n", language);
-  const branchName = pickText(branch, "name", "name_i18n", language);
-  const branchAddress = pickText(branch, "address", "address_i18n", language);
+  const businessName = pickText(
+    business,
+    "name",
+    "name_i18n",
+    activeLanguage
+  );
+  const branchName = pickText(branch, "name", "name_i18n", activeLanguage);
+  const branchAddress = pickText(
+    branch,
+    "address",
+    "address_i18n",
+    activeLanguage
+  );
 
   const logo = menu.logo_url || business.logo_url;
   const cover = menu.cover_url || getSectionImage(sections?.[0]);
 
   const today = mounted
-    ? getTodayWorkingHours(branch.working_hours, language)
+    ? getTodayWorkingHours(branch.working_hours, activeLanguage)
     : null;
 
-  const socialLinks = buildSocialLinks(branch, language);
+  const socialLinks = buildSocialLinks(branch, activeLanguage);
 
   const activeBranches = useMemo(() => {
     return [...(branches || [])]
@@ -240,13 +250,23 @@ export default function TemplateCleanCards({
     if (!q) return sections;
 
     return sections.filter((section) => {
-      const sectionName = pickText(section, "name_ar", "name_i18n", language);
+      const sectionName = pickText(
+        section,
+        "name_ar",
+        "name_i18n",
+        activeLanguage
+      );
 
       const itemText = (section.items || [])
         .map((item) =>
           [
-            pickText(item, "name_ar", "name_i18n", language),
-            pickText(item, "description_ar", "description_i18n", language),
+            pickText(item, "name_ar", "name_i18n", activeLanguage),
+            pickText(
+              item,
+              "description_ar",
+              "description_i18n",
+              activeLanguage
+            ),
           ]
             .filter(Boolean)
             .join(" ")
@@ -255,7 +275,7 @@ export default function TemplateCleanCards({
 
       return `${sectionName} ${itemText}`.toLowerCase().includes(q);
     });
-  }, [sections, query, language]);
+  }, [sections, query, activeLanguage]);
 
   const visibleItems = useMemo(() => {
     const baseItems = selectedSection?.items || [];
@@ -264,19 +284,17 @@ export default function TemplateCleanCards({
     if (!q) return baseItems;
 
     return baseItems.filter((item) => {
-      const name = pickText(item, "name_ar", "name_i18n", language);
+      const name = pickText(item, "name_ar", "name_i18n", activeLanguage);
       const description = pickText(
         item,
         "description_ar",
         "description_i18n",
-        language
+        activeLanguage
       );
 
-      return `${name} ${description} ${item.price}`
-        .toLowerCase()
-        .includes(q);
+      return `${name} ${description} ${item.price}`.toLowerCase().includes(q);
     });
-  }, [selectedSection, query, language]);
+  }, [selectedSection, query, activeLanguage]);
 
   return (
     <main
@@ -297,7 +315,7 @@ export default function TemplateCleanCards({
           cover={cover}
           today={today}
           accent={accent}
-          language={language}
+          language={activeLanguage}
           enabledLanguages={enabledLanguages}
           changeLanguage={changeLanguage}
           sections={sections}
@@ -309,7 +327,7 @@ export default function TemplateCleanCards({
           section={selectedSection}
           items={visibleItems}
           accent={accent}
-          language={language}
+          language={activeLanguage}
           query={query}
           setQuery={setQuery}
           openItem={(item) => setSelectedItem(item)}
@@ -318,7 +336,7 @@ export default function TemplateCleanCards({
 
       <BottomNav
         mode={mode}
-        language={language}
+        language={activeLanguage}
         accent={accent}
         business={business}
         branch={branch}
@@ -331,7 +349,7 @@ export default function TemplateCleanCards({
 
       <BottomSheet
         open={sheet === "search"}
-        title={t(language, "search")}
+        title={t(activeLanguage, "search")}
         onClose={() => setSheet(null)}
       >
         <SearchPanel
@@ -341,7 +359,7 @@ export default function TemplateCleanCards({
           sections={filteredSections}
           items={visibleItems}
           selectedSection={selectedSection}
-          language={language}
+          language={activeLanguage}
           query={query}
           setQuery={setQuery}
           accent={accent}
@@ -354,51 +372,51 @@ export default function TemplateCleanCards({
 
       <BottomSheet
         open={sheet === "hours"}
-        title={t(language, "workingHours")}
+        title={t(activeLanguage, "workingHours")}
         onClose={() => setSheet(null)}
       >
         <WorkingHoursPanel
           workingHours={branch.working_hours}
-          language={language}
+          language={activeLanguage}
           accent={accent}
         />
       </BottomSheet>
 
       <BottomSheet
         open={sheet === "branches"}
-        title={t(language, "branches")}
+        title={t(activeLanguage, "branches")}
         onClose={() => setSheet(null)}
       >
         <BranchPanel
           business={business}
           currentBranch={branch}
           branches={activeBranches}
-          language={language}
+          language={activeLanguage}
           accent={accent}
         />
       </BottomSheet>
 
       <BottomSheet
         open={sheet === "contact"}
-        title={t(language, "contact")}
+        title={t(activeLanguage, "contact")}
         onClose={() => setSheet(null)}
       >
         <ContactPanel
           socialLinks={socialLinks}
           branchAddress={branchAddress}
-          language={language}
+          language={activeLanguage}
         />
       </BottomSheet>
 
       <BottomSheet
         open={Boolean(selectedItem)}
-        title={t(language, "itemDetails")}
+        title={t(activeLanguage, "itemDetails")}
         onClose={() => setSelectedItem(null)}
       >
         {selectedItem && (
           <ItemDetails
             item={selectedItem}
-            language={language}
+            language={activeLanguage}
             accent={accent}
           />
         )}
@@ -571,7 +589,7 @@ function HomeView({
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          {sections.map((section, index) => (
+          {(sections || []).map((section, index) => (
             <SectionCard
               key={section.id}
               section={section}
@@ -607,8 +625,11 @@ function SectionView({
       <header className="px-4 pb-3 pt-4">
         <section className="mx-auto max-w-4xl">
           <Link
-          prefetch={true}
-            href={getBranchHref(business.slug, branch.slug)}
+            prefetch={true}
+            href={withLanguageParam(
+              getBranchHref(business.slug, branch.slug),
+              language
+            )}
             className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-black shadow-sm"
           >
             <ArrowLeft size={16} />
@@ -647,7 +668,7 @@ function SectionView({
                 </h1>
 
                 <p className="mt-2 text-sm font-bold text-white/55">
-                  {items.length} items
+                  {items.length} {t(language, "items")}
                 </p>
               </div>
             </div>
@@ -688,21 +709,17 @@ function SectionView({
   );
 }
 
-function SectionCard({
-  section,
-  business,
-  branch,
-  language,
-  accent,
-  index,
-}) {
+function SectionCard({ section, business, branch, language, accent, index }) {
   const name = pickText(section, "name_ar", "name_i18n", language);
   const image = getSectionImage(section);
 
   return (
     <Link
-    prefetch={true}
-      href={getSectionHref(business.slug, branch.slug, section.slug)}
+      prefetch={true}
+      href={withLanguageParam(
+        getSectionHref(business.slug, branch.slug, section.slug),
+        language
+      )}
       className="crtgo-rise group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
       style={{
         animationDelay: `${index * 55}ms`,
@@ -731,7 +748,7 @@ function SectionCard({
           </h3>
 
           <p className="mt-1 text-sm font-bold text-black/40">
-            {(section.items || []).length} items
+            {(section.items || []).length} {t(language, "items")}
           </p>
         </div>
 
@@ -833,12 +850,15 @@ function BottomNav({
         }}
       >
         <Link
-        prefetch={true}
-          href={getBranchHref(business.slug, branch.slug)}
+          prefetch={true}
+          href={withLanguageParam(
+            getBranchHref(business.slug, branch.slug),
+            language
+          )}
           className="grid min-h-14 place-items-center rounded-2xl text-xs font-black text-black/55"
         >
           <Menu size={19} />
-          {mode === "section" ? t(language, "menu") : t(language, "menu")}
+          {t(language, "menu")}
         </Link>
 
         <button
@@ -894,9 +914,7 @@ function BottomSheet({ open, title, onClose, children }) {
     <div className="fixed inset-0 z-[999] flex items-end bg-black/45 p-3">
       <div className="crtgo-sheet max-h-[86vh] w-full overflow-hidden rounded-[30px] bg-[#f7f4ef] text-black shadow-2xl">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-black/10 bg-[#f7f4ef]/90 p-4 backdrop-blur-xl">
-          <h2 className="text-2xl font-black tracking-[-0.05em]">
-            {title}
-          </h2>
+          <h2 className="text-2xl font-black tracking-[-0.05em]">{title}</h2>
 
           <button
             type="button"
@@ -921,7 +939,6 @@ function SearchPanel({
   branch,
   sections,
   items,
-  selectedSection,
   language,
   query,
   setQuery,
@@ -1011,7 +1028,9 @@ function WorkingHoursPanel({ workingHours, language, accent }) {
               color: today.isOpenNow ? "#000" : "#fff",
             }}
           >
-            {today.isOpenNow ? t(language, "openNow") : t(language, "closedNow")}
+            {today.isOpenNow
+              ? t(language, "openNow")
+              : t(language, "closedNow")}
           </span>
         </div>
       </div>
@@ -1044,9 +1063,12 @@ function BranchPanel({ business, currentBranch, branches, language, accent }) {
 
         return (
           <Link
-          prefetch={true}
+            prefetch={true}
             key={branch.id}
-            href={getBranchHref(business.slug, branch.slug)}
+            href={withLanguageParam(
+              getBranchHref(business.slug, branch.slug),
+              language
+            )}
             className="flex min-h-14 items-center justify-between gap-4 rounded-2xl bg-white px-4 text-sm font-black shadow-sm"
             style={{
               color: active ? accent : "#000",
@@ -1131,9 +1153,7 @@ function ItemDetails({ item, language, accent }) {
 
       <div className="mt-4 rounded-[24px] bg-white p-4 shadow-sm">
         <div className="flex items-start justify-between gap-4">
-          <h3 className="text-3xl font-black tracking-[-0.06em]">
-            {name}
-          </h3>
+          <h3 className="text-3xl font-black tracking-[-0.06em]">{name}</h3>
 
           <p
             className="shrink-0 rounded-full px-3 py-1 text-sm font-black"
@@ -1207,24 +1227,6 @@ function EmptyState({ language }) {
       </p>
     </div>
   );
-}
-
-function normalizeEnabledLanguages(menu) {
-  const enabled = Array.isArray(menu.enabled_languages)
-    ? menu.enabled_languages
-    : ["ar"];
-
-  const filtered = enabled.filter((code) => LANGUAGE_META[code]);
-
-  return filtered.length ? filtered : ["ar"];
-}
-
-function getDefaultLanguage(menu, enabledLanguages) {
-  if (menu.default_language && enabledLanguages.includes(menu.default_language)) {
-    return menu.default_language;
-  }
-
-  return enabledLanguages[0] || "ar";
 }
 
 function t(language, key) {

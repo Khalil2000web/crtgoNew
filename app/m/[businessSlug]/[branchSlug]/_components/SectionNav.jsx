@@ -1,10 +1,12 @@
-import { pickText, scrollToSection } from "./menuUtils";
+import { getTextDirection, pickText, scrollToSection } from "./menuUtils";
 
 export default function SectionNav({ sections, language, theme }) {
   if (!sections?.length) return null;
 
+  const dir = getTextDirection(language);
+
   return (
-    <nav className="flex gap-2 overflow-x-auto pb-1">
+    <nav className="flex gap-2 overflow-x-auto pb-1" dir={dir}>
       {sections.map((section) => (
         <button
           key={section.id}
@@ -14,7 +16,7 @@ export default function SectionNav({ sections, language, theme }) {
           style={{
             "--hover-color": theme.primary,
           }}
-          dir="rtl"
+          dir={dir}
         >
           {pickText(section, "name_ar", "name_i18n", language)}
         </button>

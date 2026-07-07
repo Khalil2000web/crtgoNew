@@ -1,13 +1,42 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import TemplateCleanCards from "../_templates/TemplateCleanCards";
-import { getBranchMenuPayload } from "../../../_lib/publicMenuData";
+import SectionCleanCardsClient from "./SectionCleanCardsClient";
+import {
+  getBranchHref,
+  getBranchMenuPayload,
+} from "../../../_lib/publicMenuData";
 import PublicUnavailablePage from "../../../_components/PublicUnavailablePage";
+import {
+  getDefaultLanguage,
+  getRequestedLanguage,
+  normalizeEnabledLanguages,
+  pickText,
+  withLanguageParam,
+} from "../_components/menuUtils";
 
-export const revalidate = 0;
+export const revalidate = 180;
 
-export async function generateMetadata({ params }) {
+function isCleanCardsTemplate(templateId) {
+  const value = String(templateId || "").toLowerCase();
+
+  return [
+    "clean",
+    "clean_cards",
+    "clean-cards",
+    "template_clean_cards",
+  ].includes(value);
+}
+
+function resolveLanguage(menu, searchParams) {
+  const enabledLanguages = normalizeEnabledLanguages(menu);
+  const defaultLanguage = getDefaultLanguage(menu, enabledLanguages);
+
+  return getRequestedLanguage(searchParams, enabledLanguages) || defaultLanguage;
+}
+
+export async function generateMetadata({ params, searchParams }) {
   const { businessSlug, branchSlug, sectionSlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = await getBranchMenuPayload(businessSlug, branchSlug);
 
   if (!data) {
@@ -16,9 +45,18 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const language = resolveLanguage(data.menu, resolvedSearchParams);
+
+  const businessName = pickText(
+    data.business,
+    "name",
+    "name_i18n",
+    language
+  );
+
   if (!data.billing?.isAvailable) {
     return {
-      title: `${data.business.name} unavailable | CRTGO Menu`,
+      title: `${businessName || data.business.name} unavailable | CRTGO Menu`,
       description: "This menu is currently unavailable.",
     };
   }
@@ -31,14 +69,21 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const sectionName = pickText(section, "name_ar", "name_i18n", language);
+
   return {
-    title: `${section.name_ar} - ${data.business.name} | CRTGO Menu`,
-    description: `View ${section.name_ar} from ${data.business.name}.`,
+    title: `${sectionName || section.name_ar} - ${
+      businessName || data.business.name
+    } | CRTGO Menu`,
+    description: `View ${sectionName || section.name_ar} from ${
+      businessName || data.business.name
+    }.`,
   };
 }
 
-export default async function SectionMenuPage({ params }) {
+export default async function SectionMenuPage({ params, searchParams }) {
   const { businessSlug, branchSlug, sectionSlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = await getBranchMenuPayload(businessSlug, branchSlug);
 
   if (!data) notFound();
@@ -58,9 +103,20 @@ export default async function SectionMenuPage({ params }) {
 
   if (!selectedSection) notFound();
 
+  const language = resolveLanguage(data.menu, resolvedSearchParams);
+
+  if (!isCleanCardsTemplate(data.menu.template_id)) {
+    const branchHref = withLanguageParam(
+      getBranchHref(data.business.slug, data.branch.slug),
+      language
+    );
+
+    redirect(`${branchHref}#section-${selectedSection.id}`);
+  }
+
   return (
-    <TemplateCleanCards
-      mode="section"
+    <SectionCleanCardsClient
+      initialLanguage={language}
       selectedSection={selectedSection}
       business={data.business}
       branch={data.branch}

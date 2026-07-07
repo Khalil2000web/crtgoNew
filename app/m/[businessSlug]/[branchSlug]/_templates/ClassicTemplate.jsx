@@ -20,6 +20,9 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 
+import { getBranchHref } from "@/app/m/_lib/publicMenuData";
+import { withLanguageParam } from "../_components/menuUtils";
+
 const LANGUAGE_META = {
   ar: {
     code: "ar",
@@ -164,18 +167,31 @@ export default function ClassicTemplate({
   business,
   branch,
   menu,
-  sections,
+  sections = [],
   branches = [],
-  language,
+  language = "ar",
   setLanguage,
-  enabledLanguages,
-  theme,
+  enabledLanguages = ["ar"],
+  theme = {
+    primary: "#ff7a00",
+    background: "#090909",
+    text: "#ffffff",
+  },
 }) {
   const [query, setQuery] = useState("");
-  const [activeSectionId, setActiveSectionId] = useState(sections?.[0]?.id || null);
+  const [activeSectionId, setActiveSectionId] = useState(
+    sections?.[0]?.id || null
+  );
 
   const lang = LANGUAGE_META[language] ? language : "ar";
   const dir = LANGUAGE_META[lang]?.dir || "rtl";
+
+  function changeLanguage(nextLanguage) {
+    if (!LANGUAGE_META[nextLanguage]) return;
+    if (!enabledLanguages.includes(nextLanguage)) return;
+
+    setLanguage?.(nextLanguage);
+  }
 
   const businessName = pickText(business, "name", "name_i18n", lang);
   const branchName = pickText(branch, "name", "name_i18n", lang);
@@ -267,7 +283,7 @@ export default function ClassicTemplate({
             <LanguageSwitcher
               enabledLanguages={enabledLanguages}
               language={lang}
-              setLanguage={setLanguage}
+              setLanguage={changeLanguage}
               theme={theme}
             />
           </div>
@@ -330,7 +346,7 @@ export default function ClassicTemplate({
               {socialLinks.length > 0 && (
                 <div className="flex flex-wrap gap-2 md:justify-end">
                   {socialLinks.slice(0, 4).map((link) => (
-                    <HeroSocialLink key={link.key} link={link} theme={theme} />
+                    <HeroSocialLink key={link.key} link={link} />
                   ))}
                 </div>
               )}
@@ -341,11 +357,7 @@ export default function ClassicTemplate({
 
       <section className="sticky top-0 z-40 border-b border-white/10 bg-black/65 backdrop-blur-2xl">
         <div className="mx-auto grid max-w-6xl gap-3 px-4 py-3 sm:px-6">
-          <SearchBox
-            query={query}
-            setQuery={setQuery}
-            lang={lang}
-          />
+          <SearchBox query={query} setQuery={setQuery} lang={lang} />
 
           <SectionNav
             sections={sections || []}
@@ -428,7 +440,7 @@ export default function ClassicTemplate({
           />
 
           {socialLinks.length > 0 && (
-            <ContactBlock links={socialLinks} language={lang} theme={theme} />
+            <ContactBlock links={socialLinks} language={lang} />
           )}
         </aside>
       </section>
@@ -441,7 +453,7 @@ export default function ClassicTemplate({
       />
 
       {socialLinks.length > 0 && (
-        <MobileQuickActions links={socialLinks} language={lang} theme={theme} />
+        <MobileQuickActions links={socialLinks} theme={theme} />
       )}
     </main>
   );
@@ -460,11 +472,7 @@ function TemplateOneItem({ item, language, theme }) {
     <article className="group grid min-w-0 gap-4 rounded-[30px] border border-white/10 bg-white/[0.045] p-3 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.065] sm:grid-cols-[132px_minmax(0,1fr)]">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[24px] bg-white/[0.045]">
         {item.image_url ? (
-          <TemplateImage
-            src={item.image_url}
-            alt={name}
-            sizes="132px"
-          />
+          <TemplateImage src={item.image_url} alt={name} sizes="132px" />
         ) : (
           <Menu size={30} className="opacity-25" />
         )}
@@ -654,11 +662,16 @@ function BranchSwitcher({ business, currentBranch, branches, language, theme }) 
           return (
             <Link
               key={item.id}
-              href={getBranchHref(business.slug, item.slug)}
+              href={withLanguageParam(
+                getBranchHref(business.slug, item.slug),
+                language
+              )}
               className="flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-4 text-sm font-black transition"
               style={{
                 borderColor: active ? theme.primary : "rgba(255,255,255,.1)",
-                backgroundColor: active ? `${theme.primary}18` : "rgba(0,0,0,.18)",
+                backgroundColor: active
+                  ? `${theme.primary}18`
+                  : "rgba(0,0,0,.18)",
                 color: active ? theme.primary : "rgba(255,255,255,.7)",
               }}
             >
@@ -761,7 +774,7 @@ function SharedFooter({ businessName, branchAddress, socialLinks, language }) {
   );
 }
 
-function MobileQuickActions({ links, language, theme }) {
+function MobileQuickActions({ links, theme }) {
   const primaryLinks = ["phone", "whatsapp", "instagram"]
     .map((key) => links.find((link) => link.key === key))
     .filter(Boolean)
@@ -771,9 +784,12 @@ function MobileQuickActions({ links, language, theme }) {
 
   return (
     <div className="fixed bottom-3 left-3 right-3 z-50 lg:hidden">
-      <div className="grid gap-2 rounded-[26px] border border-white/10 bg-black/75 p-2 shadow-2xl shadow-black/40 backdrop-blur-2xl" style={{
-        gridTemplateColumns: `repeat(${primaryLinks.length}, minmax(0, 1fr))`,
-      }}>
+      <div
+        className="grid gap-2 rounded-[26px] border border-white/10 bg-black/75 p-2 shadow-2xl shadow-black/40 backdrop-blur-2xl"
+        style={{
+          gridTemplateColumns: `repeat(${primaryLinks.length}, minmax(0, 1fr))`,
+        }}
+      >
         {primaryLinks.map((link, index) => (
           <a
             key={link.key}
@@ -782,7 +798,8 @@ function MobileQuickActions({ links, language, theme }) {
             rel={link.external ? "noreferrer" : undefined}
             className="flex min-h-12 items-center justify-center gap-2 rounded-2xl text-xs font-black"
             style={{
-              backgroundColor: index === 0 ? theme.primary : "rgba(255,255,255,.08)",
+              backgroundColor:
+                index === 0 ? theme.primary : "rgba(255,255,255,.08)",
               color: index === 0 ? "#000" : "#fff",
             }}
           >
@@ -1146,14 +1163,4 @@ function socialIcon(key) {
   if (key === "tiktok") return <FaTiktok size={15} />;
 
   return <ArrowUpRight size={16} />;
-}
-
-function getBranchHref(businessSlug, branchSlug) {
-  const cleanLinks = process.env.NEXT_PUBLIC_MENU_CLEAN_LINKS === "true";
-
-  if (cleanLinks) {
-    return `/${businessSlug}/${branchSlug}`;
-  }
-
-  return `/m/${businessSlug}/${branchSlug}`;
 }

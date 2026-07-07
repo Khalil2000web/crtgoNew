@@ -1,13 +1,27 @@
 import { notFound } from "next/navigation";
 
-import TemplateCleanCards from "./_templates/TemplateCleanCards";
+import PublicMenuClient from "./PublicMenuClient";
 import { getBranchMenuPayload } from "../../_lib/publicMenuData";
 import PublicUnavailablePage from "../../_components/PublicUnavailablePage";
+import {
+  getDefaultLanguage,
+  getRequestedLanguage,
+  normalizeEnabledLanguages,
+  pickText,
+} from "./_components/menuUtils";
 
-export const revalidate = 0;
+export const revalidate = 180;
 
-export async function generateMetadata({ params }) {
+function resolveLanguage(menu, searchParams) {
+  const enabledLanguages = normalizeEnabledLanguages(menu);
+  const defaultLanguage = getDefaultLanguage(menu, enabledLanguages);
+
+  return getRequestedLanguage(searchParams, enabledLanguages) || defaultLanguage;
+}
+
+export async function generateMetadata({ params, searchParams }) {
   const { businessSlug, branchSlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = await getBranchMenuPayload(businessSlug, branchSlug);
 
   if (!data) {
@@ -16,24 +30,41 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const language = resolveLanguage(data.menu, resolvedSearchParams);
+
+  const businessName = pickText(
+    data.business,
+    "name",
+    "name_i18n",
+    language
+  );
+
+  const branchName = pickText(data.branch, "name", "name_i18n", language);
+
+  const menuDescription =
+    pickText(data.menu, "description_ar", "description_i18n", language) ||
+    pickText(data.business, "description", "description_i18n", language);
+
   if (!data.billing?.isAvailable) {
     return {
-      title: `${data.business.name} unavailable | CRTGO Menu`,
+      title: `${businessName || data.business.name} unavailable | CRTGO Menu`,
       description: "This menu is currently unavailable.",
     };
   }
 
   return {
-    title: `${data.business.name} - ${data.branch.name} | CRTGO Menu`,
+    title: `${businessName || data.business.name} - ${
+      branchName || data.branch.name
+    } | CRTGO Menu`,
     description:
-      data.menu.description_ar ||
-      data.business.description ||
-      `View the menu for ${data.business.name}.`,
+      menuDescription ||
+      `View the menu for ${businessName || data.business.name}.`,
   };
 }
 
-export default async function BranchMenuHomePage({ params }) {
+export default async function BranchMenuHomePage({ params, searchParams }) {
   const { businessSlug, branchSlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = await getBranchMenuPayload(businessSlug, branchSlug);
 
   if (!data) notFound();
@@ -47,14 +78,16 @@ export default async function BranchMenuHomePage({ params }) {
     );
   }
 
+  const initialLanguage = resolveLanguage(data.menu, resolvedSearchParams);
+
   return (
-    <TemplateCleanCards
-      mode="home"
+    <PublicMenuClient
       business={data.business}
       branch={data.branch}
       menu={data.menu}
       sections={data.sections}
       branches={data.branches}
+      initialLanguage={initialLanguage}
     />
   );
 }

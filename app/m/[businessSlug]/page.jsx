@@ -5,22 +5,40 @@ import { ArrowUpRight, Store } from "lucide-react";
 
 import {
   getBranchHref,
+  getBusinessHref,
   getBusinessPayload,
 } from "../_lib/publicMenuData";
 import PublicUnavailablePage from "../_components/PublicUnavailablePage";
 import { getMenuFont } from "../../fonts";
+import {
+  getRequestedLanguage,
+  getTextDirection,
+  getUi,
+  normalizeEnabledLanguages,
+  pickText,
+  withLanguageParam,
+  LANGUAGE_META,
+} from "./[branchSlug]/_components/menuUtils";
 
 export const revalidate = 180;
 
-function pickText(record, baseKey, i18nKey, language = "ar") {
-  return record?.[i18nKey]?.[language] || record?.[baseKey] || "";
+function getActiveMenu(branch) {
+  return (
+    branch?.menu_versions?.find((item) => item.status === "active") ||
+    branch?.menu_versions?.[0] ||
+    null
+  );
+}
+
+function getLandingLanguages(branches) {
+  const mainBranch = branches.find((branch) => branch.is_main) || branches[0];
+  const menu = getActiveMenu(mainBranch);
+
+  return normalizeEnabledLanguages(menu);
 }
 
 function getBranchImage(branch) {
-  const menu =
-    branch.menu_versions?.find((item) => item.status === "active") ||
-    branch.menu_versions?.[0];
-
+  const menu = getActiveMenu(branch);
   const firstSection = menu?.sections?.[0];
   const firstItem = firstSection?.items?.find((item) => item.image_url);
 
@@ -32,8 +50,9 @@ function getBranchImage(branch) {
   );
 }
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   const { businessSlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = await getBusinessPayload(businessSlug);
 
   if (!data) {
@@ -42,23 +61,34 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const enabledLanguages = getLandingLanguages(data.branches || []);
+  const language = getRequestedLanguage(resolvedSearchParams, enabledLanguages);
+  const businessName = pickText(data.business, "name", "name_i18n", language);
+  const businessDescription = pickText(
+    data.business,
+    "description",
+    "description_i18n",
+    language
+  );
+
   if (!data.billing?.isAvailable) {
     return {
-      title: `${data.business.name} unavailable | CRTGO Menu`,
+      title: `${businessName || data.business.name} unavailable | CRTGO Menu`,
       description: "This menu is currently unavailable.",
     };
   }
 
   return {
-    title: `${data.business.name} | CRTGO Menu`,
+    title: `${businessName || data.business.name} | CRTGO Menu`,
     description:
-      data.business.description ||
-      `Choose a branch for ${data.business.name}.`,
+      businessDescription ||
+      `Choose a branch for ${businessName || data.business.name}.`,
   };
 }
 
-export default async function BusinessLandingPage({ params }) {
+export default async function BusinessLandingPage({ params, searchParams }) {
   const { businessSlug } = await params;
+  const resolvedSearchParams = await searchParams;
   const data = await getBusinessPayload(businessSlug);
 
   if (!data) notFound();
@@ -77,9 +107,14 @@ export default async function BusinessLandingPage({ params }) {
   if (!branches.length) notFound();
 
   const mainBranch = branches.find((branch) => branch.is_main) || branches[0];
+  const enabledLanguages = getLandingLanguages(branches);
+  const language = getRequestedLanguage(resolvedSearchParams, enabledLanguages);
+  const dir = getTextDirection(language);
 
   if (business.landing_mode === "redirect_main" || branches.length === 1) {
-    redirect(getBranchHref(business.slug, mainBranch.slug));
+    redirect(
+      withLanguageParam(getBranchHref(business.slug, mainBranch.slug), language)
+    );
   }
 
   const cover =
@@ -87,11 +122,19 @@ export default async function BusinessLandingPage({ params }) {
     business.logo_url ||
     getBranchImage(mainBranch);
 
-  const businessName = pickText(business, "name", "name_i18n", "ar");
+  const businessName = pickText(business, "name", "name_i18n", language);
+  const businessDescription = pickText(
+    business,
+    "description",
+    "description_i18n",
+    language
+  );
+
+  const landingHref = getBusinessHref(business.slug);
 
   return (
     <main
-      dir="rtl"
+      dir={dir}
       className="min-h-screen bg-[#f7f4ef] text-black"
       style={{
         fontFamily: getMenuFont("clean"),
@@ -128,17 +171,42 @@ export default async function BusinessLandingPage({ params }) {
               )}
             </div>
 
-            <p className="mt-5 text-xs font-black uppercase tracking-[0.24em] text-white/50">
-              CRTGO MENU
-            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-white/50">
+                {getUi(language, "digitalMenu")}
+              </p>
+
+              {enabledLanguages.length > 1 && (
+                <div className="flex rounded-full border border-white/10 bg-white/10 p-1">
+                  {enabledLanguages.map((code) => {
+                    const active = code === language;
+                    const meta = LANGUAGE_META[code];
+
+                    return (
+                      <Link
+                        key={code}
+                        href={withLanguageParam(landingHref, code)}
+                        className={`rounded-full px-3 py-1 text-[11px] font-black transition ${
+                          active
+                            ? "bg-white text-black"
+                            : "text-white/55 hover:text-white"
+                        }`}
+                      >
+                        {meta?.short || code.toUpperCase()}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <h1 className="mt-2 text-5xl font-black tracking-[-0.07em]">
               {businessName}
             </h1>
 
-            {business.description && (
+            {businessDescription && (
               <p className="mt-3 max-w-xl text-sm font-bold leading-6 text-white/65">
-                {business.description}
+                {businessDescription}
               </p>
             )}
           </div>
@@ -149,11 +217,11 @@ export default async function BusinessLandingPage({ params }) {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-black/35">
-              الفروع
+              {getUi(language, "branches")}
             </p>
 
             <h2 className="mt-1 text-3xl font-black tracking-[-0.05em]">
-              اختر الفرع
+              {getUi(language, "chooseBranch")}
             </h2>
           </div>
         </div>
@@ -161,12 +229,22 @@ export default async function BusinessLandingPage({ params }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {branches.map((branch, index) => {
             const image = getBranchImage(branch);
+            const branchName = pickText(branch, "name", "name_i18n", language);
+            const branchAddress = pickText(
+              branch,
+              "address",
+              "address_i18n",
+              language
+            );
 
             return (
               <Link
                 prefetch={true}
                 key={branch.id}
-                href={getBranchHref(business.slug, branch.slug)}
+                href={withLanguageParam(
+                  getBranchHref(business.slug, branch.slug),
+                  language
+                )}
                 className="group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                 style={{
                   animation: "crtgoRise .45s ease both",
@@ -177,7 +255,7 @@ export default async function BusinessLandingPage({ params }) {
                   {image ? (
                     <Image
                       src={image}
-                      alt={branch.name}
+                      alt={branchName}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
                       className="pointer-events-none object-cover"
@@ -192,12 +270,12 @@ export default async function BusinessLandingPage({ params }) {
                 <div className="flex items-center justify-between gap-4 p-4">
                   <div className="min-w-0">
                     <h3 className="truncate text-xl font-black">
-                      {pickText(branch, "name", "name_i18n", "ar")}
+                      {branchName}
                     </h3>
 
-                    {branch.address && (
+                    {branchAddress && (
                       <p className="mt-1 truncate text-sm font-bold text-black/45">
-                        {branch.address}
+                        {branchAddress}
                       </p>
                     )}
                   </div>
@@ -212,18 +290,6 @@ export default async function BusinessLandingPage({ params }) {
         </div>
       </section>
 
-      <style>{`
-        @keyframes crtgoRise {
-          from {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </main>
   );
 }

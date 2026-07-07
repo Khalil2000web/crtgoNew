@@ -2,33 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import ClassicTemplate from "./_templates/ClassicTemplate";
-import ModernTemplate from "./_templates/ModernTemplate";
-import LuxuryTemplate from "./_templates/LuxuryTemplate";
-import TemplateCleanCards from "./_templates/TemplateCleanCards";
+import TemplateCleanCards from "../_templates/TemplateCleanCards";
 import {
   getDefaultLanguage,
   getTheme,
   normalizeEnabledLanguages,
   normalizeLanguageCode,
-} from "./_components/menuUtils";
-
-function normalizeTemplateId(value) {
-  const template = String(value || "classic").toLowerCase();
-
-  if (template === "modern") return "modern";
-  if (template === "luxury") return "luxury";
-
-  if (
-    ["clean", "clean_cards", "clean-cards", "template_clean_cards"].includes(
-      template
-    )
-  ) {
-    return "clean_cards";
-  }
-
-  return "classic";
-}
+} from "../_components/menuUtils";
 
 function getUrlLanguage() {
   if (typeof window === "undefined") return null;
@@ -56,13 +36,14 @@ function updateUrlLanguage(language) {
   window.history.replaceState({}, "", url.toString());
 }
 
-export default function PublicMenuClient({
+export default function SectionCleanCardsClient({
+  initialLanguage = "ar",
+  selectedSection,
   business,
   branch,
   menu,
   sections,
   branches = [],
-  initialLanguage = "ar",
 }) {
   const enabledLanguages = useMemo(
     () => normalizeEnabledLanguages(menu),
@@ -112,32 +93,19 @@ export default function PublicMenuClient({
     updateUrlLanguage(cleanLanguage);
   }
 
-  const theme = getTheme(menu);
-  const templateId = normalizeTemplateId(menu.template_id);
-
-  const templateProps = {
-    business,
-    branch,
-    menu,
-    sections,
-    branches,
-    language,
-    setLanguage,
-    enabledLanguages,
-    theme,
-  };
-
-  if (templateId === "clean_cards") {
-    return <TemplateCleanCards mode="home" {...templateProps} />;
-  }
-
-  if (templateId === "modern") {
-    return <ModernTemplate {...templateProps} />;
-  }
-
-  if (templateId === "luxury") {
-    return <LuxuryTemplate {...templateProps} />;
-  }
-
-  return <ClassicTemplate {...templateProps} />;
+  return (
+    <TemplateCleanCards
+      mode="section"
+      selectedSection={selectedSection}
+      business={business}
+      branch={branch}
+      menu={menu}
+      sections={sections}
+      branches={branches}
+      language={language}
+      setLanguage={setLanguage}
+      enabledLanguages={enabledLanguages}
+      theme={getTheme(menu)}
+    />
+  );
 }

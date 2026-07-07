@@ -1,10 +1,7 @@
 import { Menu } from "lucide-react";
 
 import MenuImage from "./MenuImage";
-import {
-  formatPrice,
-  pickText,
-} from "./menuUtils";
+import { formatPrice, getTextDirection, pickText } from "./menuUtils";
 
 export default function MenuItemCard({
   item,
@@ -12,6 +9,7 @@ export default function MenuItemCard({
   theme,
   variant = "classic",
 }) {
+  const dir = getTextDirection(language);
   const name = pickText(item, "name_ar", "name_i18n", language);
   const description = pickText(
     item,
@@ -25,11 +23,7 @@ export default function MenuItemCard({
       <article className="grid gap-4 rounded-[34px] border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl sm:grid-cols-[180px_1fr]">
         <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[28px] bg-white/[0.05]">
           {item.image_url ? (
-            <MenuImage
-              src={item.image_url}
-              alt={name}
-              sizes="180px"
-            />
+            <MenuImage src={item.image_url} alt={name} sizes="180px" />
           ) : (
             <Menu size={30} className="opacity-25" />
           )}
@@ -37,7 +31,10 @@ export default function MenuItemCard({
 
         <div className="flex min-w-0 flex-col justify-center">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <h3 className="text-3xl font-black tracking-[-0.06em]" dir="rtl">
+            <h3
+              className="text-3xl font-black tracking-[-0.06em]"
+              dir={dir}
+            >
               {name}
             </h3>
 
@@ -53,7 +50,10 @@ export default function MenuItemCard({
           </div>
 
           {description && (
-            <p className="mt-3 text-sm font-bold leading-7 opacity-55" dir="rtl">
+            <p
+              className="mt-3 text-sm font-bold leading-7 opacity-55"
+              dir={dir}
+            >
               {description}
             </p>
           )}
@@ -79,7 +79,10 @@ export default function MenuItemCard({
 
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-2xl font-black tracking-[-0.05em]" dir="rtl">
+            <h3
+              className="text-2xl font-black tracking-[-0.05em]"
+              dir={dir}
+            >
               {name}
             </h3>
 
@@ -95,7 +98,10 @@ export default function MenuItemCard({
           </div>
 
           {description && (
-            <p className="mt-3 text-sm font-bold leading-7 opacity-55" dir="rtl">
+            <p
+              className="mt-3 text-sm font-bold leading-7 opacity-55"
+              dir={dir}
+            >
               {description}
             </p>
           )}
@@ -108,11 +114,7 @@ export default function MenuItemCard({
     <article className="grid gap-4 rounded-[28px] border border-white/10 bg-white/[0.045] p-3 backdrop-blur-xl sm:grid-cols-[140px_1fr]">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[22px] bg-white/[0.05]">
         {item.image_url ? (
-          <MenuImage
-            src={item.image_url}
-            alt={name}
-            sizes="140px"
-          />
+          <MenuImage src={item.image_url} alt={name} sizes="140px" />
         ) : (
           <Menu size={30} className="opacity-25" />
         )}
@@ -120,7 +122,10 @@ export default function MenuItemCard({
 
       <div className="flex min-w-0 flex-col justify-center p-1 sm:p-2">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <h3 className="text-2xl font-black tracking-[-0.04em]" dir="rtl">
+          <h3
+            className="text-2xl font-black tracking-[-0.04em]"
+            dir={dir}
+          >
             {name}
           </h3>
 
@@ -136,7 +141,10 @@ export default function MenuItemCard({
         </div>
 
         {description && (
-          <p className="mt-2 text-sm font-bold leading-7 opacity-55" dir="rtl">
+          <p
+            className="mt-2 text-sm font-bold leading-7 opacity-55"
+            dir={dir}
+          >
             {description}
           </p>
         )}
