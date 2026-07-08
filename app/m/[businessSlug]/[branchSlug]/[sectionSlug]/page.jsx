@@ -14,7 +14,7 @@ import {
   withLanguageParam,
 } from "../_components/menuUtils";
 
-export const revalidate = 180;
+export const revalidate = 500;
 
 function isCleanCardsTemplate(templateId) {
   const value = String(templateId || "").toLowerCase();

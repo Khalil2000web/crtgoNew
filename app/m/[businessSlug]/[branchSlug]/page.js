@@ -10,7 +10,7 @@ import {
   pickText,
 } from "./_components/menuUtils";
 
-export const revalidate = 180;
+export const revalidate = 500;
 
 function resolveLanguage(menu, searchParams) {
   const enabledLanguages = normalizeEnabledLanguages(menu);
