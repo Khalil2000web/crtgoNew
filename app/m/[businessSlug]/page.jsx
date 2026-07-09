@@ -19,7 +19,7 @@ import {
   LANGUAGE_META,
 } from "./[branchSlug]/_components/menuUtils";
 
-export const revalidate = 0;
+export const revalidate = 500;
 
 function getActiveMenu(branch) {
   return (
