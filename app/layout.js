@@ -1,4 +1,3 @@
-import { fontVariables } from "./fonts";
 import "./globals.css";
 
 export const metadata = {
@@ -9,7 +8,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ar">
-      <body className={fontVariables}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

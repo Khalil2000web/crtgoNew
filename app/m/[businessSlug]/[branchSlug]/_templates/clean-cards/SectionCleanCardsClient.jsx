@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import TemplateCleanCards from "../_templates/TemplateCleanCards";
+import TemplateCleanCards from "./TemplateCleanCards";
 import {
   getDefaultLanguage,
   getTheme,
   normalizeEnabledLanguages,
   normalizeLanguageCode,
-} from "../_components/menuUtils";
+} from "../../_components/menuUtils";
 
 function getUrlLanguage() {
   if (typeof window === "undefined") return null;

@@ -27,8 +27,7 @@ import {
   getBranchHref,
   getSectionHref,
 } from "@/app/m/_lib/publicMenuData";
-import { getMenuFont } from "@/app/fonts";
-import { withLanguageParam } from "../_components/menuUtils";
+import { withLanguageParam } from "../../_components/menuUtils";
 
 const LANGUAGE_META = {
   ar: {

@@ -3,19 +3,19 @@
 import { useMemo, useState } from "react";
 import { Menu } from "lucide-react";
 
-import LanguageSwitcher from "../_components/LanguageSwitcher";
-import MenuImage from "../_components/MenuImage";
-import MenuItemCard from "../_components/MenuItemCard";
-import SearchBox from "../_components/SearchBox";
-import SectionNav from "../_components/SectionNav";
-import SharedFooter from "../_components/SharedFooter";
-import WorkingHoursPanel from "../_components/WorkingHoursPanel";
+import LanguageSwitcher from "@/app/m/[businessSlug]/[branchSlug]/_components/LanguageSwitcher";
+import MenuImage from "@/app/m/[businessSlug]/[branchSlug]/_components/MenuImage";
+import MenuItemCard from "@/app/m/[businessSlug]/[branchSlug]/_components/MenuItemCard";
+import SearchBox from "@/app/m/[businessSlug]/[branchSlug]/_components/SearchBox";
+import SectionNav from "@/app/m/[businessSlug]/[branchSlug]/_components/SectionNav";
+import SharedFooter from "@/app/m/[businessSlug]/[branchSlug]/_components/SharedFooter";
+import WorkingHoursPanel from "@/app/m/[businessSlug]/[branchSlug]/_components/WorkingHoursPanel";
 import {
   filterSections,
   getUi,
   isRtl,
   pickText,
-} from "../_components/menuUtils";
+} from "../../_components/menuUtils";
 
 export default function ModernTemplate({
   business,

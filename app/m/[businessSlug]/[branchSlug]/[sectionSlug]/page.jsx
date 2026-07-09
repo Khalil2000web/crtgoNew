@@ -1,11 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 
-import SectionCleanCardsClient from "./SectionCleanCardsClient";
+import SectionCleanCardsClient from "../_templates/clean-cards/SectionCleanCardsClient";
+import {
+  getTemplateUnavailable,
+  isCleanCardsTemplate,
+} from "../_templates/templateRegistry";
 import {
   getBranchHref,
   getBranchMenuPayload,
 } from "../../../_lib/publicMenuData";
-import PublicUnavailablePage from "../../../_components/PublicUnavailablePage";
 import {
   getDefaultLanguage,
   getRequestedLanguage,
@@ -14,24 +17,41 @@ import {
   withLanguageParam,
 } from "../_components/menuUtils";
 
-export const revalidate = 500;
-
-function isCleanCardsTemplate(templateId) {
-  const value = String(templateId || "").toLowerCase();
-
-  return [
-    "clean",
-    "clean_cards",
-    "clean-cards",
-    "template_clean_cards",
-  ].includes(value);
-}
+export const revalidate = 0;
 
 function resolveLanguage(menu, searchParams) {
   const enabledLanguages = normalizeEnabledLanguages(menu);
   const defaultLanguage = getDefaultLanguage(menu, enabledLanguages);
 
   return getRequestedLanguage(searchParams, enabledLanguages) || defaultLanguage;
+}
+
+function getUnavailableMessage(status) {
+  if (status === "past_due") {
+    return "This menu is currently unavailable because billing needs attention.";
+  }
+
+  if (status === "paused") {
+    return "This menu is currently paused.";
+  }
+
+  if (status === "canceled") {
+    return "This menu is currently unavailable.";
+  }
+
+  return "This menu is currently unavailable.";
+}
+
+function TemplateUnavailablePage({ data }) {
+  const Unavailable = getTemplateUnavailable(data?.menu?.template_id);
+
+  return (
+    <Unavailable
+      title={data?.business?.name || "Menu unavailable"}
+      message={getUnavailableMessage(data?.billing?.status)}
+      logoUrl={data?.business?.logo_url || data?.menu?.logo_url || null}
+    />
+  );
 }
 
 export async function generateMetadata({ params, searchParams }) {
@@ -89,12 +109,7 @@ export default async function SectionMenuPage({ params, searchParams }) {
   if (!data) notFound();
 
   if (!data.billing?.isAvailable) {
-    return (
-      <PublicUnavailablePage
-        business={data.business}
-        status={data.billing?.status}
-      />
-    );
+    return <TemplateUnavailablePage data={data} />;
   }
 
   const selectedSection = data.sections.find(

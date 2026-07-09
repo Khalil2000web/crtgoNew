@@ -1,8 +1,9 @@
+
 import { notFound } from "next/navigation";
 
 import PublicMenuClient from "./PublicMenuClient";
 import { getBranchMenuPayload } from "../../_lib/publicMenuData";
-import PublicUnavailablePage from "../../_components/PublicUnavailablePage";
+import { getTemplateUnavailable } from "./_templates/templateRegistry";
 import {
   getDefaultLanguage,
   getRequestedLanguage,
@@ -10,13 +11,41 @@ import {
   pickText,
 } from "./_components/menuUtils";
 
-export const revalidate = 500;
+export const revalidate = 0;
 
 function resolveLanguage(menu, searchParams) {
   const enabledLanguages = normalizeEnabledLanguages(menu);
   const defaultLanguage = getDefaultLanguage(menu, enabledLanguages);
 
   return getRequestedLanguage(searchParams, enabledLanguages) || defaultLanguage;
+}
+
+function getUnavailableMessage(status) {
+  if (status === "past_due") {
+    return "This menu is currently unavailable because billing needs attention.";
+  }
+
+  if (status === "paused") {
+    return "This menu is currently paused.";
+  }
+
+  if (status === "canceled") {
+    return "This menu is currently unavailable.";
+  }
+
+  return "This menu is currently unavailable.";
+}
+
+function TemplateUnavailablePage({ data }) {
+  const Unavailable = getTemplateUnavailable(data?.menu?.template_id);
+
+  return (
+    <Unavailable
+      title={data?.business?.name || "Menu unavailable"}
+      message={getUnavailableMessage(data?.billing?.status)}
+      logoUrl={data?.business?.logo_url || data?.menu?.logo_url || null}
+    />
+  );
 }
 
 export async function generateMetadata({ params, searchParams }) {
@@ -70,12 +99,7 @@ export default async function BranchMenuHomePage({ params, searchParams }) {
   if (!data) notFound();
 
   if (!data.billing?.isAvailable) {
-    return (
-      <PublicUnavailablePage
-        business={data.business}
-        status={data.billing?.status}
-      />
-    );
+    return <TemplateUnavailablePage data={data} />;
   }
 
   const initialLanguage = resolveLanguage(data.menu, resolvedSearchParams);

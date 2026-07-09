@@ -2,33 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import ClassicTemplate from "./_templates/ClassicTemplate";
-import ModernTemplate from "./_templates/ModernTemplate";
-import LuxuryTemplate from "./_templates/LuxuryTemplate";
-import TemplateCleanCards from "./_templates/TemplateCleanCards";
+import {
+  getTemplateComponent,
+  normalizeTemplateId,
+} from "./_templates/templateRegistry";
 import {
   getDefaultLanguage,
   getTheme,
   normalizeEnabledLanguages,
   normalizeLanguageCode,
 } from "./_components/menuUtils";
-
-function normalizeTemplateId(value) {
-  const template = String(value || "classic").toLowerCase();
-
-  if (template === "modern") return "modern";
-  if (template === "luxury") return "luxury";
-
-  if (
-    ["clean", "clean_cards", "clean-cards", "template_clean_cards"].includes(
-      template
-    )
-  ) {
-    return "clean_cards";
-  }
-
-  return "classic";
-}
 
 function getUrlLanguage() {
   if (typeof window === "undefined") return null;
@@ -113,7 +96,8 @@ export default function PublicMenuClient({
   }
 
   const theme = getTheme(menu);
-  const templateId = normalizeTemplateId(menu.template_id);
+  const templateId = normalizeTemplateId(menu?.template_id);
+  const Template = getTemplateComponent(templateId);
 
   const templateProps = {
     business,
@@ -121,23 +105,21 @@ export default function PublicMenuClient({
     menu,
     sections,
     branches,
+
+    initialLanguage,
     language,
     setLanguage,
     enabledLanguages,
+    defaultLanguage,
+
+    templateId,
+
+    // New name
     theme,
+
+    // Backward-compatible name in case old templates use colors.background
+    colors: theme,
   };
 
-  if (templateId === "clean_cards") {
-    return <TemplateCleanCards mode="home" {...templateProps} />;
-  }
-
-  if (templateId === "modern") {
-    return <ModernTemplate {...templateProps} />;
-  }
-
-  if (templateId === "luxury") {
-    return <LuxuryTemplate {...templateProps} />;
-  }
-
-  return <ClassicTemplate {...templateProps} />;
+  return <Template {...templateProps} />;
 }
