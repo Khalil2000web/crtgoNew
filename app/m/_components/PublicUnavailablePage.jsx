@@ -1,8 +1,6 @@
 import Image from "next/image";
 import { AlertCircle, Store } from "lucide-react";
 
-import { getMenuFont } from "@/app/fonts";
-
 function getMessage(status) {
   if (status === "past_due") {
     return "This menu is currently unavailable because billing needs attention.";
@@ -26,9 +24,6 @@ export default function PublicUnavailablePage({ business, status }) {
     <main
       dir="rtl"
       className="grid min-h-screen place-items-center bg-[#f7f4ef] px-4 py-10 text-black"
-      style={{
-        fontFamily: getMenuFont("clean"),
-      }}
     >
       <section className="w-full max-w-md rounded-[34px] border border-black/10 bg-white p-6 text-center shadow-sm">
         <div className="mx-auto grid h-20 w-20 place-items-center overflow-hidden rounded-[26px] border border-black/10 bg-black text-white">
