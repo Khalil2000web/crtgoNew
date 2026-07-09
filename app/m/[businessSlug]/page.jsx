@@ -9,7 +9,6 @@ import {
   getBusinessPayload,
 } from "../_lib/publicMenuData";
 import PublicUnavailablePage from "../_components/PublicUnavailablePage";
-import { getMenuFont } from "../../fonts";
 import {
   getRequestedLanguage,
   getTextDirection,
@@ -136,9 +135,6 @@ export default async function BusinessLandingPage({ params, searchParams }) {
     <main
       dir={dir}
       className="min-h-screen bg-[#f7f4ef] text-black"
-      style={{
-        fontFamily: getMenuFont("clean"),
-      }}
     >
       <header className="relative overflow-hidden px-4 py-4">
         <section className="relative mx-auto min-h-[340px] max-w-5xl overflow-hidden rounded-[34px] bg-black text-white">
