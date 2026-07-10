@@ -14,6 +14,7 @@ import {
   Search,
   Store,
   X,
+  ChevronLeft,
 } from "lucide-react";
 import {
   FaFacebookF,
@@ -229,7 +230,7 @@ const dir = getLanguageDirection(language);
   className={`${fontClassName} min-h-screen overflow-x-hidden bg-[#f3f5e0] text-[#141513]`}
 >
 
-<header className="relative flex h-[400px] w-full items-center justify-center overflow-hidden bg-white">
+<header className="relative flex h-[400px] z-20 w-full items-center justify-center overflow-hidden bg-white">
   <div className="absolute inset-0">
     {cover ? (
       <TemplateImage
@@ -258,12 +259,8 @@ const dir = getLanguageDirection(language);
   </div>
 </header>
 
-<section className="fixed top-0 left-0 right-0 my-5 w-full max-w-6xl px-4 sm:px-6 z-20">
-  <div className="flex w-full items-center gap-4">
-
-    <button className="shrink-0 bg-white rounded-2xl cursor-pointer rounded-2xl p-2 text-black">
-      <Menu />
-    </button>
+<section className="fixed top-0 left-0 right-0 my-5 px-4 w-full z-10">
+  <div className="flex w-full items-center justify-center gap-4">
 
     <div className="min-w-0 flex-1">
       <ClassicSearchBox
@@ -311,8 +308,8 @@ const dir = getLanguageDirection(language);
  
 
 
-<section className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-  <div className="min-w-0">
+<section className="mx-auto flex items-center justify-center w-full max-w-6xl py-10">
+  <div className="min-w-0 flex items-center justify-center">
     <ClassicSectionTabs
       sections={sections}
       language={language}
@@ -745,7 +742,7 @@ function ClassicSectionTabs({ sections = [], language, searchQuery = "" }) {
 
   return (
     <>
-      <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
+      <section className="mx-auto w-full px-4 pb-20 sm:px-6">
         <TabGroup>
           <TabList className="flex items-center justify-center gap-3 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {visibleSections.map((section) => {
@@ -759,7 +756,7 @@ function ClassicSectionTabs({ sections = [], language, searchQuery = "" }) {
                   key={section.id}
                   className={({ selected }) =>
                     [
-                      "shrink-0 cursor-pointer border-b-[3px] px-3 py-2 text-sm font-black outline-none transition",
+                      "shrink-0 cursor-pointer border-b-[3px] px-3 py-2 text-xlg font-black outline-none transition",
                       selected
                         ? "border-black text-black"
                         : "border-transparent text-black/65 hover:border-black/50 hover:text-black",
@@ -850,22 +847,23 @@ function ClassicItemCard({ item, language, onOpen }) {
         </div>
       )}
 
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-black leading-5 text-black">{name}</h3>
+      <div className="p-2">
+        <div className="flex flex-col items-center justify-between">
+          <h3 className="text-base font-black text-center text-black">{name}</h3>
+
+        {description && (
+          <p className="truncate text-xs text-center mt-2 w-full font-bold text-black/45">
+            {description}
+          </p>
+        )}
 
           {item.price !== null && item.price !== undefined && (
-            <p className="shrink-0 rounded-full bg-black px-3 py-1 text-xs font-black text-white">
+            <p className="shrink-0 rounded-full bg-black mt-2 px-3 py-1 text-xs font-black text-white">
               {formatPrice(item.price)}
             </p>
           )}
         </div>
 
-        {description && (
-          <p className="mt-2 line-clamp-2 text-xs font-bold leading-5 text-black/45">
-            {description}
-          </p>
-        )}
       </div>
     </button>
   );
@@ -885,77 +883,84 @@ function ClassicItemModal({ item, language, onClose }) {
 
   const isRtl = language !== "en";
 
+  const closeText =
+    language === "ar" ? "إغلاق" : language === "he" ? "סגור" : "Close";
+
+  const priceText =
+    item.price !== null && item.price !== undefined
+      ? formatPrice(item.price)
+      : null;
+
   return (
     <div
-      className="fixed inset-0 z-[999] bg-black text-black"
+      className="fixed inset-0 z-[999] overflow-hidden bg-black text-black"
       role="dialog"
       aria-modal="true"
+      dir={isRtl ? "rtl" : "ltr"}
     >
       <div className="absolute inset-0">
         {item.image_url ? (
           <Image
-            width={800}
-            height={800}
             src={item.image_url}
             alt={name}
-            loading="eager"
-            className="h-full w-full object-cover pointer-events-none select-none opacity-60"
+            fill
+            priority
+            sizes="100vw"
+            className="pointer-events-none select-none object-cover"
           />
         ) : (
           <div className="grid h-full w-full place-items-center bg-[#f3f5e0] text-black/20">
-            <Menu size={80} />
+            <Menu size={90} />
           </div>
         )}
       </div>
 
-      <div className="absolute inset-0 bg-black/25" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/20 lg:bg-gradient-to-l lg:from-black/70 lg:via-black/20 lg:to-black/10" />
 
-      <div
-        dir={isRtl ? "rtl" : "ltr"}
-        className="absolute inset-x-0 bottom-7 z-10 p-4 sm:p-6"
-      >
-        <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-[34px] border border-white/55 bg-white/45 p-5 shadow-[0_20px_80px_-25px_rgba(0,0,0,0.9)] backdrop-blur-sm sm:p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="hidden text-xs font-black uppercase tracking-[0.2em] text-black/35">
-                CRTGO MENU
-              </p>
+      <div className="relative z-10 flex min-h-dvh items-end p-4 sm:p-6 lg:items-center lg:justify-end">
+        <section className="w-full lg:max-w-[520px]">
+          <div className="overflow-hidden rounded-[34px] border border-white/60 bg-white/80 shadow-[0_24px_90px_-30px_rgba(0,0,0,0.95)] backdrop-blur-2xl">
+            <div className="max-h-[72dvh] overflow-y-auto p-5 [scrollbar-width:none] sm:p-6 lg:max-h-[78dvh] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-black/35">
+                    CRTGO MENU
+                  </p>
 
-              <h2 className="mt-2 text-3xl font-black leading-tight tracking-[-0.07em] text-black sm:text-5xl">
-                {name}
-              </h2>
+                  <h2 className="mt-2 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-black sm:text-5xl">
+                    {name}
+                  </h2>
+                </div>
+
+                {priceText && (
+                  <p className="shrink-0 rounded-full bg-black px-4 py-2 text-sm font-black text-white">
+                    {priceText}
+                  </p>
+                )}
+              </div>
+
+              {description && (
+                <p className="mt-5 text-sm font-bold leading-7 text-black/60 sm:text-base sm:leading-8">
+                  {description}
+                </p>
+              )}
             </div>
 
-            {item.price !== null && item.price !== undefined && (
-              <p className="shrink-0 rounded-full px-4 py-2 text-xl font-black text-black">
-                {formatPrice(item.price)}
-              </p>
-            )}
+            <div className="border-t border-black/10 bg-white/70 p-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="min-h-12 w-full cursor-pointer rounded-full bg-black text-sm font-black text-white transition hover:bg-black/85 active:scale-[0.99]"
+              >
+                {closeText}
+              </button>
+            </div>
           </div>
-
-          {description && (
-            <p className="mt-4 text-sm font-bold leading-7 text-black/60 sm:text-base">
-              {description}
-            </p>
-          )}
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="mt-6 min-h-12 w-full cursor-pointer rounded-full bg-black text-sm font-black text-white transition hover:bg-black/85"
-          >
-            {language === "ar"
-              ? "إغلاق"
-              : language === "he"
-                ? "סגור"
-                : "Close"}
-          </button>
-        </div>
+        </section>
       </div>
     </div>
   );
 }
-
 
 
 function ClassicBottomNav({
