@@ -252,7 +252,7 @@ export default function TemplateFooter({
   return (
     <footer
       dir={dir}
-      className={`mx-auto w-full max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:pb-10 ${styles.footer}`}
+      className={`mx-auto w-full max-w-6xl px-4 pb-32 pt-4 sm:px-6 mt-10 lg:pb-10 ${styles.footer}`}
     >
       <div
         className={`relative overflow-hidden rounded-[36px] border p-5 backdrop-blur-2xl ${styles.card}`}
@@ -262,7 +262,7 @@ export default function TemplateFooter({
 
         <div className="relative z-10">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex min-w-0 items-start gap-4">
+            <div className="hidden min-w-0 items-start gap-4">
               <div
                 className={`relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border ${styles.logo}`}
               >
@@ -313,7 +313,7 @@ export default function TemplateFooter({
           </div>
 
           {restaurantLinks.length > 0 && (
-            <div className={`mt-5 border-t pt-5 ${styles.divider}`}>
+            <div className={`hidden mt-5 border-t pt-5 ${styles.divider}`}>
               <div className="flex flex-wrap gap-2">
                 {restaurantLinks.map((link) => (
                   <a
