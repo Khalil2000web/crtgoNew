@@ -35,15 +35,38 @@ export function getSectionSlug(section) {
 }
 
 export function normalizeTemplateId(value) {
-  const template = String(value || "classic").toLowerCase();
+  const template = String(value || "classic")
+    .trim()
+    .toLowerCase();
 
-  if (template === "modern") return "modern";
-  if (template === "luxury") return "luxury";
+  if (template === "modern") {
+    return "modern";
+  }
+
+  if (template === "luxury") {
+    return "luxury";
+  }
 
   if (
-    ["clean", "clean_cards", "clean-cards", "template_clean_cards"].includes(
-      template
-    )
+    [
+      "cafe",
+      "café",
+      "cafe_cozy",
+      "cafe-cozy",
+      "cozy_cafe",
+      "cozy-cafe",
+    ].includes(template)
+  ) {
+    return "cafe_cozy";
+  }
+
+  if (
+    [
+      "clean",
+      "clean_cards",
+      "clean-cards",
+      "template_clean_cards",
+    ].includes(template)
   ) {
     return "clean_cards";
   }
@@ -201,19 +224,22 @@ async function getBusinessBilling(businessId) {
 }
 
 export function getSafeTemplateId(menu, billing) {
-  const wantedTemplate = normalizeTemplateId(menu?.template_id || "classic");
-  const limits = normalizePlanLimits(billing?.limits);
-  const allowedTemplates = normalizeTemplates(limits.templates);
+  const wantedTemplate = normalizeTemplateId(
+    menu?.template_id || "classic"
+  );
 
-  if (wantedTemplate === "clean_cards" && limits.section_pages === false) {
+  const limits = normalizePlanLimits(billing?.limits);
+
+  // Clean Cards genuinely requires section pages.
+  if (
+    wantedTemplate === "clean_cards" &&
+    limits.section_pages === false
+  ) {
     return "classic";
   }
 
-  if (allowedTemplates.includes(wantedTemplate)) {
-    return wantedTemplate;
-  }
-
-  return "classic";
+  // Trust the template already saved by the admin.
+  return wantedTemplate;
 }
 
 function getSafeEnabledLanguages(menu, billing) {

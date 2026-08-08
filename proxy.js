@@ -1,10 +1,30 @@
 import { NextResponse } from "next/server";
 
-const MENU_HOSTS = new Set(["menu.crtgo.com", "www.menu.crtgo.com"]);
+const MENU_HOSTS = new Set([
+  "menu.crtgo.com",
+  "www.menu.crtgo.com",
+]);
+
+const RESERVED_HOSTS = new Set([
+  "crtgo.com",
+  "www.crtgo.com",
+  "menu.crtgo.com",
+  "www.menu.crtgo.com",
+  "app.crtgo.com",
+  "admin.crtgo.com",
+  "api.crtgo.com",
+  "ws.crtgo.com",
+  "cloud.crtgo.com",
+  "accounts.crtgo.com",
+]);
 
 export function proxy(request) {
   const url = request.nextUrl;
-  const host = (request.headers.get("host") || "").split(":")[0];
+
+  const host = (request.headers.get("host") || "")
+    .split(":")[0]
+    .toLowerCase();
+
   const pathname = url.pathname;
 
   const isAsset =
@@ -15,33 +35,74 @@ export function proxy(request) {
     pathname.startsWith("/sitemap") ||
     pathname.includes(".");
 
-  if (isAsset) return NextResponse.next();
-
-  const isMenuHost = MENU_HOSTS.has(host);
-
-  if (!isMenuHost) return NextResponse.next();
-
-  // Real app routes that must NOT be rewritten into /m
-  if (
-    pathname.startsWith("/m/") ||
-    pathname === "/m" ||
-    pathname.startsWith("/q/") ||
-    pathname === "/q"
-  ) {
+  if (isAsset) {
     return NextResponse.next();
   }
 
-  if (pathname === "/") {
-    const rewriteUrl = url.clone();
-    rewriteUrl.pathname = "/m";
-    return NextResponse.rewrite(rewriteUrl);
+  /*
+   * Internal tenant route.
+   * Never rewrite this again.
+   */
+  if (pathname.startsWith("/tenant/")) {
+    return NextResponse.next();
   }
 
-  const parts = pathname.split("/").filter(Boolean);
+  /*
+   * Existing CRTGO Menu domain
+   *
+   * menu.crtgo.com/example
+   * → internally /m/example
+   */
+  if (MENU_HOSTS.has(host)) {
+    if (
+      pathname.startsWith("/m/") ||
+      pathname === "/m" ||
+      pathname.startsWith("/q/") ||
+      pathname === "/q"
+    ) {
+      return NextResponse.next();
+    }
 
-  if (parts.length >= 1 && parts.length <= 3) {
+    if (pathname === "/") {
+      const rewriteUrl = url.clone();
+      rewriteUrl.pathname = "/m";
+
+      return NextResponse.rewrite(rewriteUrl);
+    }
+
+    const parts = pathname.split("/").filter(Boolean);
+
+    if (parts.length >= 1 && parts.length <= 3) {
+      const rewriteUrl = url.clone();
+      rewriteUrl.pathname = `/m/${parts.join("/")}`;
+
+      return NextResponse.rewrite(rewriteUrl);
+    }
+
+    return NextResponse.next();
+  }
+
+  /*
+   * CRTGO tenant websites
+   *
+   * test.crtgo.com
+   * → internally /tenant/test.crtgo.com
+   *
+   * test.crtgo.com/haifa
+   * → internally /tenant/test.crtgo.com/haifa
+   */
+  const isCrtgoSubdomain =
+    host.endsWith(".crtgo.com") &&
+    !RESERVED_HOSTS.has(host);
+
+  if (isCrtgoSubdomain) {
     const rewriteUrl = url.clone();
-    rewriteUrl.pathname = `/m/${parts.join("/")}`;
+
+    rewriteUrl.pathname =
+      pathname === "/"
+        ? `/tenant/${host}`
+        : `/tenant/${host}${pathname}`;
+
     return NextResponse.rewrite(rewriteUrl);
   }
 
