@@ -18,11 +18,18 @@ export function getBusinessHref(businessSlug) {
 }
 
 export function getBranchHref(businessSlug, branchSlug) {
-  if (getCleanLinksEnabled()) return `/${businessSlug}/${branchSlug}`;
+  if (getCleanLinksEnabled()) {
+    return `/${businessSlug}/${branchSlug}`;
+  }
+
   return `/m/${businessSlug}/${branchSlug}`;
 }
 
-export function getSectionHref(businessSlug, branchSlug, sectionSlug) {
+export function getSectionHref(
+  businessSlug,
+  branchSlug,
+  sectionSlug,
+) {
   if (getCleanLinksEnabled()) {
     return `/${businessSlug}/${branchSlug}/${sectionSlug}`;
   }
@@ -31,7 +38,10 @@ export function getSectionHref(businessSlug, branchSlug, sectionSlug) {
 }
 
 export function getSectionSlug(section) {
-  return section?.slug || `section-${String(section?.id || "").slice(0, 8)}`;
+  return (
+    section?.slug ||
+    `section-${String(section?.id || "").slice(0, 8)}`
+  );
 }
 
 export function normalizeTemplateId(value) {
@@ -79,33 +89,72 @@ function unique(values = []) {
 }
 
 function normalizeLanguages(value) {
-  const languages = Array.isArray(value) ? value : ["ar"];
+  const languages = Array.isArray(value)
+    ? value
+    : ["ar"];
 
   const clean = unique(
     languages
-      .map((language) => String(language || "").toLowerCase())
-      .filter((language) => SUPPORTED_LANGUAGES.includes(language))
+      .map((language) =>
+        String(language || "").toLowerCase(),
+      )
+      .filter((language) =>
+        SUPPORTED_LANGUAGES.includes(language),
+      ),
+  );
+
+  return clean.length ? clean : ["ar"];
+}
+
+
+function normalizeLanguages(value) {
+  const languages = Array.isArray(value)
+    ? value
+    : ["ar"];
+
+  const clean = unique(
+    languages
+      .map((language) =>
+        String(language || "").toLowerCase(),
+      )
+      .filter((language) =>
+        SUPPORTED_LANGUAGES.includes(language),
+      ),
   );
 
   return clean.length ? clean : ["ar"];
 }
 
 function normalizeTemplates(value) {
-  const templates = Array.isArray(value) ? value : ["classic"];
+  const templates = Array.isArray(value)
+    ? value
+    : ["classic"];
 
-  const clean = unique(templates.map(normalizeTemplateId));
+  const clean = unique(
+    templates.map(normalizeTemplateId),
+  );
 
   return clean.length ? clean : ["classic"];
 }
 
 function normalizeLimitNumber(value) {
-  if (value === null || value === undefined || value === "") return null;
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return null;
+  }
 
-  if (String(value).toLowerCase() === "unlimited") return null;
+  if (String(value).toLowerCase() === "unlimited") {
+    return null;
+  }
 
   const number = Number(value);
 
-  if (!Number.isFinite(number)) return null;
+  if (!Number.isFinite(number)) {
+    return null;
+  }
 
   return Math.max(0, Math.floor(number));
 }
@@ -113,45 +162,85 @@ function normalizeLimitNumber(value) {
 function getLimitNumber(value) {
   const clean = normalizeLimitNumber(value);
 
-  if (clean === null) return Infinity;
+  if (clean === null) {
+    return Infinity;
+  }
 
   return clean;
 }
 
 export function normalizePlanLimits(rawLimits) {
   const source =
-    rawLimits && typeof rawLimits === "object" && !Array.isArray(rawLimits)
+    rawLimits &&
+    typeof rawLimits === "object" &&
+    !Array.isArray(rawLimits)
       ? rawLimits
       : {};
 
   return {
     ...source,
-    max_branches: normalizeLimitNumber(source.max_branches),
-    max_items: normalizeLimitNumber(source.max_items),
-    templates: normalizeTemplates(source.templates),
+
+    max_branches: normalizeLimitNumber(
+      source.max_branches,
+    ),
+
+    max_items: normalizeLimitNumber(
+      source.max_items,
+    ),
+
+    templates: normalizeTemplates(
+      source.templates,
+    ),
+
     custom_cover: source.custom_cover === true,
-    section_pages: source.section_pages !== false,
-    languages: normalizeLanguages(source.languages),
+
+    section_pages:
+      source.section_pages !== false,
+
+    languages: normalizeLanguages(
+      source.languages,
+    ),
+
     qr_codes: source.qr_codes !== false,
   };
 }
 
-export function getPublicBillingState(subscription, fallbackPlan = null) {
-  const status = subscription?.status || "active";
-  const plan = subscription?.billing_plans || fallbackPlan || null;
+export function getPublicBillingState(
+  subscription,
+  fallbackPlan = null,
+) {
+  const status =
+    subscription?.status || "active";
+
+  const plan =
+    subscription?.billing_plans ||
+    fallbackPlan ||
+    null;
 
   const planMissing = !plan;
-  const planInactive = Boolean(plan && plan.is_active === false);
-  const subscriptionBlocked = PUBLIC_BLOCKED_STATUSES.has(status);
 
-  const limits = normalizePlanLimits(plan?.limits);
+  const planInactive = Boolean(
+    plan && plan.is_active === false,
+  );
+
+  const subscriptionBlocked =
+    PUBLIC_BLOCKED_STATUSES.has(status);
+
+  const limits = normalizePlanLimits(
+    plan?.limits,
+  );
 
   return {
     subscription,
     status,
     plan,
     limits,
-    isAvailable: !planMissing && !planInactive && !subscriptionBlocked,
+
+    isAvailable:
+      !planMissing &&
+      !planInactive &&
+      !subscriptionBlocked,
+
     unavailableReason: planMissing
       ? "plan_missing"
       : planInactive
@@ -163,35 +252,50 @@ export function getPublicBillingState(subscription, fallbackPlan = null) {
 }
 
 async function getFallbackPublicPlan() {
-  const { data, error } = await supabasePublic
-    .from("billing_plans")
-    .select(`
-      id,
-      name,
-      description,
-      monthly_price,
-      currency,
-      is_active,
-      limits
-    `)
-    .eq("id", "free")
-    .maybeSingle();
+  const { data, error } =
+    await supabasePublic
+      .from("billing_plans")
+      .select(`
+        id,
+        name,
+        description,
+        monthly_price,
+        currency,
+        is_active,
+        limits
+      `)
+      .eq("id", "free")
+      .maybeSingle();
 
   if (error) {
-    console.error(error);
+    console.error(
+      "Failed to load fallback public plan:",
+      error,
+    );
+
     return null;
   }
 
   return data || null;
 }
 
-async function getBusinessBilling(businessId) {
+async function getBusinessBilling(
+  businessId,
+) {
   if (!businessId) {
-    const fallbackPlan = await getFallbackPublicPlan();
-    return getPublicBillingState(null, fallbackPlan);
+    const fallbackPlan =
+      await getFallbackPublicPlan();
+
+    return getPublicBillingState(
+      null,
+      fallbackPlan,
+    );
   }
 
-  const [{ data, error }, fallbackPlan] = await Promise.all([
+  const [
+    { data, error },
+    fallbackPlan,
+  ] = await Promise.all([
     supabasePublic
       .from("business_subscriptions")
       .select(`
@@ -216,21 +320,37 @@ async function getBusinessBilling(businessId) {
   ]);
 
   if (error) {
-    console.error(error);
-    return getPublicBillingState(null, fallbackPlan);
+    console.error(
+      "Failed to load business billing:",
+      error,
+    );
+
+    return getPublicBillingState(
+      null,
+      fallbackPlan,
+    );
   }
 
-  return getPublicBillingState(data || null, fallbackPlan);
+  return getPublicBillingState(
+    data || null,
+    fallbackPlan,
+  );
 }
 
-export function getSafeTemplateId(menu, billing) {
-  const wantedTemplate = normalizeTemplateId(
-    menu?.template_id || "classic"
-  );
+export function getSafeTemplateId(
+  menu,
+  billing,
+) {
+  const wantedTemplate =
+    normalizeTemplateId(
+      menu?.template_id || "classic",
+    );
 
-  const limits = normalizePlanLimits(billing?.limits);
+  const limits =
+    normalizePlanLimits(
+      billing?.limits,
+    );
 
-  // Clean Cards genuinely requires section pages.
   if (
     wantedTemplate === "clean_cards" &&
     limits.section_pages === false
@@ -238,152 +358,272 @@ export function getSafeTemplateId(menu, billing) {
     return "classic";
   }
 
-  // Trust the template already saved by the admin.
   return wantedTemplate;
 }
 
-function getSafeEnabledLanguages(menu, billing) {
-  const limits = normalizePlanLimits(billing?.limits);
+function getSafeEnabledLanguages(
+  menu,
+  billing,
+) {
+  const limits =
+    normalizePlanLimits(
+      billing?.limits,
+    );
 
-  const planLanguages = normalizeLanguages(limits.languages);
-  const menuLanguages = normalizeLanguages(menu?.enabled_languages);
+  const planLanguages =
+    normalizeLanguages(
+      limits.languages,
+    );
 
-  const enabledLanguages = menuLanguages.filter((language) =>
-    planLanguages.includes(language)
-  );
+  const menuLanguages =
+    normalizeLanguages(
+      menu?.enabled_languages,
+    );
 
-  return enabledLanguages.length ? enabledLanguages : [planLanguages[0] || "ar"];
+  const enabledLanguages =
+    menuLanguages.filter((language) =>
+      planLanguages.includes(language),
+    );
+
+  return enabledLanguages.length
+    ? enabledLanguages
+    : [planLanguages[0] || "ar"];
 }
 
-function applyPublicMenuPlan(menu, billing) {
-  const enabledLanguages = getSafeEnabledLanguages(menu, billing);
+function applyPublicMenuPlan(
+  menu,
+  billing,
+) {
+  const enabledLanguages =
+    getSafeEnabledLanguages(
+      menu,
+      billing,
+    );
 
-  const defaultLanguage = enabledLanguages.includes(menu?.default_language)
-    ? menu.default_language
-    : enabledLanguages[0];
+  const defaultLanguage =
+    enabledLanguages.includes(
+      menu?.default_language,
+    )
+      ? menu.default_language
+      : enabledLanguages[0];
 
   return {
     ...menu,
-    template_id: getSafeTemplateId(menu, billing),
-    cover_url: billing?.limits?.custom_cover ? menu.cover_url : null,
-    enabled_languages: enabledLanguages,
-    default_language: defaultLanguage,
+
+    template_id:
+      getSafeTemplateId(
+        menu,
+        billing,
+      ),
+
+    cover_url:
+      billing?.limits?.custom_cover
+        ? menu.cover_url
+        : null,
+
+    enabled_languages:
+      enabledLanguages,
+
+    default_language:
+      defaultLanguage,
   };
 }
 
 function sortBranches(branches = []) {
   return [...branches]
-    .filter((branch) => branch.status === "active")
-    .sort((a, b) => Number(b.is_main) - Number(a.is_main));
+    .filter(
+      (branch) =>
+        branch.status === "active",
+    )
+    .sort(
+      (a, b) =>
+        Number(b.is_main) -
+        Number(a.is_main),
+    );
 }
 
-function limitBranches(branches = [], billing) {
-  const sorted = sortBranches(branches);
-  const maxBranches = getLimitNumber(billing?.limits?.max_branches);
+function limitBranches(
+  branches = [],
+  billing,
+) {
+  const sorted =
+    sortBranches(branches);
 
-  if (!Number.isFinite(maxBranches)) return sorted;
+  const maxBranches =
+    getLimitNumber(
+      billing?.limits?.max_branches,
+    );
 
-  return sorted.slice(0, maxBranches);
+  if (!Number.isFinite(maxBranches)) {
+    return sorted;
+  }
+
+  return sorted.slice(
+    0,
+    maxBranches,
+  );
 }
 
-export function cleanSections(menu, billing = null) {
-  const maxItems = getLimitNumber(billing?.limits?.max_items);
+export function cleanSections(
+  menu,
+  billing = null,
+) {
+  const maxItems =
+    getLimitNumber(
+      billing?.limits?.max_items,
+    );
+
   let usedItems = 0;
 
-  return [...(menu?.sections || [])]
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+  return [
+    ...(menu?.sections || []),
+  ]
+    .sort(
+      (a, b) =>
+        (a.sort_order || 0) -
+        (b.sort_order || 0),
+    )
     .map((section) => {
-      let items = [...(section.items || [])]
-        .filter((item) => item.is_available !== false)
-        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      let items = [
+        ...(section.items || []),
+      ]
+        .filter(
+          (item) =>
+            item.is_available !== false,
+        )
+        .sort(
+          (a, b) =>
+            (a.sort_order || 0) -
+            (b.sort_order || 0),
+        );
 
-      if (Number.isFinite(maxItems)) {
-        const remaining = Math.max(0, maxItems - usedItems);
-        items = items.slice(0, remaining);
+      if (
+        Number.isFinite(maxItems)
+      ) {
+        const remaining =
+          Math.max(
+            0,
+            maxItems - usedItems,
+          );
+
+        items = items.slice(
+          0,
+          remaining,
+        );
+
         usedItems += items.length;
       }
 
       return {
         ...section,
-        slug: getSectionSlug(section),
+
+        slug:
+          getSectionSlug(section),
+
         items,
       };
     })
-    .filter((section) => section.items.length > 0);
+    .filter(
+      (section) =>
+        section.items.length > 0,
+    );
 }
 
-export async function getBusinessPayload(businessSlug) {
-  const { data, error } = await supabasePublic
-    .from("businesses")
-    .select(`
-      id,
-      name,
-      name_i18n,
-      slug,
-      logo_url,
-      description,
-      description_i18n,
-      status,
-      landing_cover_url,
-      landing_mode,
-      branches (
+export async function getBusinessPayload(
+  businessSlug,
+) {
+  const { data, error } =
+    await supabasePublic
+      .from("businesses")
+      .select(`
         id,
         name,
         name_i18n,
         slug,
-        address,
-        address_i18n,
+        logo_url,
+        description,
+        description_i18n,
         status,
-        is_main,
-        menu_versions (
+        landing_cover_url,
+        landing_mode,
+        branches (
           id,
           name,
           name_i18n,
+          slug,
+          address,
+          address_i18n,
           status,
-          logo_url,
-          cover_url,
-          primary_color,
-          background_color,
-          text_color,
-          template_id,
-          description_ar,
-          description_i18n,
-          enabled_languages,
-          default_language,
-          sections (
+          is_main,
+          menu_versions (
             id,
-            slug,
-            sort_order,
-            cover_url,
-            name_ar,
+            name,
             name_i18n,
-            items (
+            status,
+            logo_url,
+            cover_url,
+            primary_color,
+            background_color,
+            text_color,
+            template_id,
+            description_ar,
+            description_i18n,
+            enabled_languages,
+            default_language,
+            sections (
               id,
+              slug,
+              sort_order,
+              cover_url,
               name_ar,
               name_i18n,
-              description_ar,
-              description_i18n,
-              image_url,
-              is_available,
-              sort_order
+              items (
+                id,
+                name_ar,
+                name_i18n,
+                description_ar,
+                description_i18n,
+                image_url,
+                is_available,
+                sort_order
+              )
             )
           )
         )
+      `)
+      .eq(
+        "slug",
+        businessSlug,
       )
-    `)
-    .eq("slug", businessSlug)
-    .eq("status", "active")
-    .maybeSingle();
+      .eq(
+        "status",
+        "active",
+      )
+      .maybeSingle();
 
   if (error) {
-    console.error(error);
+    console.error(
+      "Failed to load business:",
+      error,
+    );
+
     return null;
   }
 
-  if (!data) return null;
+  if (!data) {
+    return null;
+  }
 
-  const billing = await getBusinessBilling(data.id);
-  const branches = limitBranches(data.branches || [], billing);
+  const billing =
+    await getBusinessBilling(
+      data.id,
+    );
+
+  const branches =
+    limitBranches(
+      data.branches || [],
+      billing,
+    );
 
   return {
     business: data,
@@ -392,95 +632,195 @@ export async function getBusinessPayload(businessSlug) {
   };
 }
 
-export async function getBranchMenuPayload(businessSlug, branchSlug) {
-  const { data, error } = await supabasePublic
-    .from("branches")
-    .select(`
-      id,
-      name,
-      name_i18n,
-      slug,
-      address,
-      address_i18n,
-      phone,
-      whatsapp,
-      instagram,
-      facebook,
-      tiktok,
-      working_hours,
-      status,
-      is_main,
-      business_id,
-      businesses!inner (
+async function getBranchMenuPayloadInternal({
+  businessSlug = null,
+  branchSlug = null,
+  businessId = null,
+  branchId = null,
+}) {
+  /*
+   * We support TWO ways of reaching
+   * the same menu engine:
+   *
+   * Legacy routes:
+   * /m/business/branch
+   *
+   * New CRTGO projects:
+   * project.business_id
+   * project.branch_id
+   */
+
+  if (
+    !branchId &&
+    !branchSlug
+  ) {
+    return null;
+  }
+
+  if (
+    !businessId &&
+    !businessSlug
+  ) {
+    return null;
+  }
+
+  let query =
+    supabasePublic
+      .from("branches")
+      .select(`
         id,
         name,
         name_i18n,
         slug,
-        logo_url,
-        description,
-        description_i18n,
-        status
-      ),
-      menu_versions!inner (
-        id,
-        name,
-        name_i18n,
+        address,
+        address_i18n,
+        phone,
+        whatsapp,
+        instagram,
+        facebook,
+        tiktok,
+        working_hours,
         status,
-        template_id,
-        description_ar,
-        description_i18n,
-        logo_url,
-        cover_url,
-        primary_color,
-        background_color,
-        text_color,
-        enabled_languages,
-        default_language,
-        sections (
+        is_main,
+        business_id,
+        businesses!inner (
           id,
-          slug,
-          cover_url,
-          name_ar,
+          name,
           name_i18n,
-          sort_order,
-          items (
+          slug,
+          logo_url,
+          description,
+          description_i18n,
+          status
+        ),
+        menu_versions!inner (
+          id,
+          name,
+          name_i18n,
+          status,
+          template_id,
+          description_ar,
+          description_i18n,
+          logo_url,
+          cover_url,
+          primary_color,
+          background_color,
+          text_color,
+          enabled_languages,
+          default_language,
+          sections (
             id,
+            slug,
+            cover_url,
             name_ar,
             name_i18n,
-            description_ar,
-            description_i18n,
-            price,
-            image_url,
-            is_available,
-            sort_order
+            sort_order,
+            items (
+              id,
+              name_ar,
+              name_i18n,
+              description_ar,
+              description_i18n,
+              price,
+              image_url,
+              is_available,
+              sort_order
+            )
           )
         )
+      `)
+      .eq(
+        "status",
+        "active",
       )
-    `)
-    .eq("slug", branchSlug)
-    .eq("status", "active")
-    .eq("businesses.slug", businessSlug)
-    .eq("businesses.status", "active")
-    .eq("menu_versions.status", "active")
-    .maybeSingle();
+      .eq(
+        "businesses.status",
+        "active",
+      )
+      .eq(
+        "menu_versions.status",
+        "active",
+      );
+
+  /*
+   * New project route:
+   * use UUID directly.
+   */
+  if (branchId) {
+    query = query.eq(
+      "id",
+      branchId,
+    );
+  } else {
+    /*
+     * Legacy route:
+     * use branch slug.
+     */
+    query = query.eq(
+      "slug",
+      branchSlug,
+    );
+  }
+
+  /*
+   * New project route:
+   * use business UUID directly.
+   */
+  if (businessId) {
+    query = query.eq(
+      "business_id",
+      businessId,
+    );
+  } else {
+    /*
+     * Legacy route:
+     * use business slug.
+     */
+    query = query.eq(
+      "businesses.slug",
+      businessSlug,
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await query.maybeSingle();
 
   if (error) {
-    console.error(error);
+    console.error(
+      "Failed to load branch menu:",
+      error,
+    );
+
     return null;
   }
 
-  if (!data) return null;
+  if (!data) {
+    return null;
+  }
 
-  const billing = await getBusinessBilling(data.business_id);
+  const billing =
+    await getBusinessBilling(
+      data.business_id,
+    );
 
   const menu =
-    data.menu_versions?.find((item) => item.status === "active") ||
+    data.menu_versions?.find(
+      (item) =>
+        item.status === "active",
+    ) ||
     data.menu_versions?.[0] ||
     null;
 
-  if (!menu) return null;
+  if (!menu) {
+    return null;
+  }
 
-  const { data: allBranches, error: branchesError } = await supabasePublic
+  const {
+    data: allBranches,
+    error: branchesError,
+  } = await supabasePublic
     .from("branches")
     .select(`
       id,
@@ -493,29 +833,94 @@ export async function getBranchMenuPayload(businessSlug, branchSlug) {
       is_main,
       business_id
     `)
-    .eq("business_id", data.business_id)
-    .eq("status", "active");
+    .eq(
+      "business_id",
+      data.business_id,
+    )
+    .eq(
+      "status",
+      "active",
+    );
 
   if (branchesError) {
-    console.error(branchesError);
+    console.error(
+      "Failed to load branches:",
+      branchesError,
+    );
   }
 
-  const branches = limitBranches(allBranches || [], billing);
+  const branches =
+    limitBranches(
+      allBranches || [],
+      billing,
+    );
 
-  const branchAllowed = branches.some(
-    (branchItem) => String(branchItem.id) === String(data.id)
-  );
+  const branchAllowed =
+    branches.some(
+      (branchItem) =>
+        String(branchItem.id) ===
+        String(data.id),
+    );
 
-  if (!branchAllowed) return null;
+  if (!branchAllowed) {
+    return null;
+  }
 
-  const safeMenu = applyPublicMenuPlan(menu, billing);
+  const safeMenu =
+    applyPublicMenuPlan(
+      menu,
+      billing,
+    );
 
   return {
-    business: data.businesses,
+    business:
+      data.businesses,
+
     branch: data,
+
     menu: safeMenu,
-    sections: cleanSections(safeMenu, billing),
+
+    sections:
+      cleanSections(
+        safeMenu,
+        billing,
+      ),
+
     branches,
+
     billing,
   };
+}
+
+/*
+ * Existing /m/... routes.
+ *
+ * Nothing using these routes
+ * needs to change.
+ */
+export function getBranchMenuPayload(
+  businessSlug,
+  branchSlug,
+) {
+  return getBranchMenuPayloadInternal({
+    businessSlug,
+    branchSlug,
+  });
+}
+
+/*
+ * New CRTGO project system.
+ *
+ * test.w.crtgo.com
+ * resolves project first,
+ * then uses these UUIDs.
+ */
+export function getBranchMenuPayloadByIds(
+  businessId,
+  branchId,
+) {
+  return getBranchMenuPayloadInternal({
+    businessId,
+    branchId,
+  });
 }
