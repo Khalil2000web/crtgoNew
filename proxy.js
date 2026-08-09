@@ -1,116 +1,146 @@
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
-const MENU_HOSTS = new Set([
-  "menu.crtgo.com",
-  "www.menu.crtgo.com",
-]);
-
-const RESERVED_HOSTS = new Set([
-  "crtgo.com",
-  "www.crtgo.com",
-  "menu.crtgo.com",
-  "www.menu.crtgo.com",
-  "app.crtgo.com",
-  "admin.crtgo.com",
-  "api.crtgo.com",
-  "ws.crtgo.com",
-  "cloud.crtgo.com",
-  "accounts.crtgo.com",
-]);
-
-export function proxy(request) {
-  const url = request.nextUrl;
-
-  const host = (request.headers.get("host") || "")
+function cleanHost(value) {
+  return String(value || "")
     .split(":")[0]
+    .trim()
     .toLowerCase();
+}
 
-  const pathname = url.pathname;
+function getTenantFromHost(
+  rawHost
+) {
+  const host =
+    cleanHost(rawHost);
 
-  const isAsset =
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/robots") ||
-    pathname.startsWith("/sitemap") ||
-    pathname.includes(".");
-
-  if (isAsset) {
-    return NextResponse.next();
+  if (!host) {
+    return null;
   }
 
   /*
-   * Internal tenant route.
-   * Never rewrite this again.
-   */
-  if (pathname.startsWith("/tenant/")) {
-    return NextResponse.next();
-  }
-
-  /*
-   * Existing CRTGO Menu domain
+   * LOCAL:
    *
-   * menu.crtgo.com/example
-   * → internally /m/example
+   * test.localhost:3000
    */
-  if (MENU_HOSTS.has(host)) {
+  if (
+    host.endsWith(
+      ".localhost"
+    )
+  ) {
+    const tenant =
+      host.slice(
+        0,
+        -".localhost".length
+      );
+
     if (
-      pathname.startsWith("/m/") ||
-      pathname === "/m" ||
-      pathname.startsWith("/q/") ||
-      pathname === "/q"
+      tenant &&
+      !tenant.includes(".")
     ) {
-      return NextResponse.next();
+      return tenant;
     }
+  }
 
-    if (pathname === "/") {
-      const rewriteUrl = url.clone();
-      rewriteUrl.pathname = "/m";
+  /*
+   * PRODUCTION:
+   *
+   * test.w.crtgo.com
+   */
+  const suffix =
+    ".w.crtgo.com";
 
-      return NextResponse.rewrite(rewriteUrl);
+  if (
+    host.endsWith(suffix)
+  ) {
+    const tenant =
+      host.slice(
+        0,
+        -suffix.length
+      );
+
+    if (
+      tenant &&
+      !tenant.includes(".")
+    ) {
+      return tenant;
     }
+  }
 
-    const parts = pathname.split("/").filter(Boolean);
+  return null;
+}
 
-    if (parts.length >= 1 && parts.length <= 3) {
-      const rewriteUrl = url.clone();
-      rewriteUrl.pathname = `/m/${parts.join("/")}`;
+export function proxy(
+  request
+) {
+  const {
+    pathname,
+  } = request.nextUrl;
 
-      return NextResponse.rewrite(rewriteUrl);
-    }
+  /*
+   * Never rewrite Next internals,
+   * API handlers, or static files.
+   */
+  if (
+    pathname.startsWith(
+      "/_next"
+    ) ||
+    pathname.startsWith(
+      "/api"
+    ) ||
+    pathname ===
+      "/favicon.ico"
+  ) {
+    return NextResponse.next();
+  }
 
+  const host =
+    request.headers.get(
+      "host"
+    );
+
+  const tenant =
+    getTenantFromHost(
+      host
+    );
+
+  if (!tenant) {
     return NextResponse.next();
   }
 
   /*
-   * CRTGO tenant websites
-   *
-   * test.crtgo.com
-   * → internally /tenant/test.crtgo.com
-   *
-   * test.crtgo.com/haifa
-   * → internally /tenant/test.crtgo.com/haifa
+   * Avoid recursively rewriting
+   * an already-internal tenant path.
    */
-  const isCrtgoSubdomain =
-    host.endsWith(".crtgo.com") &&
-    !RESERVED_HOSTS.has(host);
-
-  if (isCrtgoSubdomain) {
-    const rewriteUrl = url.clone();
-
-    rewriteUrl.pathname =
-      pathname === "/"
-        ? `/tenant/${host}`
-        : `/tenant/${host}${pathname}`;
-
-    return NextResponse.rewrite(rewriteUrl);
+  if (
+    pathname.startsWith(
+      "/tenant/"
+    )
+  ) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  const url =
+    request.nextUrl.clone();
+
+  const cleanPath =
+    pathname === "/"
+      ? ""
+      : pathname;
+
+  url.pathname =
+    `/tenant/${encodeURIComponent(
+      tenant
+    )}${cleanPath}`;
+
+  return NextResponse.rewrite(
+    url
+  );
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };
