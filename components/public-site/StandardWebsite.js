@@ -1,35 +1,382 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import RatingBox from "./RatingBox";
+
 import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  Check,
+  ChevronDown,
   Clock3,
+  Languages as LanguagesIcon,
+  MapPin,
+  Maximize2,
+  Phone,
   Search,
   Share2,
   Star,
   X,
-  Maximize2,
-  MapPin,
-  Phone,
 } from "lucide-react";
-
 
 import {
   FaFacebookF,
   FaInstagram,
   FaTiktok,
   FaWhatsapp,
-  FaYoutube,
 } from "react-icons/fa";
 
-import {
-  FaXTwitter,
-} from "react-icons/fa6";
+import RatingBox from "./RatingBox";
+import { SECTION_ICONS } from "./sectionIcons";
+import { PUBLIC_FONT_CLASS } from "./publicFonts";
 
-import {
-  SECTION_ICONS,
-} from "./sectionIcons";
+
+const PublicLanguageContext =
+  createContext(null);
+
+
+const PUBLIC_LANGUAGES = {
+  ar: {
+    code: "ar",
+    name: "العربية",
+    shortName: "ع",
+    dir: "rtl",
+    locale: "ar-IL",
+  },
+
+  en: {
+    code: "en",
+    name: "English",
+    shortName: "EN",
+    dir: "ltr",
+    locale: "en-IL",
+  },
+
+  he: {
+    code: "he",
+    name: "עברית",
+    shortName: "עב",
+    dir: "rtl",
+    locale: "he-IL",
+  },
+};
+
+
+const PUBLIC_COPY = {
+  ar: {
+    language: "اللغة",
+
+    restaurantFallback:
+      "اسم المطعم",
+
+    workingHours:
+      "ساعات العمل",
+
+    weeklyHours:
+      "أوقات العمل لهذا الأسبوع",
+
+    openNow:
+      "مفتوح الآن",
+
+    closedNow:
+      "مغلق الآن",
+
+    closedToday:
+      "مغلق اليوم",
+
+    search:
+      "بحث",
+
+    share:
+      "مشاركة",
+
+    searchPlaceholder:
+      "ابحث في القائمة...",
+
+    sectionFallback:
+      "قسم",
+
+    menuFallback:
+      "القائمة",
+
+    itemFallback:
+      "منتج",
+
+    noProducts:
+      "لا توجد منتجات بعد",
+
+    noProductsHint:
+      "ستظهر أقسام القائمة هنا.",
+
+    showAll:
+      "عرض الكل",
+
+    noProductsInSection:
+      "لا توجد منتجات في هذا القسم حالياً.",
+
+    noResults:
+      "لم نجد نتائج",
+
+    noResultsHint:
+      "جرّب البحث عن منتج آخر.",
+
+    available:
+      "متوفر",
+
+    unavailable:
+      "غير متوفر",
+
+    availableNow:
+      "متوفر حالياً",
+
+    unavailableNow:
+      "غير متوفر حالياً",
+
+    close:
+      "إغلاق",
+
+    today:
+      "اليوم",
+
+    closed:
+      "مغلق",
+
+    call:
+      "اتصال",
+
+    menuShare:
+      "شاهد قائمة {name}",
+
+    poweredBy:
+      "بدعم من CRTGO",
+
+    footerText:
+      "قائمة أسرع، أبسط، وأجمل.",
+
+    days: {
+      sunday: "الأحد",
+      monday: "الاثنين",
+      tuesday: "الثلاثاء",
+      wednesday: "الأربعاء",
+      thursday: "الخميس",
+      friday: "الجمعة",
+      saturday: "السبت",
+    },
+  },
+
+
+  en: {
+    language:
+      "Language",
+
+    restaurantFallback:
+      "Restaurant",
+
+    workingHours:
+      "Working hours",
+
+    weeklyHours:
+      "Opening hours for this week",
+
+    openNow:
+      "Open now",
+
+    closedNow:
+      "Closed now",
+
+    closedToday:
+      "Closed today",
+
+    search:
+      "Search",
+
+    share:
+      "Share",
+
+    searchPlaceholder:
+      "Search the menu...",
+
+    sectionFallback:
+      "Section",
+
+    menuFallback:
+      "Menu",
+
+    itemFallback:
+      "Item",
+
+    noProducts:
+      "No products yet",
+
+    noProductsHint:
+      "Menu sections will appear here.",
+
+    showAll:
+      "View all",
+
+    noProductsInSection:
+      "There are currently no products in this section.",
+
+    noResults:
+      "No results found",
+
+    noResultsHint:
+      "Try searching for another product.",
+
+    available:
+      "Available",
+
+    unavailable:
+      "Unavailable",
+
+    availableNow:
+      "Currently available",
+
+    unavailableNow:
+      "Currently unavailable",
+
+    close:
+      "Close",
+
+    today:
+      "Today",
+
+    closed:
+      "Closed",
+
+    call:
+      "Call",
+
+    menuShare:
+      "View {name}'s menu",
+
+    poweredBy:
+      "Powered by CRTGO",
+
+    footerText:
+      "A faster, simpler and better menu.",
+
+    days: {
+      sunday: "Sunday",
+      monday: "Monday",
+      tuesday: "Tuesday",
+      wednesday: "Wednesday",
+      thursday: "Thursday",
+      friday: "Friday",
+      saturday: "Saturday",
+    },
+  },
+
+
+  he: {
+    language:
+      "שפה",
+
+    restaurantFallback:
+      "מסעדה",
+
+    workingHours:
+      "שעות פתיחה",
+
+    weeklyHours:
+      "שעות הפתיחה השבוע",
+
+    openNow:
+      "פתוח עכשיו",
+
+    closedNow:
+      "סגור עכשיו",
+
+    closedToday:
+      "סגור היום",
+
+    search:
+      "חיפוש",
+
+    share:
+      "שיתוף",
+
+    searchPlaceholder:
+      "חיפוש בתפריט...",
+
+    sectionFallback:
+      "קטגוריה",
+
+    menuFallback:
+      "תפריט",
+
+    itemFallback:
+      "פריט",
+
+    noProducts:
+      "אין מוצרים עדיין",
+
+    noProductsHint:
+      "קטגוריות התפריט יופיעו כאן.",
+
+    showAll:
+      "הצג הכל",
+
+    noProductsInSection:
+      "אין כרגע מוצרים בקטגוריה זו.",
+
+    noResults:
+      "לא נמצאו תוצאות",
+
+    noResultsHint:
+      "נסה לחפש מוצר אחר.",
+
+    available:
+      "זמין",
+
+    unavailable:
+      "לא זמין",
+
+    availableNow:
+      "זמין כרגע",
+
+    unavailableNow:
+      "לא זמין כרגע",
+
+    close:
+      "סגור",
+
+    today:
+      "היום",
+
+    closed:
+      "סגור",
+
+    call:
+      "התקשר",
+
+    menuShare:
+      "צפה בתפריט של {name}",
+
+    poweredBy:
+      "מופעל על ידי CRTGO",
+
+    footerText:
+      "תפריט מהיר, פשוט ויפה יותר.",
+
+    days: {
+      sunday: "יום ראשון",
+      monday: "יום שני",
+      tuesday: "יום שלישי",
+      wednesday: "יום רביעי",
+      thursday: "יום חמישי",
+      friday: "יום שישי",
+      saturday: "שבת",
+    },
+  },
+};
+
 
 const DAY_KEYS = [
   "sunday",
@@ -41,6 +388,7 @@ const DAY_KEYS = [
   "saturday",
 ];
 
+
 const SHORT_DAY_KEYS = {
   sunday: "sun",
   monday: "mon",
@@ -51,41 +399,179 @@ const SHORT_DAY_KEYS = {
   saturday: "sat",
 };
 
-const DAY_NAMES = {
-  sunday: "الأحد",
-  monday: "الاثنين",
-  tuesday: "الثلاثاء",
-  wednesday: "الأربعاء",
-  thursday: "الخميس",
-  friday: "الجمعة",
-  saturday: "السبت",
-};
 
-function toArray(value) {
-  return Array.isArray(value) ? value : [];
+function getNestedValue(
+  object,
+  path
+) {
+  return path
+    .split(".")
+    .reduce(
+      (
+        current,
+        key
+      ) =>
+        current?.[key],
+      object
+    );
 }
 
-function safeText(value, fallback = "") {
-  if (value === null || value === undefined) {
+
+function getPublicCopy(
+  language,
+  key,
+  variables = {}
+) {
+  const selected =
+    getNestedValue(
+      PUBLIC_COPY[
+        language
+      ],
+      key
+    );
+
+  const english =
+    getNestedValue(
+      PUBLIC_COPY.en,
+      key
+    );
+
+  let value =
+    selected ??
+    english ??
+    key;
+
+  if (
+    typeof value !==
+    "string"
+  ) {
+    return value;
+  }
+
+  for (
+    const [
+      variable,
+      replacement,
+    ] of Object.entries(
+      variables
+    )
+  ) {
+    value =
+      value.replaceAll(
+        `{${variable}}`,
+        String(
+          replacement ??
+            ""
+        )
+      );
+  }
+
+  return value;
+}
+
+
+function normalizeLanguages(
+  value
+) {
+  if (
+    !Array.isArray(
+      value
+    )
+  ) {
+    return [
+      "ar",
+    ];
+  }
+
+  const valid =
+    value
+      .map(
+        (
+          code
+        ) =>
+          String(
+            code ||
+              ""
+          )
+            .trim()
+            .toLowerCase()
+      )
+      .filter(
+        (
+          code
+        ) =>
+          Boolean(
+            PUBLIC_LANGUAGES[
+              code
+            ]
+          )
+      );
+
+  return valid.length
+    ? [
+        ...new Set(
+          valid
+        ),
+      ]
+    : [
+        "ar",
+      ];
+}
+
+
+function toArray(
+  value
+) {
+  return Array.isArray(
+    value
+  )
+    ? value
+    : [];
+}
+
+
+function safeText(
+  value,
+  fallback = ""
+) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
     return fallback;
   }
 
   if (
-    typeof value === "string" ||
-    typeof value === "number"
+    typeof value ===
+      "string" ||
+    typeof value ===
+      "number"
   ) {
-    const text = String(value).trim();
-    return text || fallback;
+    const text =
+      String(
+        value
+      ).trim();
+
+    return (
+      text ||
+      fallback
+    );
   }
 
-  if (typeof value === "boolean") {
-    return value ? "true" : "false";
+  if (
+    typeof value ===
+    "boolean"
+  ) {
+    return value
+      ? "true"
+      : "false";
   }
 
-  if (typeof value === "object") {
+  if (
+    typeof value ===
+    "object"
+  ) {
     const possibleValues = [
-      value.ar,
-      value.arabic,
       value.text,
       value.label,
       value.name,
@@ -95,12 +581,20 @@ function safeText(value, fallback = "") {
       value.default,
     ];
 
-    for (const item of possibleValues) {
+    for (
+      const item of
+      possibleValues
+    ) {
       if (
-        typeof item === "string" ||
-        typeof item === "number"
+        typeof item ===
+          "string" ||
+        typeof item ===
+          "number"
       ) {
-        const text = String(item).trim();
+        const text =
+          String(
+            item
+          ).trim();
 
         if (text) {
           return text;
@@ -112,16 +606,107 @@ function safeText(value, fallback = "") {
   return fallback;
 }
 
-function getImageUrl(value) {
+
+function getTranslations(
+  entity,
+  field
+) {
+  if (!entity) {
+    return {};
+  }
+
+  const translations =
+    entity[
+      `${field}_i18n`
+    ] ||
+    entity[
+      `${field}I18n`
+    ];
+
+  if (
+    translations &&
+    typeof translations ===
+      "object" &&
+    !Array.isArray(
+      translations
+    )
+  ) {
+    return translations;
+  }
+
+  return {};
+}
+
+
+function getLocalizedField(
+  entity,
+  field,
+  language,
+  fallback = ""
+) {
+  if (!entity) {
+    return fallback;
+  }
+
+  const translations =
+    getTranslations(
+      entity,
+      field
+    );
+
+  const translated =
+    safeText(
+      translations[
+        language
+      ]
+    );
+
+  if (translated) {
+    return translated;
+  }
+
+  const directLanguageValue =
+    safeText(
+      entity[
+        `${field}_${language}`
+      ]
+    );
+
+  if (
+    directLanguageValue
+  ) {
+    return directLanguageValue;
+  }
+
+  return (
+    safeText(
+      entity[
+        field
+      ]
+    ) ||
+    fallback
+  );
+}
+
+
+function getImageUrl(
+  value
+) {
   if (!value) {
     return null;
   }
 
-  if (typeof value === "string") {
+  if (
+    typeof value ===
+    "string"
+  ) {
     return value;
   }
 
-  if (typeof value === "object") {
+  if (
+    typeof value ===
+    "object"
+  ) {
     const possibleUrls = [
       value.url,
       value.src,
@@ -130,8 +715,15 @@ function getImageUrl(value) {
       value.image_url,
     ];
 
-    for (const url of possibleUrls) {
-      if (typeof url === "string" && url.trim()) {
+    for (
+      const url of
+      possibleUrls
+    ) {
+      if (
+        typeof url ===
+          "string" &&
+        url.trim()
+      ) {
         return url;
       }
     }
@@ -140,7 +732,11 @@ function getImageUrl(value) {
   return null;
 }
 
-function formatPrice(value) {
+
+function formatPrice(
+  value,
+  language
+) {
   if (
     value === null ||
     value === undefined ||
@@ -149,330 +745,955 @@ function formatPrice(value) {
     return null;
   }
 
-  const number = Number(value);
-
-  if (!Number.isFinite(number)) {
-    const text = safeText(value);
-
-    return text || null;
-  }
-
-  return new Intl.NumberFormat("he-IL", {
-    maximumFractionDigits: 2,
-  }).format(number);
-}
-
-function timeToMinutes(value) {
-  if (!value || typeof value !== "string") {
-    return null;
-  }
-
-  const parts = value.split(":");
-
-  if (parts.length < 2) {
-    return null;
-  }
-
-  const hours = Number(parts[0]);
-  const minutes = Number(parts[1]);
+  const number =
+    Number(
+      value
+    );
 
   if (
-    Number.isNaN(hours) ||
-    Number.isNaN(minutes)
+    !Number.isFinite(
+      number
+    )
+  ) {
+    const text =
+      safeText(
+        value
+      );
+
+    return (
+      text ||
+      null
+    );
+  }
+
+  const locale =
+    PUBLIC_LANGUAGES[
+      language
+    ]?.locale ||
+    "en-IL";
+
+  return new Intl.NumberFormat(
+    locale,
+    {
+      maximumFractionDigits:
+        2,
+    }
+  ).format(
+    number
+  );
+}
+
+
+function timeToMinutes(
+  value
+) {
+  if (
+    !value ||
+    typeof value !==
+      "string"
   ) {
     return null;
   }
 
-  return hours * 60 + minutes;
-}
+  const parts =
+    value.split(
+      ":"
+    );
 
-function getDayData(workingHours, dayKey) {
   if (
-    !workingHours ||
-    typeof workingHours !== "object"
+    parts.length <
+    2
+  ) {
+    return null;
+  }
+
+  const hours =
+    Number(
+      parts[
+        0
+      ]
+    );
+
+  const minutes =
+    Number(
+      parts[
+        1
+      ]
+    );
+
+  if (
+    Number.isNaN(
+      hours
+    ) ||
+    Number.isNaN(
+      minutes
+    )
   ) {
     return null;
   }
 
   return (
-    workingHours[dayKey] ||
-    workingHours[SHORT_DAY_KEYS[dayKey]] ||
+    hours *
+      60 +
+    minutes
+  );
+}
+
+
+function getDayData(
+  workingHours,
+  dayKey
+) {
+  if (
+    !workingHours ||
+    typeof workingHours !==
+      "object"
+  ) {
+    return null;
+  }
+
+  return (
+    workingHours[
+      dayKey
+    ] ||
+    workingHours[
+      SHORT_DAY_KEYS[
+        dayKey
+      ]
+    ] ||
     null
   );
 }
 
-function normalizeDay(data) {
-  if (!data || typeof data !== "object") {
+
+function normalizeDay(
+  data
+) {
+  if (
+    !data ||
+    typeof data !==
+      "object"
+  ) {
     return {
-      isOpenDay: false,
-      from: "",
-      to: "",
+      isOpenDay:
+        false,
+
+      from:
+        "",
+
+      to:
+        "",
     };
   }
 
   const closed =
-    data.closed === true ||
-    data.is_open === false ||
-    data.open === false ||
-    data.enabled === false;
+    data.closed ===
+      true ||
+    data.is_open ===
+      false ||
+    data.open ===
+      false ||
+    data.enabled ===
+      false;
 
   const from =
-    safeText(data.from) ||
-    safeText(data.open_time) ||
-    safeText(data.start) ||
-    safeText(data.opens) ||
-    (typeof data.open === "string"
-      ? data.open
-      : "");
+    safeText(
+      data.from
+    ) ||
+    safeText(
+      data.open_time
+    ) ||
+    safeText(
+      data.start
+    ) ||
+    safeText(
+      data.opens
+    ) ||
+    (
+      typeof data.open ===
+      "string"
+        ? data.open
+        : ""
+    );
 
   const to =
-    safeText(data.to) ||
-    safeText(data.close_time) ||
-    safeText(data.end) ||
-    safeText(data.closes) ||
-    (typeof data.close === "string"
-      ? data.close
-      : "");
+    safeText(
+      data.to
+    ) ||
+    safeText(
+      data.close_time
+    ) ||
+    safeText(
+      data.end
+    ) ||
+    safeText(
+      data.closes
+    ) ||
+    (
+      typeof data.close ===
+      "string"
+        ? data.close
+        : ""
+    );
 
   return {
-    isOpenDay: !closed && Boolean(from && to),
+    isOpenDay:
+      !closed &&
+      Boolean(
+        from &&
+          to
+      ),
+
     from,
+
     to,
   };
 }
 
-function isNowInsideRange(from, to) {
-  const start = timeToMinutes(from);
-  const end = timeToMinutes(to);
 
-  if (start === null || end === null) {
+function isNowInsideRange(
+  from,
+  to
+) {
+  const start =
+    timeToMinutes(
+      from
+    );
+
+  const end =
+    timeToMinutes(
+      to
+    );
+
+  if (
+    start === null ||
+    end === null
+  ) {
     return false;
   }
 
-  const now = new Date();
+  const now =
+    new Date();
 
   const current =
-    now.getHours() * 60 +
+    now.getHours() *
+      60 +
     now.getMinutes();
 
-  if (end < start) {
-    return current >= start || current < end;
+  if (
+    end <
+    start
+  ) {
+    return (
+      current >=
+        start ||
+      current <
+        end
+    );
   }
 
-  return current >= start && current < end;
+  return (
+    current >=
+      start &&
+    current <
+      end
+  );
 }
 
-function getTodayWorkingHours(workingHours) {
-  const now = new Date();
 
-  const dayKey = DAY_KEYS[now.getDay()];
+function getTodayWorkingHours(
+  workingHours
+) {
+  const now =
+    new Date();
 
-  const data = getDayData(
-    workingHours,
-    dayKey
-  );
+  const dayKey =
+    DAY_KEYS[
+      now.getDay()
+    ];
 
-  const day = normalizeDay(data);
+  const data =
+    getDayData(
+      workingHours,
+      dayKey
+    );
 
-  if (!day.isOpenDay) {
-    return {
-      dayKey,
-      dayName: DAY_NAMES[dayKey],
-      label: "مغلق اليوم",
-      isOpenNow: false,
-      isOpenDay: false,
-    };
-  }
+  const day =
+    normalizeDay(
+      data
+    );
 
   return {
     dayKey,
-    dayName: DAY_NAMES[dayKey],
-    label: `${day.from} - ${day.to}`,
-    isOpenNow: isNowInsideRange(
+
+    isOpenDay:
+      day.isOpenDay,
+
+    from:
       day.from,
-      day.to
-    ),
-    isOpenDay: true,
+
+    to:
+      day.to,
+
+    isOpenNow:
+      day.isOpenDay
+        ? isNowInsideRange(
+            day.from,
+            day.to
+          )
+        : false,
   };
 }
 
-function getSectionId(section) {
-  return `section-${section?.id || section?.slug || "menu"}`;
+
+function getSectionId(
+  section
+) {
+  return `section-${
+    section?.id ||
+    section?.slug ||
+    "menu"
+  }`;
 }
 
-export default function StandardWebsite({
-  website,
-}) {
-  const [query, setQuery] = useState("");
-  const [workingHoursOpen, setWorkingHoursOpen] = useState(false);
 
-  const sections = useMemo(() => {
-    return toArray(website?.sections);
-  }, [website?.sections]);
+function getItemCountText(
+  count,
+  language
+) {
+  if (
+    language ===
+    "en"
+  ) {
+    return `${count} ${
+      count === 1
+        ? "item"
+        : "items"
+    }`;
+  }
 
-  return (
-    <main
-      dir="rtl"
-      className="min-h-screen overflow-x-hidden"
-      style={{
-        backgroundColor:
-          safeText(website?.backgroundColor) ||
-          "#ffffff",
+  if (
+    language ===
+    "he"
+  ) {
+    return `${count} פריטים`;
+  }
 
-        color:
-          safeText(website?.textColor) ||
-          "#111111",
-
-        "--crtgo-primary":
-          safeText(website?.primaryColor) ||
-          "#e32b2b",
-      }}
-    >
-<RestaurantHeader
-  website={website}
-  onOpenWorkingHours={() => setWorkingHoursOpen(true)}
-/>
-
-      <div
-        className="relative z-[1] pt-90 -mt-80 rounded-t-3xl bg-red-800"
-        style={{
-          backgroundColor:
-            safeText(
-              website?.backgroundColor
-            ) || "#ffffff",
-        }}
-      >
-        <MenuSearch
-          query={query}
-          setQuery={setQuery}
-        />
-
-        <SectionNavigation
-          sections={sections}
-        />
-
-        <MenuSections
-          sections={sections}
-          query={query}
-        />
-      </div>
-
-
-
-      {workingHoursOpen && (
-  <div
-    className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center sm:p-4"
-    onClick={() => setWorkingHoursOpen(false)}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      className="w-full rounded-t-[28px] bg-white p-5 text-black shadow-2xl sm:max-w-md sm:rounded-[28px]"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-black">
-            ساعات العمل
-          </h2>
-
-          <p className="mt-1 text-sm font-medium text-neutral-500">
-            أوقات العمل لهذا الأسبوع
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setWorkingHoursOpen(false)}
-          className="flex cursor-pointer h-10 w-10 items-center justify-center rounded-full bg-neutral-100 transition hover:bg-neutral-200"
-        >
-          <X size={18} />
-        </button>
-      </div>
-
-      <div className="mt-5">
-        <WorkingHours hours={website.workingHours} />
-      </div>
-    </div>
-  </div>
-)}
-    </main>
-  );
+  return `${count} منتج`;
 }
 
-function RestaurantHeader({
-  website,
-  onOpenWorkingHours,
-}) {
-const phone =
-  safeText(website?.phone);
 
-const whatsapp =
-  safeText(website?.whatsapp);
-
-const instagram =
-  safeText(website?.instagram);
-
-const facebook =
-  safeText(website?.facebook);
-
-const tiktok =
-  safeText(website?.tiktok);
-
-  const explicitHours =
-    safeText(
-      website?.workingHoursText
-    ) ||
-    safeText(
-      website?.working_hours_text
+function usePublicLanguage() {
+  const context =
+    useContext(
+      PublicLanguageContext
     );
 
-  const workingHours =
-    website?.workingHours ||
-    website?.working_hours ||
-    null;
+  if (!context) {
+    throw new Error(
+      "usePublicLanguage must be used inside StandardWebsite"
+    );
+  }
 
-  const [today, setToday] = useState({
-    dayName: "",
-    label:
-      explicitHours ||
-      "ساعات العمل",
-    isOpenNow: null,
-    isOpenDay: true,
-  });
+  return context;
+}
+
+
+/*
+ * Native dialog = browser top layer.
+ *
+ * No z-index is required anywhere.
+ */
+function AnimatedDialog({
+  open,
+  onClose,
+  children,
+  align = "bottom",
+  panelClassName = "",
+}) {
+  const dialogRef =
+    useRef(
+      null
+    );
+
+  const closeTimerRef =
+    useRef(
+      null
+    );
+
+  const [
+    visible,
+    setVisible,
+  ] =
+    useState(
+      false
+    );
+
 
   useEffect(() => {
-    if (explicitHours) {
-      setToday({
-        dayName: "",
-        label: explicitHours,
-        isOpenNow: null,
-        isOpenDay: true,
-      });
+    const dialog =
+      dialogRef.current;
 
+    if (
+      !dialog ||
+      !open
+    ) {
       return;
     }
 
     if (
-      workingHours &&
-      typeof workingHours === "object"
+      closeTimerRef.current
     ) {
-      setToday(
-        getTodayWorkingHours(
-          workingHours
-        )
+      window.clearTimeout(
+        closeTimerRef.current
       );
+
+      closeTimerRef.current =
+        null;
+    }
+
+    if (
+      !dialog.open
+    ) {
+      dialog.showModal();
+    }
+
+    const frame =
+      requestAnimationFrame(
+        () => {
+          setVisible(
+            true
+          );
+        }
+      );
+
+    return () => {
+      cancelAnimationFrame(
+        frame
+      );
+    };
+  }, [
+    open,
+  ]);
+
+
+  useEffect(() => {
+    return () => {
+      if (
+        closeTimerRef.current
+      ) {
+        window.clearTimeout(
+          closeTimerRef.current
+        );
+      }
+    };
+  }, []);
+
+
+  function requestClose() {
+    if (
+      closeTimerRef.current
+    ) {
       return;
     }
 
-    setToday({
-      dayName: "",
-      label: "ساعات العمل",
-      isOpenNow: null,
-      isOpenDay: true,
-    });
+    setVisible(
+      false
+    );
+
+    closeTimerRef.current =
+      window.setTimeout(
+        () => {
+          const dialog =
+            dialogRef.current;
+
+          if (
+            dialog?.open
+          ) {
+            dialog.close();
+          }
+
+          closeTimerRef.current =
+            null;
+
+          onClose();
+        },
+        220
+      );
+  }
+
+
+  return (
+    <dialog
+      ref={
+        dialogRef
+      }
+      onCancel={(
+        event
+      ) => {
+        event.preventDefault();
+
+        requestClose();
+      }}
+      className="m-0 h-dvh w-screen max-w-none overflow-hidden bg-transparent p-0"
+    >
+      <div
+        className={`flex h-full w-full bg-black/55 backdrop-blur-[5px] transition-all duration-200 ${
+          visible
+            ? "opacity-100"
+            : "opacity-0"
+        } ${
+          align ===
+          "center"
+            ? "items-center justify-center p-4 sm:p-6"
+            : "items-end justify-center sm:items-center sm:p-6"
+        }`}
+        onMouseDown={(
+          event
+        ) => {
+          if (
+            event.target ===
+            event.currentTarget
+          ) {
+            requestClose();
+          }
+        }}
+      >
+        <div
+          className={`w-full transition-all duration-200 ease-out ${
+            visible
+              ? "translate-y-0 scale-100 opacity-100"
+              : align ===
+                  "center"
+                ? "translate-y-3 scale-[0.97] opacity-0"
+                : "translate-y-10 scale-[0.985] opacity-0"
+          } ${panelClassName}`}
+          onMouseDown={(
+            event
+          ) =>
+            event.stopPropagation()
+          }
+        >
+          {children({
+            close:
+              requestClose,
+          })}
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
+
+export default function StandardWebsite({
+  website,
+}) {
+  const [
+    query,
+    setQuery,
+  ] =
+    useState(
+      ""
+    );
+
+  const [
+    workingHoursOpen,
+    setWorkingHoursOpen,
+  ] =
+    useState(
+      false
+    );
+
+
+  const enabledLanguages =
+    useMemo(
+      () =>
+        normalizeLanguages(
+          website?.enabledLanguages ??
+            website?.enabled_languages
+        ),
+      [
+        website?.enabledLanguages,
+        website?.enabled_languages,
+      ]
+    );
+
+
+  const requestedDefault =
+    safeText(
+      website?.defaultLanguage ??
+        website?.default_language
+    );
+
+
+  const defaultLanguage =
+    enabledLanguages.includes(
+      requestedDefault
+    )
+      ? requestedDefault
+      : enabledLanguages[
+          0
+        ];
+
+
+  const storageKey =
+    `crtgo-public-language:${
+      website?.id ||
+      website?.slug ||
+      "website"
+    }`;
+
+
+  const [
+    language,
+    setLanguageState,
+  ] =
+    useState(
+      defaultLanguage
+    );
+
+
+  const [
+    languageReady,
+    setLanguageReady,
+  ] =
+    useState(
+      false
+    );
+
+
+  useEffect(() => {
+    let nextLanguage =
+      defaultLanguage;
+
+    try {
+      const saved =
+        window.localStorage.getItem(
+          storageKey
+        );
+
+      if (
+        saved &&
+        enabledLanguages.includes(
+          saved
+        )
+      ) {
+        nextLanguage =
+          saved;
+      }
+    } catch {
+      // Storage unavailable.
+    }
+
+    setLanguageState(
+      nextLanguage
+    );
+
+    setLanguageReady(
+      true
+    );
   }, [
-    explicitHours,
-    workingHours,
+    storageKey,
+    defaultLanguage,
+    enabledLanguages,
   ]);
+
+
+  useEffect(() => {
+    if (
+      !languageReady
+    ) {
+      return;
+    }
+
+    if (
+      !enabledLanguages.includes(
+        language
+      )
+    ) {
+      setLanguageState(
+        defaultLanguage
+      );
+
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        language
+      );
+    } catch {
+      // Storage unavailable.
+    }
+  }, [
+    language,
+    languageReady,
+    enabledLanguages,
+    defaultLanguage,
+    storageKey,
+  ]);
+
+
+  function setLanguage(
+    code
+  ) {
+    if (
+      !enabledLanguages.includes(
+        code
+      )
+    ) {
+      return;
+    }
+
+    setLanguageState(
+      code
+    );
+
+    setQuery(
+      ""
+    );
+  }
+
+
+  const languageMeta =
+    PUBLIC_LANGUAGES[
+      language
+    ] ||
+    PUBLIC_LANGUAGES.ar;
+
+
+  const contextValue = {
+    language,
+
+    dir:
+      languageMeta.dir,
+
+    enabledLanguages,
+
+    setLanguage,
+
+    t: (
+      key,
+      variables
+    ) =>
+      getPublicCopy(
+        language,
+        key,
+        variables
+      ),
+
+    text: (
+      entity,
+      field,
+      fallback = ""
+    ) =>
+      getLocalizedField(
+        entity,
+        field,
+        language,
+        fallback
+      ),
+  };
+
+
+  const sections =
+    useMemo(
+      () =>
+        toArray(
+          website?.sections
+        ),
+      [
+        website?.sections,
+      ]
+    );
+
+
+  const backgroundColor =
+    safeText(
+      website?.backgroundColor
+    ) ||
+    safeText(
+      website?.colors
+        ?.background
+    ) ||
+    "#f7f7f7";
+
+
+  const textColor =
+    safeText(
+      website?.textColor
+    ) ||
+    safeText(
+      website?.colors
+        ?.text
+    ) ||
+    "#111111";
+
+
+  const primaryColor =
+    safeText(
+      website?.primaryColor
+    ) ||
+    safeText(
+      website?.colors
+        ?.primary
+    ) ||
+    "#e32b2b";
+
+
+  const fontClass =
+    PUBLIC_FONT_CLASS[
+      language
+    ] ||
+    PUBLIC_FONT_CLASS.ar;
+
+
+  return (
+    <PublicLanguageContext.Provider
+      value={
+        contextValue
+      }
+    >
+      <main
+        dir={
+          languageMeta.dir
+        }
+        lang={
+          language
+        }
+        className={`${fontClass} relative min-h-screen overflow-x-hidden`}
+        style={{
+          backgroundColor,
+
+          color:
+            textColor,
+
+          "--crtgo-primary":
+            primaryColor,
+        }}
+      >
+        {/*
+         * FIRST LAYER
+         * Big cover image.
+         */}
+        <RestaurantCover
+          website={
+            website
+          }
+          onOpenWorkingHours={() =>
+            setWorkingHoursOpen(
+              true
+            )
+          }
+        />
+
+
+        {/*
+         * SECOND LAYER
+         * Menu surface.
+         *
+         * It is rendered AFTER the cover,
+         * so it naturally paints above it.
+         */}
+        <div
+          className="second-layer relative -mt-10 rounded-t-[34px] border-t border-white/70 pb-10 pt-[450px] shadow-[0_-14px_60px_rgba(0,0,0,0.06)] sm:-mt-24 sm:rounded-t-[42px] sm:pt-[350px]"
+          style={{
+            backgroundColor,
+          }}
+        >
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <MenuSearch
+              query={
+                query
+              }
+              setQuery={
+                setQuery
+              }
+            />
+
+            <SectionNavigation
+              sections={
+                sections
+              }
+            />
+
+            <MenuSections
+              sections={
+                sections
+              }
+              query={
+                query
+              }
+            />
+          </div>
+        </div>
+
+
+        {/*
+         * THIRD LAYER
+         * Floating restaurant card.
+         *
+         * It is rendered after second-layer,
+         * so it naturally paints above it.
+         */}
+        <RestaurantFloatingCard
+          website={
+            website
+          }
+          onOpenWorkingHours={() =>
+            setWorkingHoursOpen(
+              true
+            )
+          }
+        />
+
+
+        <Footer />
+
+
+        {/*
+         * FINAL LAYER
+         * Native dialog top layer.
+         */}
+        <WorkingHoursModal
+          open={
+            workingHoursOpen
+          }
+          website={
+            website
+          }
+          onClose={() =>
+            setWorkingHoursOpen(
+              false
+            )
+          }
+        />
+      </main>
+    </PublicLanguageContext.Provider>
+  );
+}
+
+
+function RestaurantCover({
+  website,
+  onOpenWorkingHours,
+}) {
+  const {
+    dir,
+    language,
+    t,
+    text,
+  } =
+    usePublicLanguage();
+
+
+  const coverImages =
+    toArray(
+      website?.coverImages ??
+        website?.cover_images
+    );
+
 
   const cover =
     getImageUrl(
@@ -483,113 +1704,52 @@ const tiktok =
     ) ||
     getImageUrl(
       website?.cover
+    ) ||
+    getImageUrl(
+      coverImages[
+        0
+      ]
     );
 
-  const logo =
-    getImageUrl(
-      website?.logoUrl
-    ) ||
-    getImageUrl(
-      website?.logo_url
-    ) ||
-    getImageUrl(
-      website?.logo
-    );
 
   const name =
-    safeText(
-      website?.name
+    text(
+      website,
+      "name"
     ) ||
-    safeText(
-      website?.displayName
-    ) ||
-    safeText(
-      website?.display_name
-    ) ||
-    "اسم المطعم";
-
-  const location =
-    safeText(
-      website?.location
-    ) ||
-    safeText(
-      website?.address
+    t(
+      "restaurantFallback"
     );
 
-  const description =
-    safeText(
-      website?.description
-    );
-
-  const rating =
-    safeText(
-      website?.rating,
-      "4.2"
-    );
-
-  const reviews =
-    safeText(
-      website?.reviewsCount
-    ) ||
-    safeText(
-      website?.reviews_count
-    ) ||
-    safeText(
-      website?.reviews,
-      "1000+"
-    );
-
-  const deliveryTime =
-    safeText(
-      website?.deliveryTime
-    ) ||
-    safeText(
-      website?.delivery_time
-    ) ||
-    "35-45 د";
-
-  const minimumOrderValue =
-    website?.minimumOrder ??
-    website?.minimum_order ??
-    null;
-
-  const formattedMinimum =
-    formatPrice(
-      minimumOrderValue
-    );
-
-  const minimumOrder =
-    formattedMinimum
-      ? `₪${formattedMinimum}`
-      : "₪17";
-
-  const explicitOpen =
-    typeof website?.isOpen ===
-    "boolean"
-      ? website.isOpen
-      : typeof website?.is_open ===
-          "boolean"
-        ? website.is_open
-        : null;
-
-  const isOpen =
-    explicitOpen ??
-    today.isOpenNow ??
-    false;
 
   async function handleShare() {
-    if (typeof window === "undefined") {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
       return;
     }
 
     const shareData = {
-      title: name,
-      text: `شاهد قائمة ${name}`,
-      url: window.location.href,
+      title:
+        name,
+
+      text:
+        t(
+          "menuShare",
+          {
+            name,
+          }
+        ),
+
+      url:
+        window.location.href,
     };
 
     try {
-      if (navigator.share) {
+      if (
+        navigator.share
+      ) {
         await navigator.share(
           shareData
         );
@@ -605,9 +1765,10 @@ const tiktok =
         );
       }
     } catch {
-      // Share cancelled
+      // Share cancelled.
     }
   }
+
 
   function handleSearch() {
     const input =
@@ -620,367 +1781,164 @@ const tiktok =
     }
 
     input.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
+      behavior:
+        "smooth",
+
+      block:
+        "center",
     });
 
-    setTimeout(() => {
-      input.focus();
-    }, 350);
+    window.setTimeout(
+      () => {
+        input.focus();
+      },
+      280
+    );
   }
 
+
   return (
-    <header
-      dir="rtl"
-      className="relative"
+    <section
+      dir={
+        dir
+      }
+      lang={
+        language
+      }
+      className="relative h-[360px] overflow-hidden sm:h-[430px]"
     >
-      {/* COVER */}
-      <section className="relative h-[300px] overflow-hidden sm:h-[360px]">
-        {cover ? (
-          <Image
-            src={cover}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-red-700 to-orange-500" />
-        )}
+      {cover ? (
+        <Image
+          src={
+            cover
+          }
+          alt=""
+          fill
+          preload
+          sizes="100vw"
+          className="object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-800 to-neutral-600" />
+      )}
 
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/50" />
 
-        {/* TOP BUTTONS */}
-        <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-5 sm:px-6">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/65" />
+
+
+      <div className="absolute inset-x-0 top-0 mx-auto flex max-w-6xl items-center justify-between px-4 pt-5 sm:px-6 sm:pt-6">
+        <button
+          type="button"
+          onClick={
+            onOpenWorkingHours
+          }
+          aria-label={t(
+            "workingHours"
+          )}
+          className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:bg-black/40 active:scale-95"
+        >
+          <Clock3 className="size-[19px]" />
+        </button>
+
+
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+
+
           <button
             type="button"
-            onClick={onOpenWorkingHours}
-            className="flex size-8 cursor-pointer items-center justify-center rounded-full bg-white text-neutral-950 shadow-lg transition active:scale-95"
-            aria-label="working hours"
+            onClick={
+              handleSearch
+            }
+            aria-label={t(
+              "search"
+            )}
+            className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:bg-black/40 active:scale-95"
           >
-            <Clock3
-              className="size-6"
-              strokeWidth={2}
-            />
+            <Search className="size-[19px]" />
           </button>
 
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleSearch}
-              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-black/25 text-white shadow-sm backdrop-blur-xl transition hover:bg-black/35 active:scale-95"
-              aria-label="بحث"
-            >
-              <Search className="size-5" />
-            </button>
 
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-black/25 text-white shadow-sm backdrop-blur-xl transition hover:bg-black/35 active:scale-95"
-              aria-label="مشاركة"
-            >
-              <Share2 className="size-5" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-
-
-<div className="absolute flex items-center justify-around w-full top-[160] left-1/2 -translate-x-1/2">
-<SocialLinksRow
-  phone={phone}
-  whatsapp={whatsapp}
-  instagram={instagram}
-  facebook={facebook}
-  tiktok={tiktok}
-/>
-</div>
-
-
-
-      {/* FLOATING CARD */}
-      <div className="relative z-10 -mt-20 px-5 sm:px-5">
-        <div className="relative mx-auto max-w-5xl rounded-[2rem] bg-white px-5 pb-6 pt-5 shadow-2xl sm:px-8 sm:pb-8 sm:pt-20">
-          
-          <div className="flex items-center jusitify-between">
-          
-          {/* LOGO */}
-            <div className="relative size-28 overflow-hidden rounded-full border-[5px] border-white bg-neutral-100 shadow-xl sm:size-32 md:absolute md:left-5 md:top-[-60px]">
-              {logo ? (
-                <Image
-                  src={logo}
-                  alt={name}
-                  fill
-                  sizes="128px"
-                  className="object-cover pointer-events-none"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-4xl font-black text-neutral-300">
-                  {name.charAt(0)}
-                </div>
-              )}
-            </div>
-
-<div className="flex flex-col flex-1 items-center justify-end md:justify-center md:w-[90%] gap-2">
-          {/* NAME */}
-          <div>
-            <h1 className="max-w-[90%] md:w-[90%] md:max-w-full text-right md:text-center text-[28px] font-black sm:text-4xl">
-              {name}
-            </h1>
-
-            {location && (
-              <div className="mt-3 flex items-start gap-1.5 text-neutral-500">
-                <MapPin className="mt-1 size-4 shrink-0" />
-
-                <p className="text-sm font-medium leading-6 sm:text-[15px]">
-                  {location}
-                </p>
-              </div>
+          <button
+            type="button"
+            onClick={
+              handleShare
+            }
+            aria-label={t(
+              "share"
             )}
-</div>
-</div>
-            <div className="mt-4">
-              <span
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold ${
-                  isOpen
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "bg-red-50 text-red-500"
-                }`}
-              >
-                <span
-                  className={`size-[6px] rounded-full ${
-                    isOpen
-                      ? "bg-emerald-500"
-                      : "bg-red-500"
-                  }`}
-                />
-
-                {isOpen
-                  ? "مفتوح الآن"
-                  : "مغلق الآن"}
-              </span>
-
-</div>
-</div>
-          {description && (
-            <p className="pt-8 mx-auto w-[90%] max-w-2xl text-center text-sm font-medium leading-7 text-neutral-500 sm:text-[15px]">
-              {description}
-            </p>
-          )}
-
-<div className="w-[98%] mx-auto bg-neutral-400 my-4 h-[1px]"></div>
-
-          {/* STATS */}
-          <div className="mt-7 flex items-center justify-around">
-            {/* RATING */}
-            <div className="flex w-[150px] transition hover:bg-neutral-100 cursor-pointer flex-col items-center rounded-2xl border border-neutral-100 bg-neutral-50/80 px-2 py-4 text-center sm:rounded-[24px] sm:py-5">
-              <div className="flex size-10 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-                <Star className="size-5 fill-current" />
-              </div>
-
-                    <div className="mt-2 cusror-ointer">
-  <RatingBox
-    projectId={website.id}
-  />
-</div>
-            </div>
-
-            {/* HOURS */}
-<button
-  type="button"
-  onClick={onOpenWorkingHours}
-  className="flex w-[150px] cursor-pointer flex-col items-center rounded-2xl border border-neutral-100 bg-neutral-50/80 px-2 py-4 text-center transition hover:bg-neutral-100 active:scale-[0.98] sm:rounded-[24px] sm:py-5"
->
-  <div className="flex size-10 items-center justify-center rounded-full bg-blue-50 text-blue-500">
-    <Clock3 className="size-5" />
-  </div>
-
-  <strong
-    dir="ltr"
-    className="mt-2 max-w-full truncate text-[12px] font-black sm:text-base"
-  >
-    {today.label}
-  </strong>
-
-  <span className="mt-0.5 text-[11px] font-medium text-neutral-500 sm:text-sm">
-    {today.dayName || "ساعات العمل"}
-  </span>
-</button>
-
-            {/* DELIVERY 
-            <div className="flex min-w-0 flex-col items-center rounded-2xl border border-neutral-100 bg-neutral-50/80 px-2 py-4 text-center sm:rounded-[24px] sm:py-5">
-              <div className="flex size-10 items-center justify-center rounded-full bg-red-50 text-red-500">
-                <Bike className="size-5" />
-              </div>
-
-              <strong className="mt-2 whitespace-nowrap text-[13px] font-black sm:text-base">
-                {deliveryTime}
-              </strong>
-
-              <span className="mt-0.5 max-w-full truncate text-[11px] font-medium text-neutral-500 sm:text-sm">
-                الحد الأدنى {minimumOrder}
-              </span>
-            </div>
-            */}
-          </div>
+            className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:bg-black/40 active:scale-95"
+          >
+            <Share2 className="size-[19px]" />
+          </button>
         </div>
       </div>
-    </header>
-  );
-}
-
-function MenuSearch({
-  query,
-  setQuery,
-}) {
-  return (
-    <div className="mx-auto mt-2 max-w-5xl px-4 sm:px-5">
-      <div className="relative">
-        <Search className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-neutral-400" />
-
-        <input
-          id="menu-search"
-          type="search"
-          value={query}
-          onChange={(event) =>
-            setQuery(
-              event.target.value
-            )
-          }
-          placeholder="البحث عن منتجات"
-          className="h-14 w-full rounded-2xl border border-neutral-300 bg-neutral-100 pr-12 pl-4 text-sm font-medium text-neutral-950 outline-none transition placeholder:text-neutral-400 focus:border-neutral-200 focus:bg-white focus:shadow-sm"
-        />
-      </div>
-    </div>
-  );
-}
-
-function SectionNavigation({
-  sections,
-}) {
-  if (!sections.length) {
-    return null;
-  }
-
-  function scrollToSection(
-    section
-  ) {
-    const element =
-      document.getElementById(
-        getSectionId(section)
-      );
-
-    if (!element) {
-      return;
-    }
-
-    element.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
-  return (
-    <div className="mx-auto mt-5 max-w-5xl">
-      <div className="flex gap-2 overflow-x-auto px-4 py-8 sm:px-5 [&::-webkit-scrollbar]:hidden">
-        {sections.map(
-          (section) => {
-            const name =
-              safeText(
-                section?.name_ar
-              ) ||
-              safeText(
-                section?.name
-              ) ||
-              safeText(
-                section?.name_i18n
-              ) ||
-              "قسم";
-
-            return (
-<button
-  key={
-    section?.id ||
-    section?.slug ||
-    name
-  }
-  type="button"
-  onClick={() =>
-    scrollToSection(section)
-  }
-  className="flex shrink-0 items-center gap-2 rounded-full border-4 border-white bg-orange-200/30 px-5 py-2.5 text-sm font-bold text-neutral-700 shadow-xl cursor-pointer transition hover:bg-neutral-200 active:scale-95"
->
-  <div className="rounded-full w-9 h-9 flex items-center justify-center bg-orange-200">
-  <SectionIcon
-    section={section}
-    size={15}
-  />
-</div>
-  <span>{name}</span>
-</button>
-            );
-          }
-        )}
-      </div>
-    </div>
+    </section>
   );
 }
 
 
+function LanguageSwitcher() {
+  const {
+    language,
+    enabledLanguages,
+    setLanguage,
+    t,
+  } =
+    usePublicLanguage();
 
-function MenuSections({
-  sections,
-  query,
-}) {
-  const [selectedItem, setSelectedItem] =
-    useState(null);
+
+  const containerRef =
+    useRef(
+      null
+    );
+
 
   const [
-    expandedSection,
-    setExpandedSection,
-  ] = useState(null);
+    open,
+    setOpen,
+  ] =
+    useState(
+      false
+    );
 
-  const normalizedQuery =
-    query.trim().toLowerCase();
 
-  const modalOpen =
-    Boolean(selectedItem) ||
-    Boolean(expandedSection);
-
-  /*
-   * Lock background scrolling whenever
-   * one of the menu modals is open.
-   */
   useEffect(() => {
-    if (!modalOpen) {
+    if (!open) {
       return;
     }
 
-    const previousOverflow =
-      document.body.style.overflow;
-
-    document.body.style.overflow =
-      "hidden";
-
-    function handleKeyDown(event) {
-      if (event.key !== "Escape") {
-        return;
+    function handlePointerDown(
+      event
+    ) {
+      if (
+        !containerRef.current?.contains(
+          event.target
+        )
+      ) {
+        setOpen(
+          false
+        );
       }
-
-      /*
-       * Close item modal first if it
-       * was opened from the section modal.
-       */
-      if (selectedItem) {
-        setSelectedItem(null);
-        return;
-      }
-
-      setExpandedSection(null);
     }
+
+    function handleKeyDown(
+      event
+    ) {
+      if (
+        event.key ===
+        "Escape"
+      ) {
+        setOpen(
+          false
+        );
+      }
+    }
+
+    document.addEventListener(
+      "pointerdown",
+      handlePointerDown
+    );
 
     window.addEventListener(
       "keydown",
@@ -988,8 +1946,10 @@ function MenuSections({
     );
 
     return () => {
-      document.body.style.overflow =
-        previousOverflow;
+      document.removeEventListener(
+        "pointerdown",
+        handlePointerDown
+      );
 
       window.removeEventListener(
         "keydown",
@@ -997,483 +1957,133 @@ function MenuSections({
       );
     };
   }, [
-    modalOpen,
-    selectedItem,
+    open,
   ]);
 
-  if (!sections.length) {
-    return (
-      <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-5">
-        <p className="text-lg font-black text-neutral-950">
-          لا توجد منتجات بعد
-        </p>
 
-        <p className="mt-2 text-sm font-medium text-neutral-500">
-          ستظهر أقسام القائمة هنا.
-        </p>
-      </div>
-    );
+  if (
+    enabledLanguages.length <=
+    1
+  ) {
+    return null;
   }
 
-  let searchHasResults = false;
+
+  const current =
+    PUBLIC_LANGUAGES[
+      language
+    ];
+
 
   return (
-    <>
-      <div className="mx-auto max-w-6xl px-4 sm:px-5">
-        {sections.map(
-          (section) => {
-            const sectionName =
-              safeText(
-                section?.name_ar
-              ) ||
-              safeText(
-                section?.name
-              ) ||
-              safeText(
-                section?.name_i18n
-              ) ||
-              "القائمة";
+    <div
+      ref={
+        containerRef
+      }
+      className="relative"
+    >
+      <button
+        type="button"
+        onClick={() =>
+          setOpen(
+            (
+              value
+            ) =>
+              !value
+          )
+        }
+        aria-label={t(
+          "language"
+        )}
+        aria-expanded={
+          open
+        }
+        className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3.5 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.02] hover:bg-black/40 active:scale-95"
+      >
+        <LanguagesIcon className="size-[18px]" />
 
-            const items =
-              toArray(
-                section?.items
-              );
+        <span className="hidden sm:inline">
+          {
+            current?.name
+          }
+        </span>
 
-            const filteredItems =
-              normalizedQuery
-                ? items.filter(
-                    (item) =>
-                      itemMatchesQuery(
-                        item,
-                        normalizedQuery
-                      )
-                  )
-                : items;
+        <span className="sm:hidden">
+          {
+            current?.shortName
+          }
+        </span>
 
-            if (
-              filteredItems.length >
-              0
-            ) {
-              searchHasResults =
-                true;
-            }
+        <ChevronDown
+          className={`size-4 transition-transform duration-200 ${
+            open
+              ? "rotate-180"
+              : ""
+          }`}
+        />
+      </button>
 
-            if (
-              normalizedQuery &&
-              filteredItems.length ===
-                0
-            ) {
+
+      <div
+        className={`absolute end-0 top-[calc(100%+8px)] w-44 origin-top overflow-hidden rounded-[18px] border border-black/10 bg-white p-1.5 text-neutral-950 shadow-[0_18px_55px_rgba(0,0,0,0.20)] transition-all duration-150 ${
+          open
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none -translate-y-1 scale-[0.97] opacity-0"
+        }`}
+      >
+        {enabledLanguages.map(
+          (
+            code
+          ) => {
+            const item =
+              PUBLIC_LANGUAGES[
+                code
+              ];
+
+            if (!item) {
               return null;
             }
 
-            const hasMoreOnMobile =
-              !normalizedQuery &&
-              filteredItems.length >
-                8;
+            const active =
+              code ===
+              language;
 
             return (
-              <section
+              <button
                 key={
-                  section?.id ||
-                  section?.slug ||
-                  sectionName
+                  code
                 }
-                id={getSectionId(
-                  section
-                )}
-                className="scroll-mt-6 py-7"
+                type="button"
+                onClick={() => {
+                  setLanguage(
+                    code
+                  );
+
+                  setOpen(
+                    false
+                  );
+                }}
+                dir={
+                  item.dir
+                }
+                className={`flex w-full cursor-pointer items-center justify-between rounded-[13px] px-3 py-2.5 text-sm font-bold transition duration-150 ${
+                  active
+                    ? "bg-neutral-950 text-white"
+                    : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950"
+                }`}
               >
-                {/* SECTION HEADER */}
-                <div className="mb-5 flex items-end justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2.5">
-                      <SectionIcon
-                        section={
-                          section
-                        }
-                        size={23}
-                      />
+                <span>
+                  {
+                    item.name
+                  }
+                </span>
 
-                      <h2 className="truncate text-2xl font-black tracking-[-0.04em] text-neutral-950 sm:text-3xl">
-                        {
-                          sectionName
-                        }
-                      </h2>
-                    </div>
-
-                    {section.description && (
-                      <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-neutral-500">
-                        {
-                          section.description
-                        }
-                      </p>
-                    )}
-                  </div>
-
-                  <span className="shrink-0 text-xs font-bold text-neutral-400">
-                    {
-                      filteredItems.length
-                    }{" "}
-                    منتج
-                  </span>
-                </div>
-
-                {filteredItems.length >
-                0 ? (
-                  <>
-                    {/*
-                     * 2 columns on mobile
-                     * 3 on medium+
-                     * maximum 4 on XL.
-                     */}
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
-                      {filteredItems.map(
-                        (
-                          item,
-                          index
-                        ) => (
-                          <div
-                            key={
-                              item?.id ||
-                              item?.slug ||
-                              `${sectionName}-${index}`
-                            }
-                            className={
-                              hasMoreOnMobile &&
-                              index >= 1
-                                ? "hidden sm:block"
-                                : ""
-                            }
-                          >
-                            <MenuItem
-                              item={
-                                item
-                              }
-                              onOpen={() =>
-                                setSelectedItem(
-                                  item
-                                )
-                              }
-                            />
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    {/*
-                     * MOBILE ONLY:
-                     * first 8 products +
-                     * full section button.
-                     */}
-                    {hasMoreOnMobile && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpandedSection(
-                            {
-                              section,
-                              sectionName,
-                              items:
-                                filteredItems,
-                            }
-                          )
-                        }
-                        className="mt-4 flex min-h-12 w-full cursor-pointer items-center justify-center rounded-2xl border border-neutral-200 bg-white px-5 text-sm font-black text-neutral-950 transition active:scale-[0.99] sm:hidden"
-                      >
-                        عرض الكل{" "}
-                        (
-                        {
-                          filteredItems.length
-                        }
-                        )
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <div className="rounded-2xl bg-neutral-50 px-5 py-8 text-center">
-                    <p className="text-sm font-medium text-neutral-500">
-                      لا توجد منتجات
-                      في هذا القسم
-                      حالياً.
-                    </p>
-                  </div>
+                {active && (
+                  <Check className="size-4" />
                 )}
-              </section>
+              </button>
             );
           }
-        )}
-
-        {normalizedQuery &&
-          !searchHasResults && (
-            <div className="py-20 text-center">
-              <Search className="mx-auto size-7 text-neutral-300" />
-
-              <h3 className="mt-4 text-lg font-black text-neutral-950">
-                لم نجد نتائج
-              </h3>
-
-              <p className="mt-1 text-sm font-medium text-neutral-500">
-                جرّب البحث عن
-                منتج آخر.
-              </p>
-            </div>
-          )}
-      </div>
-
-      {/* FULL SECTION MODAL */}
-      {expandedSection && (
-        <SectionItemsModal
-          section={
-            expandedSection
-          }
-          onClose={() =>
-            setExpandedSection(
-              null
-            )
-          }
-          onOpenItem={(
-            item
-          ) =>
-            setSelectedItem(
-              item
-            )
-          }
-        />
-      )}
-
-      {/* ITEM DETAILS MODAL */}
-      {selectedItem && (
-        <ItemDetailsModal
-          item={
-            selectedItem
-          }
-          onClose={() =>
-            setSelectedItem(
-              null
-            )
-          }
-        />
-      )}
-    </>
-  );
-}
-
-function itemMatchesQuery(
-  item,
-  normalizedQuery
-) {
-  const name =
-    safeText(
-      item?.name_ar
-    ) ||
-    safeText(
-      item?.name
-    ) ||
-    safeText(
-      item?.name_i18n
-    );
-
-  const description =
-    safeText(
-      item?.description_ar
-    ) ||
-    safeText(
-      item?.description
-    ) ||
-    safeText(
-      item?.description_i18n
-    );
-
-  return (
-    name
-      .toLowerCase()
-      .includes(
-        normalizedQuery
-      ) ||
-    description
-      .toLowerCase()
-      .includes(
-        normalizedQuery
-      )
-  );
-}
-
-
-function MenuItem({
-  item,
-  onOpen,
-}) {
-  const name =
-    safeText(
-      item?.name_ar
-    ) ||
-    safeText(
-      item?.name
-    ) ||
-    safeText(
-      item?.name_i18n
-    ) ||
-    "منتج";
-
-  const description =
-    safeText(
-      item?.description_ar
-    ) ||
-    safeText(
-      item?.description
-    ) ||
-    safeText(
-      item?.description_i18n
-    );
-
-  const image =
-    getImageUrl(
-      item?.image_url
-    ) ||
-    getImageUrl(
-      item?.imageUrl
-    ) ||
-    getImageUrl(
-      item?.image
-    );
-
-  const price =
-    formatPrice(
-      item?.price
-    );
-
-  const available =
-    item?.is_available !==
-      false &&
-    item?.available !==
-      false;
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="group cursor-pointer flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-neutral-100 bg-white text-right shadow-[0_5px_24px_rgba(0,0,0,0.045)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_32px_rgba(0,0,0,0.08)] active:scale-[0.99]"
-    >
-      {/* IMAGE */}
-      <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
-        {image ? (
-          <Image
-            src={image}
-            alt={name}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-            className="object-cover transition duration-500 group-hover:scale-[1.025]"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm font-bold text-neutral-300">
-            CRTGO
-          </div>
-        )}
-
-        {!available && (
-          <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-black text-neutral-500 shadow-sm">
-            غير متوفر
-          </span>
-        )}
-
-        <span className="absolute bottom-2 left-2 flex size-8 items-center justify-center rounded-full bg-white/95 text-neutral-900 shadow-sm backdrop-blur">
-          <Maximize2 className="size-3.5" />
-        </span>
-      </div>
-
-      {/* INFO */}
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h3 className="line-clamp-2 text-sm font-black leading-5 text-neutral-950 sm:text-base sm:leading-6">
-          {name}
-        </h3>
-
-        {description && (
-          <p className="mt-1.5 line-clamp-2 text-xs font-medium leading-5 text-neutral-500 sm:text-sm">
-            {description}
-          </p>
-        )}
-
-        <div className="mt-auto pt-4">
-          {price !== null && (
-            <strong className="text-sm font-black text-[var(--crtgo-primary)] sm:text-base">
-              ₪{price}
-            </strong>
-          )}
-        </div>
-      </div>
-    </button>
-  );
-}
-
-
-
-function SectionItemsModal({
-  section,
-  onClose,
-  onOpenItem,
-}) {
-  return (
-    <div
-      dir="rtl"
-      className="fixed inset-0 z-[1100] overflow-y-auto overscroll-contain bg-white text-neutral-950"
-    >
-      {/* STICKY HEADER */}
-      <header className="sticky top-0 z-20 border-b border-neutral-100 bg-white/95 px-4 py-4 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <SectionIcon
-                section={
-                  section.section
-                }
-                size={20}
-              />
-
-              <h2 className="truncate text-xl font-black">
-                {
-                  section.sectionName
-                }
-              </h2>
-            </div>
-
-            <p className="mt-1 text-xs font-semibold text-neutral-400">
-              {
-                section.items
-                  .length
-              }{" "}
-              منتج
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="إغلاق"
-            className="flex size-11 cursor-pointer shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-800 transition active:scale-95"
-          >
-            <X className="size-5" />
-          </button>
-        </div>
-      </header>
-
-      {/* ONE COLUMN */}
-      <div className="mx-auto grid max-w-3xl grid-cols-1 gap-3 px-4 py-5 pb-12">
-        {section.items.map(
-          (item, index) => (
-            <SectionListItem
-              key={
-                item?.id ||
-                item?.slug ||
-                index
-              }
-              item={item}
-              onOpen={() =>
-                onOpenItem(
-                  item
-                )
-              }
-            />
-          )
         )}
       </div>
     </div>
@@ -1481,239 +2091,336 @@ function SectionItemsModal({
 }
 
 
-
-function SectionListItem({
-  item,
-  onOpen,
+function RestaurantFloatingCard({
+  website,
+  onOpenWorkingHours,
 }) {
+  const {
+    language,
+    t,
+    text,
+  } =
+    usePublicLanguage();
+
+
+  const phone =
+    safeText(
+      website?.phone
+    );
+
+  const whatsapp =
+    safeText(
+      website?.whatsapp
+    );
+
+  const instagram =
+    safeText(
+      website?.instagram
+    );
+
+  const facebook =
+    safeText(
+      website?.facebook
+    );
+
+  const tiktok =
+    safeText(
+      website?.tiktok
+    );
+
+
+  const workingHours =
+    website?.workingHours ||
+    website?.working_hours ||
+    null;
+
+
+  const explicitHours =
+    safeText(
+      website?.workingHoursText
+    ) ||
+    safeText(
+      website?.working_hours_text
+    );
+
+
+  const [
+    today,
+    setToday,
+  ] =
+    useState(
+      null
+    );
+
+
+  useEffect(() => {
+    if (
+      !workingHours ||
+      typeof workingHours !==
+        "object"
+    ) {
+      setToday(
+        null
+      );
+
+      return;
+    }
+
+    setToday(
+      getTodayWorkingHours(
+        workingHours
+      )
+    );
+  }, [
+    workingHours,
+  ]);
+
+
+  const logo =
+    getImageUrl(
+      website?.logoUrl
+    ) ||
+    getImageUrl(
+      website?.logo_url
+    ) ||
+    getImageUrl(
+      website?.logo
+    );
+
+
   const name =
-    safeText(
-      item?.name_ar
+    text(
+      website,
+      "name"
     ) ||
     safeText(
-      item?.name
+      website?.displayName
     ) ||
     safeText(
-      item?.name_i18n
+      website?.display_name
     ) ||
-    "منتج";
+    t(
+      "restaurantFallback"
+    );
+
+
+  const location =
+    text(
+      website,
+      "location"
+    ) ||
+    safeText(
+      website?.address
+    );
+
 
   const description =
-    safeText(
-      item?.description_ar
-    ) ||
-    safeText(
-      item?.description
-    ) ||
-    safeText(
-      item?.description_i18n
+    text(
+      website,
+      "description"
     );
 
-  const image =
-    getImageUrl(
-      item?.image_url
-    ) ||
-    getImageUrl(
-      item?.imageUrl
-    ) ||
-    getImageUrl(
-      item?.image
+
+  const explicitOpen =
+    typeof website?.isOpen ===
+    "boolean"
+      ? website.isOpen
+      : typeof website?.is_open ===
+          "boolean"
+        ? website.is_open
+        : null;
+
+
+  const isOpen =
+    explicitOpen ??
+    today?.isOpenNow ??
+    null;
+
+
+  let hoursLabel =
+    explicitHours ||
+    t(
+      "workingHours"
     );
 
-  const price =
-    formatPrice(
-      item?.price
-    );
 
-  const available =
-    item?.is_available !==
-      false &&
-    item?.available !==
-      false;
+  if (
+    !explicitHours &&
+    today
+  ) {
+    hoursLabel =
+      today.isOpenDay
+        ? `${today.from} - ${today.to}`
+        : t(
+            "closedToday"
+          );
+  }
+
+
+  const dayLabel =
+    today?.dayKey
+      ? t(
+          `days.${today.dayKey}`
+        )
+      : t(
+          "workingHours"
+        );
+
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="flex w-full cursor-pointer gap-4 rounded-[22px] border border-neutral-100 bg-white p-3 text-right shadow-[0_4px_18px_rgba(0,0,0,0.035)] transition active:scale-[0.99]"
-    >
-      <div className="relative size-28 shrink-0 overflow-hidden rounded-[18px] bg-neutral-100 sm:size-32">
-        {image ? (
-          <Image
-            src={image}
-            alt={name}
-            fill
-            sizes="128px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs font-black text-neutral-300">
-            CRTGO
-          </div>
-        )}
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col py-1">
-        <div>
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-base font-black leading-6 text-neutral-950">
-              {name}
-            </h3>
-
-            {price !== null && (
-              <strong className="shrink-0 text-sm font-black text-[var(--crtgo-primary)]">
-                ₪{price}
-              </strong>
-            )}
-          </div>
-
-          {description && (
-            <p className="mt-2 text-sm font-medium leading-6 text-neutral-500">
-              {description}
-            </p>
-          )}
-        </div>
-
-        <div className="mt-auto flex items-center justify-between pt-3">
-          {!available ? (
-            <span className="text-xs font-black text-neutral-400">
-              غير متوفر
-            </span>
-          ) : (
-            <span className="text-xs font-bold text-emerald-600">
-              متوفر
-            </span>
-          )}
-
-          <Maximize2 className="size-4 text-neutral-300" />
-        </div>
-      </div>
-    </button>
-  );
-}
-
-
-function ItemDetailsModal({
-  item,
-  onClose,
-}) {
-  const name =
-    safeText(
-      item?.name_ar
-    ) ||
-    safeText(
-      item?.name
-    ) ||
-    safeText(
-      item?.name_i18n
-    ) ||
-    "منتج";
-
-  const description =
-    safeText(
-      item?.description_ar
-    ) ||
-    safeText(
-      item?.description
-    ) ||
-    safeText(
-      item?.description_i18n
-    );
-
-  const image =
-    getImageUrl(
-      item?.image_url
-    ) ||
-    getImageUrl(
-      item?.imageUrl
-    ) ||
-    getImageUrl(
-      item?.image
-    );
-
-  const price =
-    formatPrice(
-      item?.price
-    );
-
-  const available =
-    item?.is_available !==
-      false &&
-    item?.available !==
-      false;
-
-  return (
-    <div
-      dir="rtl"
-      className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/45 backdrop-blur-[3px] sm:items-center sm:p-5 no-scrollbar"
-      onMouseDown={(event) => {
-        if (
-          event.target ===
-          event.currentTarget
-        ) {
-          onClose();
-        }
-      }}
-    >
-      <article className="relative max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-[30px] bg-white text-neutral-950 shadow-2xl sm:max-w-xl sm:rounded-[30px]">
-        {/* MOBILE HANDLE */}
-        <div className="sticky top-0 z-30 flex h-0 justify-center sm:hidden">
-          <span className="mt-3 h-1 w-10 rounded-full bg-white/80 shadow" />
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="إغلاق"
-          className="absolute cursor-pointer left-4 top-4 z-30 flex size-11 items-center justify-center rounded-full bg-white/95 text-neutral-950 shadow-md backdrop-blur transition active:scale-95"
-        >
-          <X className="size-5" />
-        </button>
-
-        {image && (
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 sm:aspect-[16/10]">
-            <Image
-              src={image}
-              alt={name}
-              fill
-              sizes="(max-width: 640px) 100vw, 576px"
-              className="object-cover"
-            />
-          </div>
-        )}
-
-        <div className="p-5 sm:p-7">
-          <div className="flex items-start justify-between gap-5">
-            <h2 className="text-2xl font-black leading-tight tracking-[-0.04em] sm:text-3xl">
-              {name}
-            </h2>
-
-            {price !== null && (
-              <strong className="shrink-0 text-xl font-black text-[var(--crtgo-primary)]">
-                ₪{price}
-              </strong>
-            )}
-          </div>
-
-          {description && (
-            <p className="mt-4 whitespace-pre-line text-[15px] font-medium leading-7 text-neutral-500">
-              {description}
-            </p>
-          )}
-
-          <div className="mt-6 border-t border-neutral-100 pt-5">
-            {available ? (
-              <div className="flex items-center gap-2 text-sm font-black text-emerald-600">
-                <span className="size-2 rounded-full bg-emerald-500" />
-                متوفر حالياً
-              </div>
+    <div className="pointer-events-none absolute inset-x-0 top-[250px] px-4 sm:top-[308px] sm:px-6">
+      <article className="pointer-events-auto mx-auto max-w-5xl rounded-[32px] border border-black/[0.06] bg-white px-5 pb-6 shadow-[0_25px_80px_rgba(0,0,0,0.16)] sm:rounded-[38px] sm:px-8 sm:pb-8">
+        <div className="flex justify-center">
+          <div className="relative -mt-14 size-28 overflow-hidden rounded-full border-[6px] border-white bg-neutral-100 shadow-[0_14px_40px_rgba(0,0,0,0.20)] sm:-mt-16 sm:size-32">
+            {logo ? (
+              <Image
+                src={
+                  logo
+                }
+                alt={
+                  name
+                }
+                fill
+                loading="eager"
+                fetchPriority="high"
+                sizes="128px"
+                className="object-cover"
+              />
             ) : (
-              <div className="flex items-center gap-2 text-sm font-black text-neutral-400">
-                <span className="size-2 rounded-full bg-neutral-300" />
-                غير متوفر حالياً
+              <div className="flex h-full w-full items-center justify-center text-4xl font-black text-neutral-300">
+                {
+                  name.charAt(
+                    0
+                  )
+                }
               </div>
             )}
           </div>
+        </div>
+
+
+        <div className="mx-auto mt-4 max-w-2xl text-center">
+          <h1 className="text-balance text-[29px] font-black leading-tight text-neutral-950 sm:text-[39px]">
+            {
+              name
+            }
+          </h1>
+
+
+          {location && (
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-neutral-500">
+              <MapPin className="size-4 shrink-0" />
+
+              <p className="text-sm font-medium">
+                {
+                  location
+                }
+              </p>
+            </div>
+          )}
+
+
+          {description && (
+            <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-7 text-neutral-500 sm:text-[15px]">
+              {
+                description
+              }
+            </p>
+          )}
+
+
+          {isOpen !==
+            null && (
+            <div className="mt-4 flex justify-center">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-extrabold ${
+                  isOpen
+                    ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                    : "border-red-100 bg-red-50 text-red-600"
+                }`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${
+                    isOpen
+                      ? "bg-emerald-500"
+                      : "bg-red-500"
+                  }`}
+                />
+
+                {isOpen
+                  ? t(
+                      "openNow"
+                    )
+                  : t(
+                      "closedNow"
+                    )}
+              </span>
+            </div>
+          )}
+        </div>
+
+
+        <SocialLinksRow
+          phone={
+            phone
+          }
+          whatsapp={
+            whatsapp
+          }
+          instagram={
+            instagram
+          }
+          facebook={
+            facebook
+          }
+          tiktok={
+            tiktok
+          }
+        />
+
+
+        <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3">
+          <div className="flex min-h-[102px] flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:bg-neutral-100">
+            <div className="flex size-9 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+              <Star className="size-[17px] fill-current" />
+            </div>
+
+            <div className="mt-2">
+              <RatingBox
+                projectId={
+                  website.id
+                }
+              />
+            </div>
+          </div>
+
+
+          <button
+            type="button"
+            onClick={
+              onOpenWorkingHours
+            }
+            className="flex min-h-[102px] cursor-pointer flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:bg-neutral-100 hover:shadow-sm active:scale-[0.98]"
+          >
+            <div className="flex size-9 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <Clock3 className="size-[17px]" />
+            </div>
+
+            <strong
+              dir="ltr"
+              className="mt-2 max-w-full truncate text-sm font-black text-neutral-950"
+            >
+              {
+                hoursLabel
+              }
+            </strong>
+
+            <span className="mt-0.5 max-w-full truncate text-xs font-semibold text-neutral-400">
+              {
+                dayLabel
+              }
+            </span>
+          </button>
         </div>
       </article>
     </div>
@@ -1728,14 +2435,32 @@ function SocialLinksRow({
   facebook,
   tiktok,
 }) {
-  const links = [];
+  const {
+    t,
+  } =
+    usePublicLanguage();
+
+
+  const links =
+    [];
+
 
   const cleanPhone =
-    String(phone || "").trim();
+    String(
+      phone ||
+        ""
+    ).trim();
+
 
   const cleanWhatsapp =
-    String(whatsapp || "")
-      .replace(/\D/g, "");
+    String(
+      whatsapp ||
+        ""
+    ).replace(
+      /\D/g,
+      ""
+    );
+
 
   const instagramUrl =
     makeSocialUrl(
@@ -1743,11 +2468,13 @@ function SocialLinksRow({
       "https://instagram.com/"
     );
 
+
   const facebookUrl =
     makeSocialUrl(
       facebook,
       "https://facebook.com/"
     );
+
 
   const tiktokUrl =
     makeSocialUrl(
@@ -1755,99 +2482,177 @@ function SocialLinksRow({
       "https://tiktok.com/@"
     );
 
-  if (cleanPhone) {
+
+  if (
+    cleanPhone
+  ) {
     links.push({
-      key: "phone",
-      label: "اتصال",
-      href: `tel:${cleanPhone}`,
-      icon: Phone,
+      key:
+        "phone",
+
+      label:
+        t(
+          "call"
+        ),
+
+      href:
+        `tel:${cleanPhone}`,
+
+      icon:
+        Phone,
     });
   }
 
-  if (cleanWhatsapp) {
+
+  if (
+    cleanWhatsapp
+  ) {
     links.push({
-      key: "whatsapp",
-      label: "WhatsApp",
-      href: `https://wa.me/${cleanWhatsapp}`,
-      icon: FaWhatsapp,
-      external: true,
+      key:
+        "whatsapp",
+
+      label:
+        "WhatsApp",
+
+      href:
+        `https://wa.me/${cleanWhatsapp}`,
+
+      icon:
+        FaWhatsapp,
+
+      external:
+        true,
     });
   }
 
-  if (instagramUrl) {
+
+  if (
+    instagramUrl
+  ) {
     links.push({
-      key: "instagram",
-      label: "Instagram",
-      href: instagramUrl,
-      icon: FaInstagram,
-      external: true,
+      key:
+        "instagram",
+
+      label:
+        "Instagram",
+
+      href:
+        instagramUrl,
+
+      icon:
+        FaInstagram,
+
+      external:
+        true,
     });
   }
 
-  if (facebookUrl) {
+
+  if (
+    facebookUrl
+  ) {
     links.push({
-      key: "facebook",
-      label: "Facebook",
-      href: facebookUrl,
-      icon: FaFacebookF,
-      external: true,
+      key:
+        "facebook",
+
+      label:
+        "Facebook",
+
+      href:
+        facebookUrl,
+
+      icon:
+        FaFacebookF,
+
+      external:
+        true,
     });
   }
 
-  if (tiktokUrl) {
+
+  if (
+    tiktokUrl
+  ) {
     links.push({
-      key: "tiktok",
-      label: "TikTok",
-      href: tiktokUrl,
-      icon: FaTiktok,
-      external: true,
+      key:
+        "tiktok",
+
+      label:
+        "TikTok",
+
+      href:
+        tiktokUrl,
+
+      icon:
+        FaTiktok,
+
+      external:
+        true,
     });
   }
 
-  if (!links.length) {
+
+  if (
+    !links.length
+  ) {
     return null;
   }
 
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {links.map((link) => {
-        const Icon =
-          link.icon;
 
-        return (
-          <a
-            key={link.key}
-            href={link.href}
-            target={
-              link.external
-                ? "_blank"
-                : undefined
-            }
-            rel={
-              link.external
-                ? "noopener noreferrer"
-                : undefined
-            }
-            aria-label={
-              link.label
-            }
-            title={link.label}
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition hover:bg-neutral-950 hover:text-white active:scale-95"
-          >
-            <Icon className="size-[18px]" />
-          </a>
-        );
-      })}
+  return (
+    <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+      {links.map(
+        (
+          link
+        ) => {
+          const Icon =
+            link.icon;
+
+          return (
+            <a
+              key={
+                link.key
+              }
+              href={
+                link.href
+              }
+              target={
+                link.external
+                  ? "_blank"
+                  : undefined
+              }
+              rel={
+                link.external
+                  ? "noopener noreferrer"
+                  : undefined
+              }
+              aria-label={
+                link.label
+              }
+              title={
+                link.label
+              }
+              className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition duration-200 hover:-translate-y-0.5 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white active:scale-95"
+            >
+              <Icon className="size-[18px]" />
+            </a>
+          );
+        }
+      )}
     </div>
   );
 }
+
 
 function makeSocialUrl(
   value,
   base
 ) {
   const clean =
-    String(value || "").trim();
+    String(
+      value ||
+        ""
+    ).trim();
 
   if (!clean) {
     return null;
@@ -1871,198 +2676,1510 @@ function makeSocialUrl(
 }
 
 
-function WorkingHours({ hours }) {
-  const now = new Date();
-  const todayKey = DAY_KEYS[now.getDay()];
+function MenuSearch({
+  query,
+  setQuery,
+}) {
+  const {
+    dir,
+    t,
+  } =
+    usePublicLanguage();
+
 
   return (
-    <div className="grid">
-      {DAY_KEYS.map((dayKey) => {
-        const rawDay = getDayData(hours, dayKey);
-        const day = normalizeDay(rawDay);
-        const isToday = dayKey === todayKey;
+    <div className="mx-auto max-w-4xl">
+      <div className="group relative overflow-hidden rounded-[22px] border border-black/[0.07] bg-white shadow-[0_8px_35px_rgba(0,0,0,0.055)] transition duration-200 focus-within:border-black/15 focus-within:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+        <Search
+          className={`pointer-events-none absolute top-1/2 size-5 -translate-y-1/2 text-neutral-400 transition group-focus-within:text-neutral-700 ${
+            dir ===
+            "rtl"
+              ? "right-5"
+              : "left-5"
+          }`}
+        />
 
-        return (
-          <div
-            key={dayKey}
-            className={`flex min-h-14 items-center justify-between gap-5 border-b border-black/10 px-2 text-sm last:border-b-0 ${
-              isToday ? "font-black" : "font-bold"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span>{DAY_NAMES[dayKey]}</span>
-
-              {isToday && (
-                <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-black text-neutral-500">
-                  اليوم
-                </span>
-              )}
-            </div>
-
-            <span
-              dir="ltr"
-              className={
-                day.isOpenDay
-                  ? "font-black text-neutral-700"
-                  : "font-black text-red-500"
-              }
-            >
-              {day.isOpenDay
-                ? `${day.from} — ${day.to}`
-                : "مغلق"}
-            </span>
-          </div>
-        );
-      })}
+        <input
+          id="menu-search"
+          type="search"
+          value={
+            query
+          }
+          onChange={(
+            event
+          ) =>
+            setQuery(
+              event.target.value
+            )
+          }
+          placeholder={t(
+            "searchPlaceholder"
+          )}
+          className={`h-15 w-full bg-transparent text-sm font-semibold text-neutral-950 outline-none placeholder:font-medium placeholder:text-neutral-400 ${
+            dir ===
+            "rtl"
+              ? "pr-13 pl-5 text-right"
+              : "pl-13 pr-5 text-left"
+          }`}
+        />
+      </div>
     </div>
   );
 }
 
-function ContactSection({
-  website,
-  phone,
-  whatsapp,
-  instagram,
-  facebook,
-  tiktok,
+
+function SectionNavigation({
+  sections,
 }) {
+  const {
+    text,
+    t,
+  } =
+    usePublicLanguage();
+
+
   if (
-    !phone &&
-    !whatsapp &&
-    !instagram &&
-    !facebook &&
-    !tiktok &&
-    !website.location
+    !sections.length
   ) {
     return null;
   }
 
+
+  function scrollToSection(
+    section
+  ) {
+    const element =
+      document.getElementById(
+        getSectionId(
+          section
+        )
+      );
+
+    if (!element) {
+      return;
+    }
+
+    element.scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start",
+    });
+  }
+
+
   return (
-    <section className="border-t border-black/10 py-10">
-      <p className="text-xs font-black uppercase tracking-[0.18em] opacity-30">
-        CONTACT
+    <div className="-mx-4 mt-5 overflow-hidden sm:-mx-6">
+      <div className="flex gap-2.5 overflow-x-auto px-4 py-3 sm:px-6 [&::-webkit-scrollbar]:hidden">
+        {sections.map(
+          (
+            section
+          ) => {
+            const name =
+              text(
+                section,
+                "name",
+                t(
+                  "sectionFallback"
+                )
+              );
+
+            return (
+              <button
+                key={
+                  section?.id ||
+                  section?.slug ||
+                  name
+                }
+                type="button"
+                onClick={() =>
+                  scrollToSection(
+                    section
+                  )
+                }
+                className="group flex shrink-0 cursor-pointer items-center gap-2 rounded-full border border-black/[0.07] bg-white py-2 pe-4 ps-2 text-sm font-bold text-neutral-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:shadow-md active:scale-95"
+              >
+                <span className="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-white">
+                  <SectionIcon
+                    section={
+                      section
+                    }
+                    size={
+                      16
+                    }
+                  />
+                </span>
+
+                <span>
+                  {
+                    name
+                  }
+                </span>
+              </button>
+            );
+          }
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+function MenuSections({
+  sections,
+  query,
+}) {
+  const {
+    language,
+    text,
+    t,
+  } =
+    usePublicLanguage();
+
+
+  const [
+    selectedItem,
+    setSelectedItem,
+  ] =
+    useState(
+      null
+    );
+
+
+  const [
+    expandedSection,
+    setExpandedSection,
+  ] =
+    useState(
+      null
+    );
+
+
+  const normalizedQuery =
+    query
+      .trim()
+      .toLowerCase();
+
+
+  if (
+    !sections.length
+  ) {
+    return (
+      <EmptyState
+        title={t(
+          "noProducts"
+        )}
+        description={t(
+          "noProductsHint"
+        )}
+      />
+    );
+  }
+
+
+  let searchHasResults =
+    false;
+
+
+  return (
+    <>
+      <div className="mt-5 space-y-5 sm:mt-7 sm:space-y-7">
+        {sections.map(
+          (
+            section,
+            sectionIndex
+          ) => {
+            const sectionName =
+              text(
+                section,
+                "name",
+                t(
+                  "menuFallback"
+                )
+              );
+
+
+            const sectionDescription =
+              text(
+                section,
+                "description"
+              );
+
+
+            const items =
+              toArray(
+                section?.items
+              );
+
+
+            const filteredItems =
+              normalizedQuery
+                ? items.filter(
+                    (
+                      item
+                    ) =>
+                      itemMatchesQuery(
+                        item,
+                        normalizedQuery,
+                        language
+                      )
+                  )
+                : items;
+
+
+            if (
+              filteredItems.length >
+              0
+            ) {
+              searchHasResults =
+                true;
+            }
+
+
+            if (
+              normalizedQuery &&
+              filteredItems.length ===
+                0
+            ) {
+              return null;
+            }
+
+
+            const hasMoreOnMobile =
+              !normalizedQuery &&
+              filteredItems.length >
+                8;
+
+
+            return (
+              <section
+                key={
+                  section?.id ||
+                  section?.slug ||
+                  sectionName
+                }
+                id={
+                  getSectionId(
+                    section
+                  )
+                }
+                className="scroll-mt-6 rounded-[28px] border border-black/[0.055] bg-white/55 p-3 sm:rounded-[32px] sm:p-5"
+              >
+                <div className="mb-4 flex items-end justify-between gap-4 px-1 sm:mb-5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-neutral-100 text-neutral-700">
+                        <SectionIcon
+                          section={
+                            section
+                          }
+                          size={
+                            19
+                          }
+                        />
+                      </span>
+
+
+                      <div className="min-w-0">
+                        <h2 className="truncate text-[23px] font-black leading-tight text-neutral-950 sm:text-[29px]">
+                          {
+                            sectionName
+                          }
+                        </h2>
+
+                        <span className="mt-0.5 block text-[11px] font-bold text-neutral-400 sm:hidden">
+                          {getItemCountText(
+                            filteredItems.length,
+                            language
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+
+                    {sectionDescription && (
+                      <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-neutral-500">
+                        {
+                          sectionDescription
+                        }
+                      </p>
+                    )}
+                  </div>
+
+
+                  <span className="hidden shrink-0 rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-bold text-neutral-500 sm:inline-flex">
+                    {getItemCountText(
+                      filteredItems.length,
+                      language
+                    )}
+                  </span>
+                </div>
+
+
+                {filteredItems.length >
+                0 ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+                      {filteredItems.map(
+                        (
+                          item,
+                          index
+                        ) => (
+                          <div
+                            key={
+                              item?.id ||
+                              item?.slug ||
+                              `${sectionName}-${index}`
+                            }
+                            className={
+                              hasMoreOnMobile &&
+                              index >=
+                                8
+                                ? "hidden sm:block"
+                                : ""
+                            }
+                          >
+                            <MenuItem
+                              item={
+                                item
+                              }
+                              eager={
+                                sectionIndex ===
+                                  0 &&
+                                index <
+                                  4
+                              }
+                              onOpen={() =>
+                                setSelectedItem(
+                                  item
+                                )
+                              }
+                            />
+                          </div>
+                        )
+                      )}
+                    </div>
+
+
+                    {hasMoreOnMobile && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedSection({
+                            section,
+
+                            items:
+                              filteredItems,
+                          })
+                        }
+                        className="mt-3 flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[17px] border border-black/[0.07] bg-white px-5 text-sm font-black text-neutral-950 shadow-sm transition duration-200 hover:bg-neutral-50 active:scale-[0.99] sm:hidden"
+                      >
+                        {t(
+                          "showAll"
+                        )}{" "}
+                        (
+                        {
+                          filteredItems.length
+                        }
+                        )
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div className="rounded-[22px] bg-neutral-50 px-5 py-10 text-center">
+                    <p className="text-sm font-medium text-neutral-500">
+                      {t(
+                        "noProductsInSection"
+                      )}
+                    </p>
+                  </div>
+                )}
+              </section>
+            );
+          }
+        )}
+
+
+        {normalizedQuery &&
+          !searchHasResults && (
+            <EmptyState
+              title={t(
+                "noResults"
+              )}
+              description={t(
+                "noResultsHint"
+              )}
+              icon={
+                Search
+              }
+            />
+          )}
+      </div>
+
+
+      <SectionItemsModal
+        open={
+          Boolean(
+            expandedSection
+          )
+        }
+        section={
+          expandedSection
+        }
+        onClose={() =>
+          setExpandedSection(
+            null
+          )
+        }
+        onOpenItem={(
+          item
+        ) =>
+          setSelectedItem(
+            item
+          )
+        }
+      />
+
+
+      <ItemDetailsModal
+        open={
+          Boolean(
+            selectedItem
+          )
+        }
+        item={
+          selectedItem
+        }
+        onClose={() =>
+          setSelectedItem(
+            null
+          )
+        }
+      />
+    </>
+  );
+}
+
+
+function EmptyState({
+  title,
+  description,
+  icon: Icon,
+}) {
+  return (
+    <div className="mx-auto my-12 max-w-md rounded-[26px] border border-black/[0.05] bg-white px-6 py-12 text-center shadow-sm">
+      {Icon && (
+        <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-400">
+          <Icon className="size-5" />
+        </div>
+      )}
+
+      <h3 className="mt-3 text-lg font-black text-neutral-950">
+        {
+          title
+        }
+      </h3>
+
+      <p className="mt-1 text-sm font-medium leading-6 text-neutral-500">
+        {
+          description
+        }
       </p>
+    </div>
+  );
+}
 
-      <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">
-        تواصل معنا
-      </h2>
 
-      <div className="mt-6 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {phone && (
-          <ContactLink
-            href={`tel:${phone}`}
-            label="الهاتف"
-            value={website.phone}
-          />
-        )}
+function itemMatchesQuery(
+  item,
+  normalizedQuery,
+  language
+) {
+  const name =
+    getLocalizedField(
+      item,
+      "name",
+      language
+    );
 
-        {whatsapp && (
-          <ContactLink
-            href={`https://wa.me/${whatsapp}`}
-            label="WhatsApp"
-            value={
-              website.whatsapp
+
+  const description =
+    getLocalizedField(
+      item,
+      "description",
+      language
+    );
+
+
+  return (
+    name
+      .toLowerCase()
+      .includes(
+        normalizedQuery
+      ) ||
+    description
+      .toLowerCase()
+      .includes(
+        normalizedQuery
+      )
+  );
+}
+
+
+function MenuItem({
+  item,
+  onOpen,
+  eager = false,
+}) {
+  const {
+    dir,
+    language,
+    text,
+    t,
+  } =
+    usePublicLanguage();
+
+
+  const name =
+    text(
+      item,
+      "name",
+      t(
+        "itemFallback"
+      )
+    );
+
+
+  const description =
+    text(
+      item,
+      "description"
+    );
+
+
+  const image =
+    getImageUrl(
+      item?.image_url
+    ) ||
+    getImageUrl(
+      item?.imageUrl
+    ) ||
+    getImageUrl(
+      item?.image
+    );
+
+
+  const price =
+    formatPrice(
+      item?.price,
+      language
+    );
+
+
+  const available =
+    item?.is_available !==
+      false &&
+    item?.available !==
+      false;
+
+
+  return (
+    <button
+      type="button"
+      onClick={
+        onOpen
+      }
+      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[21px] border border-black/[0.055] bg-white text-start shadow-[0_5px_22px_rgba(0,0,0,0.035)] transition duration-300 hover:-translate-y-1 hover:border-black/10 hover:shadow-[0_18px_42px_rgba(0,0,0,0.09)] active:scale-[0.985] sm:rounded-[24px]"
+    >
+      <div className="relative aspect-[1/0.92] w-full overflow-hidden bg-neutral-100">
+        {image ? (
+          <Image
+            src={
+              image
             }
-            external
-          />
-        )}
-
-        {instagram && (
-          <ContactLink
-            href={instagram}
-            label="Instagram"
-            value={
-              website.instagram
+            alt={
+              name
             }
-            external
-          />
-        )}
-
-        {facebook && (
-          <ContactLink
-            href={facebook}
-            label="Facebook"
-            value={
-              website.facebook
+            fill
+            loading={
+              eager
+                ? "eager"
+                : "lazy"
             }
-            external
+            fetchPriority={
+              eager
+                ? "high"
+                : "auto"
+            }
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.045]"
           />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[11px] font-black tracking-[0.14em] text-neutral-300">
+            CRTGO
+          </div>
         )}
 
-        {tiktok && (
-          <ContactLink
-            href={tiktok}
-            label="TikTok"
-            value={website.tiktok}
-            external
-          />
+
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+
+        {!available && (
+          <span
+            className={`absolute top-2.5 rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-[10px] font-black text-neutral-500 shadow-sm backdrop-blur ${
+              dir ===
+              "rtl"
+                ? "right-2.5"
+                : "left-2.5"
+            }`}
+          >
+            {t(
+              "unavailable"
+            )}
+          </span>
         )}
 
-        {website.location && (
-          <div className="rounded-[22px] border border-black/10 p-4">
-            <p className="text-xs font-black uppercase opacity-30">
-              LOCATION
-            </p>
 
-            <p className="mt-2 text-sm font-bold">
-              {website.location}
-            </p>
+        <span
+          className={`absolute bottom-2.5 flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/90 text-neutral-900 shadow-md backdrop-blur transition duration-200 group-hover:scale-110 ${
+            dir ===
+            "rtl"
+              ? "left-2.5"
+              : "right-2.5"
+          }`}
+        >
+          <Maximize2 className="size-3.5" />
+        </span>
+      </div>
+
+
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <h3 className="line-clamp-2 text-[14px] font-black leading-5 text-neutral-950 sm:text-[16px] sm:leading-6">
+          {
+            name
+          }
+        </h3>
+
+
+        {description && (
+          <p className="mt-1.5 line-clamp-2 text-[11px] font-medium leading-[18px] text-neutral-500 sm:text-[13px] sm:leading-5">
+            {
+              description
+            }
+          </p>
+        )}
+
+
+        <div className="mt-auto flex items-end justify-between gap-2 pt-4">
+          {price !==
+            null ? (
+            <strong className="rounded-full border border-black/[0.055] bg-neutral-50 px-2.5 py-1 text-[13px] font-black text-[var(--crtgo-primary)] sm:text-sm">
+              ₪
+              {
+                price
+              }
+            </strong>
+          ) : (
+            <span />
+          )}
+
+
+          <span
+            className={`size-2 rounded-full ${
+              available
+                ? "bg-emerald-400"
+                : "bg-neutral-300"
+            }`}
+          />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+
+function WorkingHoursModal({
+  open,
+  website,
+  onClose,
+}) {
+  const {
+    dir,
+    t,
+  } =
+    usePublicLanguage();
+
+
+  const hours =
+    website?.workingHours ||
+    website?.working_hours;
+
+
+  return (
+    <AnimatedDialog
+      open={
+        open
+      }
+      onClose={
+        onClose
+      }
+      align="center"
+      panelClassName="max-w-md"
+    >
+      {({
+        close,
+      }) => (
+        <article
+          dir={
+            dir
+          }
+          className="w-full overflow-hidden rounded-[30px] bg-white text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.40)]"
+        >
+          <header className="flex items-start justify-between gap-5 px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
+            <div>
+              <div className="flex size-11 items-center justify-center rounded-[15px] bg-blue-50 text-blue-600">
+                <Clock3 className="size-5" />
+              </div>
+
+              <h2 className="mt-4 text-[22px] font-black">
+                {t(
+                  "workingHours"
+                )}
+              </h2>
+
+              <p className="mt-1 text-sm font-medium text-neutral-500">
+                {t(
+                  "weeklyHours"
+                )}
+              </p>
+            </div>
+
+
+            <button
+              type="button"
+              onClick={
+                close
+              }
+              aria-label={t(
+                "close"
+              )}
+              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-neutral-200 active:scale-95"
+            >
+              <X className="size-[18px]" />
+            </button>
+          </header>
+
+
+          <div className="border-t border-neutral-100 px-5 pb-5 sm:px-6">
+            <WorkingHours
+              hours={
+                hours
+              }
+            />
+          </div>
+        </article>
+      )}
+    </AnimatedDialog>
+  );
+}
+
+
+function WorkingHours({
+  hours,
+}) {
+  const {
+    language,
+    t,
+  } =
+    usePublicLanguage();
+
+
+  const now =
+    new Date();
+
+
+  const todayKey =
+    DAY_KEYS[
+      now.getDay()
+    ];
+
+
+  return (
+    <div>
+      {DAY_KEYS.map(
+        (
+          dayKey
+        ) => {
+          const rawDay =
+            getDayData(
+              hours,
+              dayKey
+            );
+
+
+          const day =
+            normalizeDay(
+              rawDay
+            );
+
+
+          const isToday =
+            dayKey ===
+            todayKey;
+
+
+          return (
+            <div
+              key={
+                dayKey
+              }
+              className={`flex min-h-14 items-center justify-between gap-5 border-b border-neutral-100 text-sm last:border-b-0 ${
+                isToday
+                  ? "font-black"
+                  : "font-semibold"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span>
+                  {t(
+                    `days.${dayKey}`
+                  )}
+                </span>
+
+                {isToday && (
+                  <span className="rounded-full bg-neutral-950 px-2 py-1 text-[9px] font-black text-white">
+                    {t(
+                      "today"
+                    )}
+                  </span>
+                )}
+              </div>
+
+
+              <span
+                dir="ltr"
+                lang={
+                  language
+                }
+                className={
+                  day.isOpenDay
+                    ? "font-black text-neutral-700"
+                    : "font-black text-red-500"
+                }
+              >
+                {day.isOpenDay
+                  ? `${day.from} — ${day.to}`
+                  : t(
+                      "closed"
+                    )}
+              </span>
+            </div>
+          );
+        }
+      )}
+    </div>
+  );
+}
+
+
+function SectionItemsModal({
+  open,
+  section,
+  onClose,
+  onOpenItem,
+}) {
+  const {
+    dir,
+    language,
+    text,
+    t,
+  } =
+    usePublicLanguage();
+
+
+  if (
+    !section
+  ) {
+    return (
+      <AnimatedDialog
+        open={
+          false
+        }
+        onClose={
+          onClose
+        }
+      >
+        {() =>
+          null
+        }
+      </AnimatedDialog>
+    );
+  }
+
+
+  const sectionName =
+    text(
+      section.section,
+      "name",
+      t(
+        "sectionFallback"
+      )
+    );
+
+
+  const description =
+    text(
+      section.section,
+      "description"
+    );
+
+
+  return (
+    <AnimatedDialog
+      open={
+        open
+      }
+      onClose={
+        onClose
+      }
+      panelClassName="max-w-3xl"
+    >
+      {({
+        close,
+      }) => (
+        <article
+          dir={
+            dir
+          }
+          className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[30px] bg-[#f7f7f7] text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.40)] sm:rounded-[32px]"
+        >
+          <div className="flex justify-center bg-white pt-3 sm:hidden">
+            <span className="h-1 w-10 rounded-full bg-neutral-200" />
+          </div>
+
+
+          <header className="shrink-0 border-b border-neutral-100 bg-white px-5 pb-5 pt-4 sm:px-6 sm:pt-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-neutral-100">
+                    <SectionIcon
+                      section={
+                        section.section
+                      }
+                      size={
+                        19
+                      }
+                    />
+                  </span>
+
+                  <div className="min-w-0">
+                    <h2 className="truncate text-xl font-black">
+                      {
+                        sectionName
+                      }
+                    </h2>
+
+                    <p className="mt-0.5 text-xs font-semibold text-neutral-400">
+                      {getItemCountText(
+                        section.items.length,
+                        language
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+
+                {description && (
+                  <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-neutral-500">
+                    {
+                      description
+                    }
+                  </p>
+                )}
+              </div>
+
+
+              <button
+                type="button"
+                onClick={
+                  close
+                }
+                aria-label={t(
+                  "close"
+                )}
+                className="flex size-10 cursor-pointer shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-neutral-200 active:scale-95"
+              >
+                <X className="size-[18px]" />
+              </button>
+            </div>
+          </header>
+
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-10 sm:px-5">
+            <div className="grid grid-cols-1 gap-3">
+              {section.items.map(
+                (
+                  item,
+                  index
+                ) => (
+                  <SectionListItem
+                    key={
+                      item?.id ||
+                      item?.slug ||
+                      index
+                    }
+                    item={
+                      item
+                    }
+                    eager={
+                      index <
+                      4
+                    }
+                    onOpen={() =>
+                      onOpenItem(
+                        item
+                      )
+                    }
+                  />
+                )
+              )}
+            </div>
+          </div>
+        </article>
+      )}
+    </AnimatedDialog>
+  );
+}
+
+
+function SectionListItem({
+  item,
+  onOpen,
+  eager = false,
+}) {
+  const {
+    language,
+    text,
+    t,
+  } =
+    usePublicLanguage();
+
+
+  const name =
+    text(
+      item,
+      "name",
+      t(
+        "itemFallback"
+      )
+    );
+
+
+  const description =
+    text(
+      item,
+      "description"
+    );
+
+
+  const image =
+    getImageUrl(
+      item?.image_url
+    ) ||
+    getImageUrl(
+      item?.imageUrl
+    ) ||
+    getImageUrl(
+      item?.image
+    );
+
+
+  const price =
+    formatPrice(
+      item?.price,
+      language
+    );
+
+
+  const available =
+    item?.is_available !==
+      false &&
+    item?.available !==
+      false;
+
+
+  return (
+    <button
+      type="button"
+      onClick={
+        onOpen
+      }
+      className="group flex w-full cursor-pointer gap-3 rounded-[22px] border border-black/[0.05] bg-white p-3 text-start shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-black/10 hover:shadow-md active:scale-[0.99] sm:gap-4"
+    >
+      <div className="relative size-27 shrink-0 overflow-hidden rounded-[17px] bg-neutral-100 sm:size-32">
+        {image ? (
+          <Image
+            src={
+              image
+            }
+            alt={
+              name
+            }
+            fill
+            loading={
+              eager
+                ? "eager"
+                : "lazy"
+            }
+            fetchPriority={
+              eager
+                ? "high"
+                : "auto"
+            }
+            sizes="128px"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[10px] font-black tracking-[0.12em] text-neutral-300">
+            CRTGO
           </div>
         )}
       </div>
-    </section>
+
+
+      <div className="flex min-w-0 flex-1 flex-col py-1">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-[15px] font-black leading-6 text-neutral-950 sm:text-base">
+            {
+              name
+            }
+          </h3>
+
+
+          {price !==
+            null && (
+            <strong className="shrink-0 rounded-full bg-neutral-50 px-2.5 py-1 text-sm font-black text-[var(--crtgo-primary)]">
+              ₪
+              {
+                price
+              }
+            </strong>
+          )}
+        </div>
+
+
+        {description && (
+          <p className="mt-1.5 line-clamp-2 text-[13px] font-medium leading-5 text-neutral-500 sm:text-sm sm:leading-6">
+            {
+              description
+            }
+          </p>
+        )}
+
+
+        <div className="mt-auto flex items-center justify-between pt-3">
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-bold ${
+              available
+                ? "text-emerald-600"
+                : "text-neutral-400"
+            }`}
+          >
+            <span
+              className={`size-1.5 rounded-full ${
+                available
+                  ? "bg-emerald-500"
+                  : "bg-neutral-300"
+              }`}
+            />
+
+            {available
+              ? t(
+                  "available"
+                )
+              : t(
+                  "unavailable"
+                )}
+          </span>
+
+
+          <Maximize2 className="size-4 text-neutral-300 transition group-hover:text-neutral-700" />
+        </div>
+      </div>
+    </button>
   );
 }
 
-function ContactLink({
-  href,
-  label,
-  value,
-  external = false,
+
+function ItemDetailsModal({
+  open,
+  item,
+  onClose,
 }) {
-  return (
-    <a
-      href={href}
-      target={
-        external
-          ? "_blank"
-          : undefined
-      }
-      rel={
-        external
-          ? "noreferrer"
-          : undefined
-      }
-      className="rounded-[22px] border border-black/10 p-4 transition hover:-translate-y-0.5"
-    >
-      <p className="text-xs font-black uppercase opacity-30">
-        {label}
-      </p>
+  const {
+    dir,
+    language,
+    text,
+    t,
+  } =
+    usePublicLanguage();
 
-      <p
-        className="mt-2 truncate text-sm font-bold"
-        dir="ltr"
+
+  if (
+    !item
+  ) {
+    return (
+      <AnimatedDialog
+        open={
+          false
+        }
+        onClose={
+          onClose
+        }
       >
-        {value}
-      </p>
-    </a>
+        {() =>
+          null
+        }
+      </AnimatedDialog>
+    );
+  }
+
+
+  const name =
+    text(
+      item,
+      "name",
+      t(
+        "itemFallback"
+      )
+    );
+
+
+  const description =
+    text(
+      item,
+      "description"
+    );
+
+
+  const image =
+    getImageUrl(
+      item?.image_url
+    ) ||
+    getImageUrl(
+      item?.imageUrl
+    ) ||
+    getImageUrl(
+      item?.image
+    );
+
+
+  const price =
+    formatPrice(
+      item?.price,
+      language
+    );
+
+
+  const available =
+    item?.is_available !==
+      false &&
+    item?.available !==
+      false;
+
+
+  return (
+    <AnimatedDialog
+      open={
+        open
+      }
+      onClose={
+        onClose
+      }
+      align="center"
+      panelClassName="max-w-xl"
+    >
+      {({
+        close,
+      }) => (
+        <article
+          dir={
+            dir
+          }
+          className="max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-[30px] bg-white text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.45)] sm:rounded-[34px]"
+        >
+          {image ? (
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[30px] bg-neutral-100 sm:aspect-[16/10] sm:rounded-t-[34px]">
+              <Image
+                src={
+                  image
+                }
+                alt={
+                  name
+                }
+                fill
+                loading="eager"
+                fetchPriority="high"
+                sizes="(max-width: 640px) 100vw, 576px"
+                className="object-cover"
+              />
+
+              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/25 to-transparent" />
+
+
+              <button
+                type="button"
+                onClick={
+                  close
+                }
+                aria-label={t(
+                  "close"
+                )}
+                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/60 bg-white/90 text-neutral-950 shadow-lg backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-white active:scale-95 ${
+                  dir ===
+                  "rtl"
+                    ? "left-4"
+                    : "right-4"
+                }`}
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative flex h-28 items-center justify-center rounded-t-[30px] bg-neutral-100 sm:rounded-t-[34px]">
+              <span className="text-xs font-black tracking-[0.15em] text-neutral-300">
+                CRTGO
+              </span>
+
+              <button
+                type="button"
+                onClick={
+                  close
+                }
+                aria-label={t(
+                  "close"
+                )}
+                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full bg-white text-neutral-950 shadow transition duration-200 hover:scale-105 active:scale-95 ${
+                  dir ===
+                  "rtl"
+                    ? "left-4"
+                    : "right-4"
+                }`}
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+          )}
+
+
+          <div className="p-5 sm:p-7">
+            <div className="flex items-start justify-between gap-5">
+              <h2 className="text-balance text-[25px] font-black leading-tight text-neutral-950 sm:text-[31px]">
+                {
+                  name
+                }
+              </h2>
+
+
+              {price !==
+                null && (
+                <strong className="shrink-0 rounded-full border border-black/[0.055] bg-neutral-50 px-3 py-1.5 text-lg font-black text-[var(--crtgo-primary)]">
+                  ₪
+                  {
+                    price
+                  }
+                </strong>
+              )}
+            </div>
+
+
+            {description && (
+              <p className="mt-4 whitespace-pre-line text-[15px] font-medium leading-7 text-neutral-500">
+                {
+                  description
+                }
+              </p>
+            )}
+
+
+            <div className="mt-6 border-t border-neutral-100 pt-5">
+              <div
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-black ${
+                  available
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-neutral-100 text-neutral-500"
+                }`}
+              >
+                <span
+                  className={`size-2 rounded-full ${
+                    available
+                      ? "bg-emerald-500"
+                      : "bg-neutral-300"
+                  }`}
+                />
+
+                {available
+                  ? t(
+                      "availableNow"
+                    )
+                  : t(
+                      "unavailableNow"
+                    )}
+              </div>
+            </div>
+          </div>
+        </article>
+      )}
+    </AnimatedDialog>
   );
 }
+
 
 function Footer() {
+  const {
+    t,
+  } =
+    usePublicLanguage();
+
+
   return (
-    <footer className="border-t border-black/10 py-10 text-center">
-      <a
-        href="https://crtgo.com"
-        target="_blank"
-        rel="noreferrer"
-        className="text-xs font-black uppercase tracking-[0.18em] opacity-30 transition hover:opacity-100"
-      >
-        Powered by CRTGO
-      </a>
+    <footer className="border-t border-black/[0.06] bg-white px-4 py-10">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-start">
+        <div>
+          <a
+            href="https://crtgo.com"
+            target="_blank"
+            rel="noreferrer"
+            className="cursor-pointer text-[17px] font-black tracking-[-0.04em] text-neutral-950 transition hover:opacity-60"
+          >
+            CRTGO
+          </a>
+
+          <p className="mt-1 text-xs font-medium text-neutral-400">
+            {t(
+              "footerText"
+            )}
+          </p>
+        </div>
+
+
+        <a
+          href="https://crtgo.com"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex cursor-pointer items-center rounded-full border border-black/[0.07] bg-neutral-50 px-4 py-2 text-[11px] font-black text-neutral-600 transition duration-200 hover:-translate-y-0.5 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white active:scale-95"
+        >
+          {t(
+            "poweredBy"
+          )}
+        </a>
+      </div>
     </footer>
   );
 }
+
 
 function SectionIcon({
   section,
@@ -2073,34 +4190,50 @@ function SectionIcon({
     section?.icon_type ||
     "none";
 
+
   const value =
     section?.iconValue ||
     section?.icon_value ||
     null;
 
+
   if (
     !value ||
-    type === "none"
+    type ===
+      "none"
   ) {
     return null;
   }
 
-  if (type === "emoji") {
+
+  if (
+    type ===
+    "emoji"
+  ) {
     return (
       <span
         className="shrink-0 leading-none"
         style={{
-          fontSize: size,
+          fontSize:
+            size,
         }}
       >
-        {value}
+        {
+          value
+        }
       </span>
     );
   }
 
-  if (type === "lucide") {
+
+  if (
+    type ===
+    "lucide"
+  ) {
     const Icon =
-      SECTION_ICONS[value];
+      SECTION_ICONS[
+        value
+      ];
 
     if (!Icon) {
       return null;
@@ -2108,14 +4241,17 @@ function SectionIcon({
 
     return (
       <Icon
-        size={size}
-        strokeWidth={2}
+        size={
+          size
+        }
+        strokeWidth={
+          2
+        }
         className="shrink-0"
       />
     );
   }
 
+
   return null;
 }
-
-
