@@ -70,7 +70,8 @@ const PUBLIC_LANGUAGES = {
 
 const PUBLIC_COPY = {
   ar: {
-    language: "اللغة",
+    language:
+      "اللغة",
 
     restaurantFallback:
       "اسم المطعم",
@@ -95,6 +96,9 @@ const PUBLIC_COPY = {
 
     share:
       "مشاركة",
+
+    clearSearch:
+      "مسح البحث",
 
     searchPlaceholder:
       "ابحث في القائمة...",
@@ -153,20 +157,54 @@ const PUBLIC_COPY = {
     menuShare:
       "شاهد قائمة {name}",
 
-    poweredBy:
-      "بدعم من CRTGO",
+    footerDescription:
+      "مواقع وقوائم رقمية أسرع وأبسط للشركات والمطاعم.",
 
-    footerText:
-      "قائمة أسرع، أبسط، وأجمل.",
+    footerExplore:
+      "استكشف",
+
+    footerInformation:
+      "معلومات",
+
+    footerWebsite:
+      "CRTGO",
+
+    footerWebServices:
+      "خدمات الويب",
+
+    footerTerms:
+      "الشروط والأحكام",
+
+    footerPrivacy:
+      "سياسة الخصوصية",
+
+    footerContact:
+      "تواصل معنا",
+
+    footerCopyright:
+      "جميع الحقوق محفوظة.",
 
     days: {
-      sunday: "الأحد",
-      monday: "الاثنين",
-      tuesday: "الثلاثاء",
-      wednesday: "الأربعاء",
-      thursday: "الخميس",
-      friday: "الجمعة",
-      saturday: "السبت",
+      sunday:
+        "الأحد",
+
+      monday:
+        "الاثنين",
+
+      tuesday:
+        "الثلاثاء",
+
+      wednesday:
+        "الأربعاء",
+
+      thursday:
+        "الخميس",
+
+      friday:
+        "الجمعة",
+
+      saturday:
+        "السبت",
     },
   },
 
@@ -198,6 +236,9 @@ const PUBLIC_COPY = {
 
     share:
       "Share",
+
+    clearSearch:
+      "Clear search",
 
     searchPlaceholder:
       "Search the menu...",
@@ -256,20 +297,54 @@ const PUBLIC_COPY = {
     menuShare:
       "View {name}'s menu",
 
-    poweredBy:
-      "Powered by CRTGO",
+    footerDescription:
+      "Faster, simpler digital websites and menus for businesses and restaurants.",
 
-    footerText:
-      "A faster, simpler and better menu.",
+    footerExplore:
+      "Explore",
+
+    footerInformation:
+      "Information",
+
+    footerWebsite:
+      "CRTGO",
+
+    footerWebServices:
+      "Web Services",
+
+    footerTerms:
+      "Terms",
+
+    footerPrivacy:
+      "Privacy",
+
+    footerContact:
+      "Contact",
+
+    footerCopyright:
+      "All rights reserved.",
 
     days: {
-      sunday: "Sunday",
-      monday: "Monday",
-      tuesday: "Tuesday",
-      wednesday: "Wednesday",
-      thursday: "Thursday",
-      friday: "Friday",
-      saturday: "Saturday",
+      sunday:
+        "Sunday",
+
+      monday:
+        "Monday",
+
+      tuesday:
+        "Tuesday",
+
+      wednesday:
+        "Wednesday",
+
+      thursday:
+        "Thursday",
+
+      friday:
+        "Friday",
+
+      saturday:
+        "Saturday",
     },
   },
 
@@ -301,6 +376,9 @@ const PUBLIC_COPY = {
 
     share:
       "שיתוף",
+
+    clearSearch:
+      "נקה חיפוש",
 
     searchPlaceholder:
       "חיפוש בתפריט...",
@@ -359,20 +437,54 @@ const PUBLIC_COPY = {
     menuShare:
       "צפה בתפריט של {name}",
 
-    poweredBy:
-      "מופעל על ידי CRTGO",
+    footerDescription:
+      "אתרים ותפריטים דיגיטליים מהירים ופשוטים יותר לעסקים ומסעדות.",
 
-    footerText:
-      "תפריט מהיר, פשוט ויפה יותר.",
+    footerExplore:
+      "גלו",
+
+    footerInformation:
+      "מידע",
+
+    footerWebsite:
+      "CRTGO",
+
+    footerWebServices:
+      "שירותי אינטרנט",
+
+    footerTerms:
+      "תנאים",
+
+    footerPrivacy:
+      "פרטיות",
+
+    footerContact:
+      "יצירת קשר",
+
+    footerCopyright:
+      "כל הזכויות שמורות.",
 
     days: {
-      sunday: "יום ראשון",
-      monday: "יום שני",
-      tuesday: "יום שלישי",
-      wednesday: "יום רביעי",
-      thursday: "יום חמישי",
-      friday: "יום שישי",
-      saturday: "שבת",
+      sunday:
+        "יום ראשון",
+
+      monday:
+        "יום שני",
+
+      tuesday:
+        "יום שלישי",
+
+      wednesday:
+        "יום רביעי",
+
+      thursday:
+        "יום חמישי",
+
+      friday:
+        "יום שישי",
+
+      saturday:
+        "שבת",
     },
   },
 };
@@ -390,13 +502,26 @@ const DAY_KEYS = [
 
 
 const SHORT_DAY_KEYS = {
-  sunday: "sun",
-  monday: "mon",
-  tuesday: "tue",
-  wednesday: "wed",
-  thursday: "thu",
-  friday: "fri",
-  saturday: "sat",
+  sunday:
+    "sun",
+
+  monday:
+    "mon",
+
+  tuesday:
+    "tue",
+
+  wednesday:
+    "wed",
+
+  thursday:
+    "thu",
+
+  friday:
+    "fri",
+
+  saturday:
+    "sat",
 };
 
 
@@ -411,7 +536,9 @@ function getNestedValue(
         current,
         key
       ) =>
-        current?.[key],
+        current?.[
+          key
+        ],
       object
     );
 }
@@ -730,6 +857,89 @@ function getImageUrl(
   }
 
   return null;
+}
+
+
+function getContrastTextColor(
+  color
+) {
+  let value =
+    String(
+      color ||
+        ""
+    )
+      .trim()
+      .replace(
+        "#",
+        ""
+      );
+
+  if (
+    value.length ===
+    3
+  ) {
+    value =
+      value
+        .split("")
+        .map(
+          (
+            character
+          ) =>
+            `${character}${character}`
+        )
+        .join("");
+  }
+
+  if (
+    !/^[0-9a-fA-F]{6}$/.test(
+      value
+    )
+  ) {
+    return "#ffffff";
+  }
+
+  const red =
+    parseInt(
+      value.slice(
+        0,
+        2
+      ),
+      16
+    );
+
+  const green =
+    parseInt(
+      value.slice(
+        2,
+        4
+      ),
+      16
+    );
+
+  const blue =
+    parseInt(
+      value.slice(
+        4,
+        6
+      ),
+      16
+    );
+
+  const brightness =
+    (
+      red *
+        299 +
+      green *
+        587 +
+      blue *
+        114
+    ) /
+    1000;
+
+  return brightness >
+    170
+    ? "#111111"
+    : "#ffffff";
 }
 
 
@@ -1099,11 +1309,6 @@ function usePublicLanguage() {
 }
 
 
-/*
- * Native dialog = browser top layer.
- *
- * No z-index is required anywhere.
- */
 function AnimatedDialog({
   open,
   onClose,
@@ -1119,6 +1324,11 @@ function AnimatedDialog({
   const closeTimerRef =
     useRef(
       null
+    );
+
+  const previousOverflowRef =
+    useRef(
+      ""
     );
 
   const [
@@ -1151,6 +1361,13 @@ function AnimatedDialog({
       closeTimerRef.current =
         null;
     }
+
+    previousOverflowRef.current =
+      document.body.style
+        .overflow;
+
+    document.body.style.overflow =
+      "hidden";
 
     if (
       !dialog.open
@@ -1186,6 +1403,9 @@ function AnimatedDialog({
           closeTimerRef.current
         );
       }
+
+      document.body.style.overflow =
+        previousOverflowRef.current;
     };
   }, []);
 
@@ -1212,6 +1432,9 @@ function AnimatedDialog({
           ) {
             dialog.close();
           }
+
+          document.body.style.overflow =
+            previousOverflowRef.current;
 
           closeTimerRef.current =
             null;
@@ -1542,6 +1765,12 @@ export default function StandardWebsite({
     "#e32b2b";
 
 
+  const onPrimaryColor =
+    getContrastTextColor(
+      primaryColor
+    );
+
+
   const fontClass =
     PUBLIC_FONT_CLASS[
       language
@@ -1571,12 +1800,23 @@ export default function StandardWebsite({
 
           "--crtgo-primary":
             primaryColor,
+
+          "--crtgo-on-primary":
+            onPrimaryColor,
+
+          "--crtgo-primary-soft":
+            `color-mix(in srgb, ${primaryColor} 10%, white)`,
+
+          "--crtgo-primary-soft-2":
+            `color-mix(in srgb, ${primaryColor} 16%, white)`,
+
+          "--crtgo-primary-border":
+            `color-mix(in srgb, ${primaryColor} 32%, transparent)`,
+
+          "--crtgo-primary-shadow":
+            `color-mix(in srgb, ${primaryColor} 18%, transparent)`,
         }}
       >
-        {/*
-         * FIRST LAYER
-         * Big cover image.
-         */}
         <RestaurantCover
           website={
             website
@@ -1589,13 +1829,6 @@ export default function StandardWebsite({
         />
 
 
-        {/*
-         * SECOND LAYER
-         * Menu surface.
-         *
-         * It is rendered AFTER the cover,
-         * so it naturally paints above it.
-         */}
         <div
           className="second-layer relative -mt-10 rounded-t-[34px] border-t border-white/70 pb-10 pt-[450px] shadow-[0_-14px_60px_rgba(0,0,0,0.06)] sm:-mt-24 sm:rounded-t-[42px] sm:pt-[350px]"
           style={{
@@ -1630,13 +1863,6 @@ export default function StandardWebsite({
         </div>
 
 
-        {/*
-         * THIRD LAYER
-         * Floating restaurant card.
-         *
-         * It is rendered after second-layer,
-         * so it naturally paints above it.
-         */}
         <RestaurantFloatingCard
           website={
             website
@@ -1652,10 +1878,6 @@ export default function StandardWebsite({
         <Footer />
 
 
-        {/*
-         * FINAL LAYER
-         * Native dialog top layer.
-         */}
         <WorkingHoursModal
           open={
             workingHoursOpen
@@ -1797,6 +2019,10 @@ function RestaurantCover({
   }
 
 
+  const actionClass =
+    "flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.04] hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 active:scale-95";
+
+
   return (
     <section
       dir={
@@ -1823,7 +2049,7 @@ function RestaurantCover({
       )}
 
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/5 to-black/65" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/5 to-black/65" />
 
 
       <div className="absolute inset-x-0 top-0 mx-auto flex max-w-6xl items-center justify-between px-4 pt-5 sm:px-6 sm:pt-6">
@@ -1835,7 +2061,9 @@ function RestaurantCover({
           aria-label={t(
             "workingHours"
           )}
-          className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:bg-black/40 active:scale-95"
+          className={
+            actionClass
+          }
         >
           <Clock3 className="size-[19px]" />
         </button>
@@ -1853,7 +2081,9 @@ function RestaurantCover({
             aria-label={t(
               "search"
             )}
-            className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:bg-black/40 active:scale-95"
+            className={
+              actionClass
+            }
           >
             <Search className="size-[19px]" />
           </button>
@@ -1867,7 +2097,9 @@ function RestaurantCover({
             aria-label={t(
               "share"
             )}
-            className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:bg-black/40 active:scale-95"
+            className={
+              actionClass
+            }
           >
             <Share2 className="size-[19px]" />
           </button>
@@ -1998,7 +2230,7 @@ function LanguageSwitcher() {
         aria-expanded={
           open
         }
-        className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3.5 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.02] hover:bg-black/40 active:scale-95"
+        className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3.5 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 active:scale-95"
       >
         <LanguagesIcon className="size-[18px]" />
 
@@ -2066,10 +2298,10 @@ function LanguageSwitcher() {
                 dir={
                   item.dir
                 }
-                className={`flex w-full cursor-pointer items-center justify-between rounded-[13px] px-3 py-2.5 text-sm font-bold transition duration-150 ${
+                className={`flex w-full cursor-pointer items-center justify-between rounded-[13px] px-3 py-2.5 text-sm font-bold transition duration-150 focus-visible:outline-none ${
                   active
-                    ? "bg-neutral-950 text-white"
-                    : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950"
+                    ? "bg-[var(--crtgo-primary)] text-[var(--crtgo-on-primary)]"
+                    : "text-neutral-700 hover:bg-[var(--crtgo-primary-soft)] hover:text-[var(--crtgo-primary)] focus-visible:bg-[var(--crtgo-primary-soft)] focus-visible:text-[var(--crtgo-primary)]"
                 }`}
               >
                 <span>
@@ -2096,7 +2328,6 @@ function RestaurantFloatingCard({
   onOpenWorkingHours,
 }) {
   const {
-    language,
     t,
     text,
   } =
@@ -2269,7 +2500,10 @@ function RestaurantFloatingCard({
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-[250px] px-4 sm:top-[308px] sm:px-6">
-      <article className="pointer-events-auto mx-auto max-w-5xl rounded-[32px] border border-black/[0.06] bg-white px-5 pb-6 shadow-[0_25px_80px_rgba(0,0,0,0.16)] sm:rounded-[38px] sm:px-8 sm:pb-8">
+      <article className="pointer-events-auto mx-auto max-w-5xl overflow-visible rounded-[32px] border border-black/[0.06] bg-white px-5 pb-6 shadow-[0_25px_80px_rgba(0,0,0,0.16)] sm:rounded-[38px] sm:px-8 sm:pb-8">
+        <div className="mx-auto h-[3px] w-16 rounded-b-full bg-[var(--crtgo-primary)]" />
+
+
         <div className="flex justify-center">
           <div className="relative -mt-14 size-28 overflow-hidden rounded-full border-[6px] border-white bg-neutral-100 shadow-[0_14px_40px_rgba(0,0,0,0.20)] sm:-mt-16 sm:size-32">
             {logo ? (
@@ -2287,7 +2521,7 @@ function RestaurantFloatingCard({
                 className="object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-4xl font-black text-neutral-300">
+              <div className="flex h-full w-full items-center justify-center text-4xl font-black text-[var(--crtgo-primary)]">
                 {
                   name.charAt(
                     0
@@ -2309,7 +2543,7 @@ function RestaurantFloatingCard({
 
           {location && (
             <div className="mt-2 flex items-center justify-center gap-1.5 text-neutral-500">
-              <MapPin className="size-4 shrink-0" />
+              <MapPin className="size-4 shrink-0 text-[var(--crtgo-primary)]" />
 
               <p className="text-sm font-medium">
                 {
@@ -2380,7 +2614,7 @@ function RestaurantFloatingCard({
 
 
         <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3">
-          <div className="flex min-h-[102px] flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:bg-neutral-100">
+          <div className="group flex min-h-[102px] flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary-border)] hover:bg-[var(--crtgo-primary-soft)] hover:shadow-[0_10px_30px_var(--crtgo-primary-shadow)]">
             <div className="flex size-9 items-center justify-center rounded-full bg-amber-100 text-amber-600">
               <Star className="size-[17px] fill-current" />
             </div>
@@ -2400,15 +2634,15 @@ function RestaurantFloatingCard({
             onClick={
               onOpenWorkingHours
             }
-            className="flex min-h-[102px] cursor-pointer flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:bg-neutral-100 hover:shadow-sm active:scale-[0.98]"
+            className="group flex min-h-[102px] cursor-pointer flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary-border)] hover:bg-[var(--crtgo-primary-soft)] hover:shadow-[0_10px_30px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.98]"
           >
-            <div className="flex size-9 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+            <div className="flex size-9 items-center justify-center rounded-full bg-[var(--crtgo-primary-soft-2)] text-[var(--crtgo-primary)] transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)]">
               <Clock3 className="size-[17px]" />
             </div>
 
             <strong
               dir="ltr"
-              className="mt-2 max-w-full truncate text-sm font-black text-neutral-950"
+              className="mt-2 max-w-full truncate text-sm font-black text-neutral-950 transition group-hover:text-[var(--crtgo-primary)]"
             >
               {
                 hoursLabel
@@ -2632,7 +2866,7 @@ function SocialLinksRow({
               title={
                 link.label
               }
-              className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition duration-200 hover:-translate-y-0.5 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white active:scale-95"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition duration-200 hover:-translate-y-1 hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] hover:shadow-[0_10px_25px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-95"
             >
               <Icon className="size-[18px]" />
             </a>
@@ -2689,15 +2923,16 @@ function MenuSearch({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="group relative overflow-hidden rounded-[22px] border border-black/[0.07] bg-white shadow-[0_8px_35px_rgba(0,0,0,0.055)] transition duration-200 focus-within:border-black/15 focus-within:shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+      <div className="group relative overflow-hidden rounded-[22px] border border-black/[0.07] bg-white shadow-[0_8px_35px_rgba(0,0,0,0.055)] transition duration-200 focus-within:border-[var(--crtgo-primary)] focus-within:shadow-[0_12px_40px_var(--crtgo-primary-shadow)]">
         <Search
-          className={`pointer-events-none absolute top-1/2 size-5 -translate-y-1/2 text-neutral-400 transition group-focus-within:text-neutral-700 ${
+          className={`pointer-events-none absolute top-1/2 size-5 -translate-y-1/2 text-neutral-400 transition duration-200 group-focus-within:text-[var(--crtgo-primary)] ${
             dir ===
             "rtl"
               ? "right-5"
               : "left-5"
           }`}
         />
+
 
         <input
           id="menu-search"
@@ -2718,10 +2953,33 @@ function MenuSearch({
           className={`h-15 w-full bg-transparent text-sm font-semibold text-neutral-950 outline-none placeholder:font-medium placeholder:text-neutral-400 ${
             dir ===
             "rtl"
-              ? "pr-13 pl-5 text-right"
-              : "pl-13 pr-5 text-left"
+              ? "pr-13 pl-13 text-right"
+              : "pl-13 pr-13 text-left"
           }`}
         />
+
+
+        {query && (
+          <button
+            type="button"
+            onClick={() =>
+              setQuery(
+                ""
+              )
+            }
+            aria-label={t(
+              "clearSearch"
+            )}
+            className={`absolute top-1/2 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] ${
+              dir ===
+              "rtl"
+                ? "left-3"
+                : "right-3"
+            }`}
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -2738,6 +2996,114 @@ function SectionNavigation({
     usePublicLanguage();
 
 
+  const [
+    activeSectionId,
+    setActiveSectionId,
+  ] =
+    useState(
+      sections[
+        0
+      ]
+        ? getSectionId(
+            sections[
+              0
+            ]
+          )
+        : ""
+    );
+
+
+  useEffect(() => {
+    if (
+      !sections.length
+    ) {
+      return;
+    }
+
+    const elements =
+      sections
+        .map(
+          (
+            section
+          ) =>
+            document.getElementById(
+              getSectionId(
+                section
+              )
+            )
+        )
+        .filter(
+          Boolean
+        );
+
+    if (
+      !elements.length
+    ) {
+      return;
+    }
+
+    const observer =
+      new IntersectionObserver(
+        (
+          entries
+        ) => {
+          const visible =
+            entries
+              .filter(
+                (
+                  entry
+                ) =>
+                  entry.isIntersecting
+              )
+              .sort(
+                (
+                  a,
+                  b
+                ) =>
+                  b.intersectionRatio -
+                  a.intersectionRatio
+              )[
+              0
+            ];
+
+          if (
+            visible
+          ) {
+            setActiveSectionId(
+              visible.target.id
+            );
+          }
+        },
+        {
+          rootMargin:
+            "-15% 0px -65% 0px",
+
+          threshold: [
+            0,
+            0.1,
+            0.25,
+            0.5,
+          ],
+        }
+      );
+
+    for (
+      const element of
+      elements
+    ) {
+      observer.observe(
+        element
+      );
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    sections,
+  ]);
+
+
   if (
     !sections.length
   ) {
@@ -2748,16 +3114,23 @@ function SectionNavigation({
   function scrollToSection(
     section
   ) {
+    const id =
+      getSectionId(
+        section
+      );
+
     const element =
       document.getElementById(
-        getSectionId(
-          section
-        )
+        id
       );
 
     if (!element) {
       return;
     }
+
+    setActiveSectionId(
+      id
+    );
 
     element.scrollIntoView({
       behavior:
@@ -2785,6 +3158,15 @@ function SectionNavigation({
                 )
               );
 
+            const id =
+              getSectionId(
+                section
+              );
+
+            const active =
+              activeSectionId ===
+              id;
+
             return (
               <button
                 key={
@@ -2798,9 +3180,24 @@ function SectionNavigation({
                     section
                   )
                 }
-                className="group flex shrink-0 cursor-pointer items-center gap-2 rounded-full border border-black/[0.07] bg-white py-2 pe-4 ps-2 text-sm font-bold text-neutral-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-black/15 hover:shadow-md active:scale-95"
+                aria-current={
+                  active
+                    ? "true"
+                    : undefined
+                }
+                className={`group flex shrink-0 cursor-pointer items-center gap-2 rounded-full border py-2 pe-4 ps-2 text-sm font-bold shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-95 ${
+                  active
+                    ? "border-[var(--crtgo-primary)] bg-[var(--crtgo-primary)] text-[var(--crtgo-on-primary)] shadow-[0_8px_24px_var(--crtgo-primary-shadow)]"
+                    : "border-black/[0.07] bg-white text-neutral-700 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary)] hover:text-[var(--crtgo-primary)] hover:shadow-md"
+                }`}
               >
-                <span className="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-white">
+                <span
+                  className={`flex size-9 items-center justify-center rounded-full transition duration-200 ${
+                    active
+                      ? "bg-white/20 text-[var(--crtgo-on-primary)]"
+                      : "bg-neutral-100 text-neutral-700 group-hover:bg-[var(--crtgo-primary-soft)] group-hover:text-[var(--crtgo-primary)]"
+                  }`}
+                >
                   <SectionIcon
                     section={
                       section
@@ -2964,12 +3361,12 @@ function MenuSections({
                     section
                   )
                 }
-                className="scroll-mt-6 rounded-[28px] border border-black/[0.055] bg-white/55 p-3 sm:rounded-[32px] sm:p-5"
+                className="group/section scroll-mt-6 rounded-[28px] border border-black/[0.055] bg-white/60 p-3 shadow-[0_8px_35px_rgba(0,0,0,0.025)] transition duration-300 hover:border-[var(--crtgo-primary-border)] sm:rounded-[32px] sm:p-5"
               >
                 <div className="mb-4 flex items-end justify-between gap-4 px-1 sm:mb-5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-neutral-100 text-neutral-700">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)] transition duration-200 group-hover/section:bg-[var(--crtgo-primary)] group-hover/section:text-[var(--crtgo-on-primary)]">
                         <SectionIcon
                           section={
                             section
@@ -3008,7 +3405,7 @@ function MenuSections({
                   </div>
 
 
-                  <span className="hidden shrink-0 rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-bold text-neutral-500 sm:inline-flex">
+                  <span className="hidden shrink-0 rounded-full bg-[var(--crtgo-primary-soft)] px-3 py-1.5 text-[11px] font-bold text-[var(--crtgo-primary)] sm:inline-flex">
                     {getItemCountText(
                       filteredItems.length,
                       language
@@ -3073,7 +3470,7 @@ function MenuSections({
                               filteredItems,
                           })
                         }
-                        className="mt-3 flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[17px] border border-black/[0.07] bg-white px-5 text-sm font-black text-neutral-950 shadow-sm transition duration-200 hover:bg-neutral-50 active:scale-[0.99] sm:hidden"
+                        className="mt-3 flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[17px] border border-[var(--crtgo-primary-border)] bg-[var(--crtgo-primary-soft)] px-5 text-sm font-black text-[var(--crtgo-primary)] shadow-sm transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] hover:shadow-[0_10px_28px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.99] sm:hidden"
                       >
                         {t(
                           "showAll"
@@ -3170,7 +3567,7 @@ function EmptyState({
   return (
     <div className="mx-auto my-12 max-w-md rounded-[26px] border border-black/[0.05] bg-white px-6 py-12 text-center shadow-sm">
       {Icon && (
-        <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-400">
+        <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)]">
           <Icon className="size-5" />
         </div>
       )}
@@ -3290,7 +3687,7 @@ function MenuItem({
       onClick={
         onOpen
       }
-      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[21px] border border-black/[0.055] bg-white text-start shadow-[0_5px_22px_rgba(0,0,0,0.035)] transition duration-300 hover:-translate-y-1 hover:border-black/10 hover:shadow-[0_18px_42px_rgba(0,0,0,0.09)] active:scale-[0.985] sm:rounded-[24px]"
+      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[21px] border border-black/[0.055] bg-white text-start shadow-[0_5px_22px_rgba(0,0,0,0.035)] transition duration-300 hover:-translate-y-1 hover:border-[var(--crtgo-primary)] hover:shadow-[0_18px_42px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.985] sm:rounded-[24px]"
     >
       <div className="relative aspect-[1/0.92] w-full overflow-hidden bg-neutral-100">
         {image ? (
@@ -3313,7 +3710,7 @@ function MenuItem({
                 : "auto"
             }
             sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.045]"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.055]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[11px] font-black tracking-[0.14em] text-neutral-300">
@@ -3322,7 +3719,7 @@ function MenuItem({
         )}
 
 
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
 
         {!available && (
@@ -3342,7 +3739,7 @@ function MenuItem({
 
 
         <span
-          className={`absolute bottom-2.5 flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/90 text-neutral-900 shadow-md backdrop-blur transition duration-200 group-hover:scale-110 ${
+          className={`absolute bottom-2.5 flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/90 text-neutral-900 shadow-md backdrop-blur transition duration-200 group-hover:scale-110 group-hover:border-[var(--crtgo-primary)] group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)] ${
             dir ===
             "rtl"
               ? "left-2.5"
@@ -3355,7 +3752,7 @@ function MenuItem({
 
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h3 className="line-clamp-2 text-[14px] font-black leading-5 text-neutral-950 sm:text-[16px] sm:leading-6">
+        <h3 className="line-clamp-2 text-[14px] font-black leading-5 text-neutral-950 transition duration-200 group-hover:text-[var(--crtgo-primary)] sm:text-[16px] sm:leading-6">
           {
             name
           }
@@ -3374,7 +3771,7 @@ function MenuItem({
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
           {price !==
             null ? (
-            <strong className="rounded-full border border-black/[0.055] bg-neutral-50 px-2.5 py-1 text-[13px] font-black text-[var(--crtgo-primary)] sm:text-sm">
+            <strong className="rounded-full border border-[var(--crtgo-primary-border)] bg-[var(--crtgo-primary-soft)] px-2.5 py-1 text-[13px] font-black text-[var(--crtgo-primary)] transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)] sm:text-sm">
               ₪
               {
                 price
@@ -3436,9 +3833,12 @@ function WorkingHoursModal({
           }
           className="w-full overflow-hidden rounded-[30px] bg-white text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.40)]"
         >
+          <div className="h-1 w-full bg-[var(--crtgo-primary)]" />
+
+
           <header className="flex items-start justify-between gap-5 px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
             <div>
-              <div className="flex size-11 items-center justify-center rounded-[15px] bg-blue-50 text-blue-600">
+              <div className="flex size-11 items-center justify-center rounded-[15px] bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)]">
                 <Clock3 className="size-5" />
               </div>
 
@@ -3464,7 +3864,7 @@ function WorkingHoursModal({
               aria-label={t(
                 "close"
               )}
-              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-neutral-200 active:scale-95"
+              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95"
             >
               <X className="size-[18px]" />
             </button>
@@ -3548,7 +3948,7 @@ function WorkingHours({
                 </span>
 
                 {isToday && (
-                  <span className="rounded-full bg-neutral-950 px-2 py-1 text-[9px] font-black text-white">
+                  <span className="rounded-full bg-[var(--crtgo-primary)] px-2 py-1 text-[9px] font-black text-[var(--crtgo-on-primary)]">
                     {t(
                       "today"
                     )}
@@ -3654,6 +4054,9 @@ function SectionItemsModal({
           }
           className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[30px] bg-[#f7f7f7] text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.40)] sm:rounded-[32px]"
         >
+          <div className="h-1 w-full shrink-0 bg-[var(--crtgo-primary)]" />
+
+
           <div className="flex justify-center bg-white pt-3 sm:hidden">
             <span className="h-1 w-10 rounded-full bg-neutral-200" />
           </div>
@@ -3663,7 +4066,7 @@ function SectionItemsModal({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-neutral-100">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)]">
                     <SectionIcon
                       section={
                         section.section
@@ -3681,7 +4084,7 @@ function SectionItemsModal({
                       }
                     </h2>
 
-                    <p className="mt-0.5 text-xs font-semibold text-neutral-400">
+                    <p className="mt-0.5 text-xs font-semibold text-[var(--crtgo-primary)]">
                       {getItemCountText(
                         section.items.length,
                         language
@@ -3709,7 +4112,7 @@ function SectionItemsModal({
                 aria-label={t(
                   "close"
                 )}
-                className="flex size-10 cursor-pointer shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-neutral-200 active:scale-95"
+                className="flex size-10 cursor-pointer shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95"
               >
                 <X className="size-[18px]" />
               </button>
@@ -3816,7 +4219,7 @@ function SectionListItem({
       onClick={
         onOpen
       }
-      className="group flex w-full cursor-pointer gap-3 rounded-[22px] border border-black/[0.05] bg-white p-3 text-start shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-black/10 hover:shadow-md active:scale-[0.99] sm:gap-4"
+      className="group flex w-full cursor-pointer gap-3 rounded-[22px] border border-black/[0.05] bg-white p-3 text-start shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary)] hover:shadow-[0_12px_30px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.99] sm:gap-4"
     >
       <div className="relative size-27 shrink-0 overflow-hidden rounded-[17px] bg-neutral-100 sm:size-32">
         {image ? (
@@ -3839,7 +4242,7 @@ function SectionListItem({
                 : "auto"
             }
             sizes="128px"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[10px] font-black tracking-[0.12em] text-neutral-300">
@@ -3851,7 +4254,7 @@ function SectionListItem({
 
       <div className="flex min-w-0 flex-1 flex-col py-1">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-[15px] font-black leading-6 text-neutral-950 sm:text-base">
+          <h3 className="text-[15px] font-black leading-6 text-neutral-950 transition group-hover:text-[var(--crtgo-primary)] sm:text-base">
             {
               name
             }
@@ -3860,7 +4263,7 @@ function SectionListItem({
 
           {price !==
             null && (
-            <strong className="shrink-0 rounded-full bg-neutral-50 px-2.5 py-1 text-sm font-black text-[var(--crtgo-primary)]">
+            <strong className="shrink-0 rounded-full bg-[var(--crtgo-primary-soft)] px-2.5 py-1 text-sm font-black text-[var(--crtgo-primary)]">
               ₪
               {
                 price
@@ -3905,7 +4308,9 @@ function SectionListItem({
           </span>
 
 
-          <Maximize2 className="size-4 text-neutral-300 transition group-hover:text-neutral-700" />
+          <span className="flex size-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-300 transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)]">
+            <Maximize2 className="size-4" />
+          </span>
         </div>
       </div>
     </button>
@@ -4026,7 +4431,11 @@ function ItemDetailsModal({
                 className="object-cover"
               />
 
-              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/25 to-transparent" />
+
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/35 to-transparent" />
+
+
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-[var(--crtgo-primary)]" />
 
 
               <button
@@ -4037,7 +4446,7 @@ function ItemDetailsModal({
                 aria-label={t(
                   "close"
                 )}
-                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/60 bg-white/90 text-neutral-950 shadow-lg backdrop-blur-xl transition duration-200 hover:scale-105 hover:bg-white active:scale-95 ${
+                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/60 bg-white/90 text-neutral-950 shadow-lg backdrop-blur-xl transition duration-200 hover:scale-105 hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95 ${
                   dir ===
                   "rtl"
                     ? "left-4"
@@ -4048,8 +4457,8 @@ function ItemDetailsModal({
               </button>
             </div>
           ) : (
-            <div className="relative flex h-28 items-center justify-center rounded-t-[30px] bg-neutral-100 sm:rounded-t-[34px]">
-              <span className="text-xs font-black tracking-[0.15em] text-neutral-300">
+            <div className="relative flex h-28 items-center justify-center rounded-t-[30px] border-b-[3px] border-[var(--crtgo-primary)] bg-[var(--crtgo-primary-soft)] sm:rounded-t-[34px]">
+              <span className="text-xs font-black tracking-[0.15em] text-[var(--crtgo-primary)]">
                 CRTGO
               </span>
 
@@ -4061,7 +4470,7 @@ function ItemDetailsModal({
                 aria-label={t(
                   "close"
                 )}
-                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full bg-white text-neutral-950 shadow transition duration-200 hover:scale-105 active:scale-95 ${
+                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full bg-white text-neutral-950 shadow transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95 ${
                   dir ===
                   "rtl"
                     ? "left-4"
@@ -4085,7 +4494,7 @@ function ItemDetailsModal({
 
               {price !==
                 null && (
-                <strong className="shrink-0 rounded-full border border-black/[0.055] bg-neutral-50 px-3 py-1.5 text-lg font-black text-[var(--crtgo-primary)]">
+                <strong className="shrink-0 rounded-full border border-[var(--crtgo-primary-border)] bg-[var(--crtgo-primary-soft)] px-3 py-1.5 text-lg font-black text-[var(--crtgo-primary)]">
                   ₪
                   {
                     price
@@ -4144,39 +4553,199 @@ function Footer() {
     usePublicLanguage();
 
 
-  return (
-    <footer className="border-t border-black/[0.06] bg-white px-4 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-start">
-        <div>
-          <a
-            href="https://crtgo.com"
-            target="_blank"
-            rel="noreferrer"
-            className="cursor-pointer text-[17px] font-black tracking-[-0.04em] text-neutral-950 transition hover:opacity-60"
-          >
-            CRTGO
-          </a>
+  const year =
+    new Date().getFullYear();
 
-          <p className="mt-1 text-xs font-medium text-neutral-400">
-            {t(
-              "footerText"
+
+  return (
+    <footer className="rounded-t-[34px] border-t border-black/[0.07] bg-white text-neutral-950">
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-10">
+        <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr] md:gap-14">
+          <div className="max-w-sm">
+            <a
+              href="https://ws.crtgo.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="CRTGO Web Services"
+              className="group inline-block cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-4"
+            >
+              <Image
+                src="https://cdn.sanity.io/images/gcqd797l/production/0c5e88596ed93c207cc800ed61eee3bc2a9f4d00-3750x3750.png"
+                alt="CRTGO Web Services"
+                width={
+                  250
+                }
+                height={
+                  250
+                }
+                loading="lazy"
+                sizes="150px"
+                className="h-auto w-[130px] object-contain transition duration-300 group-hover:scale-[1.035] sm:w-[150px]"
+              />
+            </a>
+
+
+            <p className="mt-5 max-w-xs text-sm font-medium leading-6 text-neutral-500">
+              {t(
+                "footerDescription"
+              )}
+            </p>
+          </div>
+
+
+          <FooterNavigation
+            title={t(
+              "footerExplore"
             )}
-          </p>
+            links={[
+              {
+                href:
+                  "https://crtgo.com",
+
+                label:
+                  t(
+                    "footerWebsite"
+                  ),
+              },
+
+              {
+                href:
+                  "https://ws.crtgo.com",
+
+                label:
+                  t(
+                    "footerWebServices"
+                  ),
+              },
+            ]}
+          />
+
+
+          <FooterNavigation
+            title={t(
+              "footerInformation"
+            )}
+            links={[
+              {
+                href:
+                  "https://crtgo.com/terms",
+
+                label:
+                  t(
+                    "footerTerms"
+                  ),
+              },
+
+              {
+                href:
+                  "https://crtgo.com/privacy",
+
+                label:
+                  t(
+                    "footerPrivacy"
+                  ),
+              },
+
+              {
+                href:
+                  "https://crtgo.com/contact",
+
+                label:
+                  t(
+                    "footerContact"
+                  ),
+              },
+            ]}
+          />
         </div>
 
 
-        <a
-          href="https://crtgo.com"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex cursor-pointer items-center rounded-full border border-black/[0.07] bg-neutral-50 px-4 py-2 text-[11px] font-black text-neutral-600 transition duration-200 hover:-translate-y-0.5 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white active:scale-95"
-        >
-          {t(
-            "poweredBy"
-          )}
-        </a>
+        <div className="mt-10 h-px w-full bg-black/[0.07]" />
+
+
+        <div className="mt-5 flex flex-col gap-3 text-xs font-medium text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {year} CRTGO.{" "}
+            {t(
+              "footerCopyright"
+            )}
+          </p>
+
+
+          <a
+            href="https://ws.crtgo.com"
+            target="_blank"
+            rel="noreferrer"
+            className="group flex w-fit cursor-pointer items-center gap-2 rounded-full px-2 py-1 font-bold text-neutral-500 transition duration-200 hover:bg-[var(--crtgo-primary-soft)] hover:text-[var(--crtgo-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)]"
+          >
+            <span className="size-1.5 rounded-full bg-[var(--crtgo-primary)]" />
+
+            CRTGO Web Services
+          </a>
+        </div>
       </div>
     </footer>
+  );
+}
+
+
+function FooterNavigation({
+  title,
+  links,
+}) {
+  return (
+    <nav>
+      <p className="mb-4 text-[11px] font-black uppercase tracking-[0.14em] text-neutral-400">
+        {
+          title
+        }
+      </p>
+
+
+      <div className="flex flex-col items-start gap-1">
+        {links.map(
+          (
+            link
+          ) => (
+            <FooterLink
+              key={
+                link.href
+              }
+              href={
+                link.href
+              }
+            >
+              {
+                link.label
+              }
+            </FooterLink>
+          )
+        )}
+      </div>
+    </nav>
+  );
+}
+
+
+function FooterLink({
+  href,
+  children,
+}) {
+  return (
+    <a
+      href={
+        href
+      }
+      target="_blank"
+      rel="noreferrer"
+      className="group relative cursor-pointer rounded-lg py-1.5 pe-3 ps-0 text-sm font-semibold text-neutral-600 transition duration-200 hover:ps-2 hover:text-[var(--crtgo-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)]"
+    >
+      <span className="absolute start-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-full bg-[var(--crtgo-primary)] transition-all duration-200 group-hover:h-4" />
+
+      {
+        children
+      }
+    </a>
   );
 }
 
