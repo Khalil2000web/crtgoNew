@@ -65,11 +65,11 @@ export default function SectionCleanCardsClient({
 
   useEffect(() => {
     const urlLanguage = getUrlLanguage();
-    const savedLanguage = localStorage.getItem(`crtgo-language-${menu.id}`);
+    const savedLanguage = localStorage.getItem(`crtrgo-language-${menu.id}`);
 
     if (urlLanguage && enabledLanguages.includes(urlLanguage)) {
       setLanguageState(urlLanguage);
-      localStorage.setItem(`crtgo-language-${menu.id}`, urlLanguage);
+      localStorage.setItem(`crtrgo-language-${menu.id}`, urlLanguage);
       return;
     }
 
@@ -89,7 +89,7 @@ export default function SectionCleanCardsClient({
     if (!enabledLanguages.includes(cleanLanguage)) return;
 
     setLanguageState(cleanLanguage);
-    localStorage.setItem(`crtgo-language-${menu.id}`, cleanLanguage);
+    localStorage.setItem(`crtrgo-language-${menu.id}`, cleanLanguage);
     updateUrlLanguage(cleanLanguage);
   }
 

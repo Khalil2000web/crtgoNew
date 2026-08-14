@@ -6,7 +6,7 @@ export default function TenantNotFound() {
     >
       <div>
         <p className="text-sm text-neutral-500">
-          CRTGO
+          CRTRGO
         </p>
 
         <h1 className="mt-3 text-2xl font-semibold">

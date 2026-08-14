@@ -15,17 +15,20 @@ function createPublicSupabase() {
   const anonKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+
   if (!url) {
     throw new Error(
       "Missing NEXT_PUBLIC_SUPABASE_URL"
     );
   }
 
+
   if (!anonKey) {
     throw new Error(
       "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY"
     );
   }
+
 
   return createClient(
     url,
@@ -81,6 +84,7 @@ function normalizeLanguages(
     ];
   }
 
+
   const clean = [
     ...new Set(
       value
@@ -101,6 +105,7 @@ function normalizeLanguages(
     ),
   ];
 
+
   return clean.length
     ? clean
     : [
@@ -120,6 +125,7 @@ function normalizeCoverImages(
     return [];
   }
 
+
   return value
     .map(
       (
@@ -131,6 +137,7 @@ function normalizeCoverImages(
         ) {
           return item.trim();
         }
+
 
         if (
           item &&
@@ -145,12 +152,49 @@ function normalizeCoverImages(
           );
         }
 
+
         return "";
       }
     )
     .filter(
       Boolean
     );
+}
+
+
+async function hasPublicEntitlement(
+  supabase,
+  projectId
+) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.rpc(
+      "is_project_publicly_entitled",
+      {
+        p_project_id:
+          projectId,
+      }
+    );
+
+
+  if (
+    error
+  ) {
+    console.error(
+      "[crtrgo public] Entitlement lookup failed:",
+      error
+    );
+
+
+    throw new Error(
+      "Failed to verify public project entitlement"
+    );
+  }
+
+
+  return data === true;
 }
 
 
@@ -177,7 +221,7 @@ export async function getPublicProject(
 
 
   cacheTag(
-    `crtgo-project-${cleanSlug}`
+    `crtrgo-project-${cleanSlug}`
   );
 
 
@@ -198,11 +242,16 @@ export async function getPublicProject(
 
 
   /*
+   * --------------------------------
    * PROJECT
+   * --------------------------------
    */
 
+
   const {
-    data: project,
+    data:
+      project,
+
     error:
       projectError,
   } =
@@ -260,9 +309,10 @@ export async function getPublicProject(
     projectError
   ) {
     console.error(
-      "[CRTGO public] Project lookup failed:",
+      "[crtrgo public] Project lookup failed:",
       projectError
     );
+
 
     throw new Error(
       "Failed to load public project"
@@ -278,12 +328,48 @@ export async function getPublicProject(
 
 
   /*
-   * SECTIONS
+   * --------------------------------
+   * BILLING ENTITLEMENT
+   *
+   * Project must:
+   *
+   * 1. exist
+   * 2. have project.status = active
+   * 3. have an active Paddle subscription
+   *
+   * The public client DOES NOT have
+   * direct access to subscriptions.
+   *
+   * Supabase only returns true / false.
+   * --------------------------------
    */
+
+
+  const entitled =
+    await hasPublicEntitlement(
+      supabase,
+      project.id
+    );
+
+
+  if (
+    !entitled
+  ) {
+    return null;
+  }
+
+
+  /*
+   * --------------------------------
+   * SECTIONS
+   * --------------------------------
+   */
+
 
   const {
     data:
       sectionRows,
+
     error:
       sectionsError,
   } =
@@ -322,9 +408,10 @@ export async function getPublicProject(
     sectionsError
   ) {
     console.error(
-      "[CRTGO public] Sections lookup failed:",
+      "[crtrgo public] Sections lookup failed:",
       sectionsError
     );
+
 
     throw new Error(
       "Failed to load public sections"
@@ -349,8 +436,11 @@ export async function getPublicProject(
 
 
   /*
+   * --------------------------------
    * ITEMS
+   * --------------------------------
    */
+
 
   let itemRows =
     [];
@@ -361,6 +451,7 @@ export async function getPublicProject(
   ) {
     const {
       data,
+
       error:
         itemsError,
     } =
@@ -403,9 +494,10 @@ export async function getPublicProject(
       itemsError
     ) {
       console.error(
-        "[CRTGO public] Items lookup failed:",
+        "[crtrgo public] Items lookup failed:",
         itemsError
       );
+
 
       throw new Error(
         "Failed to load public items"
@@ -417,6 +509,13 @@ export async function getPublicProject(
       data ||
       [];
   }
+
+
+  /*
+   * --------------------------------
+   * GROUP ITEMS BY SECTION
+   * --------------------------------
+   */
 
 
   const itemsBySection =
@@ -478,6 +577,13 @@ export async function getPublicProject(
   }
 
 
+  /*
+   * --------------------------------
+   * FINAL SECTIONS
+   * --------------------------------
+   */
+
+
   const finalSections =
     sections.map(
       (
@@ -523,10 +629,24 @@ export async function getPublicProject(
     );
 
 
+  /*
+   * --------------------------------
+   * PROJECT MEDIA
+   * --------------------------------
+   */
+
+
   const coverImages =
     normalizeCoverImages(
       project.cover_images
     );
+
+
+  /*
+   * --------------------------------
+   * LANGUAGES
+   * --------------------------------
+   */
 
 
   const enabledLanguages =
@@ -551,6 +671,13 @@ export async function getPublicProject(
       ? requestedDefaultLanguage
       : enabledLanguages[0] ||
         "ar";
+
+
+  /*
+   * --------------------------------
+   * PUBLIC RESPONSE
+   * --------------------------------
+   */
 
 
   return {
@@ -642,6 +769,7 @@ export async function getPublicProject(
  * Remove this later once nothing
  * imports getPublicMenuData anymore.
  */
+
 
 export const getPublicMenuData =
   getPublicProject;

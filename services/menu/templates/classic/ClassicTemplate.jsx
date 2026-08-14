@@ -75,7 +75,7 @@ const UI = {
     noItemsText: "جرّب البحث عن شيء آخر.",
     close: "إغلاق",
     language: "اللغة",
-    poweredBy: "مدعوم بواسطة CRTGO",
+    poweredBy: "مدعوم بواسطة CRTRGO",
     days: {
       sunday: "الأحد",
       monday: "الإثنين",
@@ -111,7 +111,7 @@ const UI = {
     noItemsText: "נסה לחפש משהו אחר.",
     close: "סגור",
     language: "שפה",
-    poweredBy: "מופעל על ידי CRTGO",
+    poweredBy: "מופעל על ידי CRTRGO",
     days: {
       sunday: "ראשון",
       monday: "שני",
@@ -147,7 +147,7 @@ const UI = {
     noItemsText: "Try searching for something else.",
     close: "Close",
     language: "Language",
-    poweredBy: "Powered by CRTGO",
+    poweredBy: "Powered by CRTRGO",
     days: {
       sunday: "Sunday",
       monday: "Monday",

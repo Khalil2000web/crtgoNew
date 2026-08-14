@@ -28,7 +28,7 @@ export default function CleanCardsUnavailable({
         </div>
 
         <p className="mt-5 text-xs font-black uppercase tracking-[0.22em] text-black/35">
-          CRTGO MENU
+          CRTRGO MENU
         </p>
 
         <h1 className="mt-2 text-4xl font-black tracking-[-0.07em]">
@@ -40,7 +40,7 @@ export default function CleanCardsUnavailable({
         </p>
 
         <p className="mt-8 text-xs font-black uppercase tracking-[0.18em] text-black/30">
-          Powered by CRTGO
+          Powered by CRTRGO
         </p>
       </section>
     </main>

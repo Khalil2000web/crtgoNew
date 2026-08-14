@@ -167,7 +167,7 @@ const PUBLIC_COPY = {
       "معلومات",
 
     footerWebsite:
-      "CRTGO",
+      "CRTRGO",
 
     footerWebServices:
       "خدمات الويب",
@@ -307,7 +307,7 @@ const PUBLIC_COPY = {
       "Information",
 
     footerWebsite:
-      "CRTGO",
+      "CRTRGO",
 
     footerWebServices:
       "Web Services",
@@ -447,7 +447,7 @@ const PUBLIC_COPY = {
       "מידע",
 
     footerWebsite:
-      "CRTGO",
+      "CRTRGO",
 
     footerWebServices:
       "שירותי אינטרנט",
@@ -1560,7 +1560,7 @@ export default function StandardWebsite({
 
 
   const storageKey =
-    `crtgo-public-language:${
+    `crtrgo-public-language:${
       website?.id ||
       website?.slug ||
       "website"
@@ -1798,22 +1798,22 @@ export default function StandardWebsite({
           color:
             textColor,
 
-          "--crtgo-primary":
+          "--crtrgo-primary":
             primaryColor,
 
-          "--crtgo-on-primary":
+          "--crtrgo-on-primary":
             onPrimaryColor,
 
-          "--crtgo-primary-soft":
+          "--crtrgo-primary-soft":
             `color-mix(in srgb, ${primaryColor} 10%, white)`,
 
-          "--crtgo-primary-soft-2":
+          "--crtrgo-primary-soft-2":
             `color-mix(in srgb, ${primaryColor} 16%, white)`,
 
-          "--crtgo-primary-border":
+          "--crtrgo-primary-border":
             `color-mix(in srgb, ${primaryColor} 32%, transparent)`,
 
-          "--crtgo-primary-shadow":
+          "--crtrgo-primary-shadow":
             `color-mix(in srgb, ${primaryColor} 18%, transparent)`,
         }}
       >
@@ -2020,7 +2020,7 @@ function RestaurantCover({
 
 
   const actionClass =
-    "flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.04] hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 active:scale-95";
+    "flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/25 text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.04] hover:border-[var(--crtrgo-primary)] hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 active:scale-95";
 
 
   return (
@@ -2230,7 +2230,7 @@ function LanguageSwitcher() {
         aria-expanded={
           open
         }
-        className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3.5 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 active:scale-95"
+        className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3.5 text-sm font-bold text-white shadow-lg backdrop-blur-xl transition duration-200 hover:scale-[1.03] hover:border-[var(--crtrgo-primary)] hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-black/20 active:scale-95"
       >
         <LanguagesIcon className="size-[18px]" />
 
@@ -2300,8 +2300,8 @@ function LanguageSwitcher() {
                 }
                 className={`flex w-full cursor-pointer items-center justify-between rounded-[13px] px-3 py-2.5 text-sm font-bold transition duration-150 focus-visible:outline-none ${
                   active
-                    ? "bg-[var(--crtgo-primary)] text-[var(--crtgo-on-primary)]"
-                    : "text-neutral-700 hover:bg-[var(--crtgo-primary-soft)] hover:text-[var(--crtgo-primary)] focus-visible:bg-[var(--crtgo-primary-soft)] focus-visible:text-[var(--crtgo-primary)]"
+                    ? "bg-[var(--crtrgo-primary)] text-[var(--crtrgo-on-primary)]"
+                    : "text-neutral-700 hover:bg-[var(--crtrgo-primary-soft)] hover:text-[var(--crtrgo-primary)] focus-visible:bg-[var(--crtrgo-primary-soft)] focus-visible:text-[var(--crtrgo-primary)]"
                 }`}
               >
                 <span>
@@ -2501,7 +2501,7 @@ function RestaurantFloatingCard({
   return (
     <div className="pointer-events-none absolute inset-x-0 top-[250px] px-4 sm:top-[308px] sm:px-6">
       <article className="pointer-events-auto mx-auto max-w-5xl overflow-visible rounded-[32px] border border-black/[0.06] bg-white px-5 pb-6 shadow-[0_25px_80px_rgba(0,0,0,0.16)] sm:rounded-[38px] sm:px-8 sm:pb-8">
-        <div className="mx-auto h-[3px] w-16 rounded-b-full bg-[var(--crtgo-primary)]" />
+        <div className="mx-auto h-[3px] w-16 rounded-b-full bg-[var(--crtrgo-primary)]" />
 
 
         <div className="flex justify-center">
@@ -2521,7 +2521,7 @@ function RestaurantFloatingCard({
                 className="object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-4xl font-black text-[var(--crtgo-primary)]">
+              <div className="flex h-full w-full items-center justify-center text-4xl font-black text-[var(--crtrgo-primary)]">
                 {
                   name.charAt(
                     0
@@ -2543,7 +2543,7 @@ function RestaurantFloatingCard({
 
           {location && (
             <div className="mt-2 flex items-center justify-center gap-1.5 text-neutral-500">
-              <MapPin className="size-4 shrink-0 text-[var(--crtgo-primary)]" />
+              <MapPin className="size-4 shrink-0 text-[var(--crtrgo-primary)]" />
 
               <p className="text-sm font-medium">
                 {
@@ -2614,7 +2614,7 @@ function RestaurantFloatingCard({
 
 
         <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3">
-          <div className="group flex min-h-[102px] flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary-border)] hover:bg-[var(--crtgo-primary-soft)] hover:shadow-[0_10px_30px_var(--crtgo-primary-shadow)]">
+          <div className="group flex min-h-[102px] flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtrgo-primary-border)] hover:bg-[var(--crtrgo-primary-soft)] hover:shadow-[0_10px_30px_var(--crtrgo-primary-shadow)]">
             <div className="flex size-9 items-center justify-center rounded-full bg-amber-100 text-amber-600">
               <Star className="size-[17px] fill-current" />
             </div>
@@ -2634,15 +2634,15 @@ function RestaurantFloatingCard({
             onClick={
               onOpenWorkingHours
             }
-            className="group flex min-h-[102px] cursor-pointer flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary-border)] hover:bg-[var(--crtgo-primary-soft)] hover:shadow-[0_10px_30px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="group flex min-h-[102px] cursor-pointer flex-col items-center justify-center rounded-[22px] border border-neutral-100 bg-neutral-50/80 px-3 py-4 text-center transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtrgo-primary-border)] hover:bg-[var(--crtrgo-primary-soft)] hover:shadow-[0_10px_30px_var(--crtrgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 active:scale-[0.98]"
           >
-            <div className="flex size-9 items-center justify-center rounded-full bg-[var(--crtgo-primary-soft-2)] text-[var(--crtgo-primary)] transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)]">
+            <div className="flex size-9 items-center justify-center rounded-full bg-[var(--crtrgo-primary-soft-2)] text-[var(--crtrgo-primary)] transition duration-200 group-hover:bg-[var(--crtrgo-primary)] group-hover:text-[var(--crtrgo-on-primary)]">
               <Clock3 className="size-[17px]" />
             </div>
 
             <strong
               dir="ltr"
-              className="mt-2 max-w-full truncate text-sm font-black text-neutral-950 transition group-hover:text-[var(--crtgo-primary)]"
+              className="mt-2 max-w-full truncate text-sm font-black text-neutral-950 transition group-hover:text-[var(--crtrgo-primary)]"
             >
               {
                 hoursLabel
@@ -2866,7 +2866,7 @@ function SocialLinksRow({
               title={
                 link.label
               }
-              className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition duration-200 hover:-translate-y-1 hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] hover:shadow-[0_10px_25px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-95"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition duration-200 hover:-translate-y-1 hover:border-[var(--crtrgo-primary)] hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] hover:shadow-[0_10px_25px_var(--crtrgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 active:scale-95"
             >
               <Icon className="size-[18px]" />
             </a>
@@ -2923,9 +2923,9 @@ function MenuSearch({
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="group relative overflow-hidden rounded-[22px] border border-black/[0.07] bg-white shadow-[0_8px_35px_rgba(0,0,0,0.055)] transition duration-200 focus-within:border-[var(--crtgo-primary)] focus-within:shadow-[0_12px_40px_var(--crtgo-primary-shadow)]">
+      <div className="group relative overflow-hidden rounded-[22px] border border-black/[0.07] bg-white shadow-[0_8px_35px_rgba(0,0,0,0.055)] transition duration-200 focus-within:border-[var(--crtrgo-primary)] focus-within:shadow-[0_12px_40px_var(--crtrgo-primary-shadow)]">
         <Search
-          className={`pointer-events-none absolute top-1/2 size-5 -translate-y-1/2 text-neutral-400 transition duration-200 group-focus-within:text-[var(--crtgo-primary)] ${
+          className={`pointer-events-none absolute top-1/2 size-5 -translate-y-1/2 text-neutral-400 transition duration-200 group-focus-within:text-[var(--crtrgo-primary)] ${
             dir ===
             "rtl"
               ? "right-5"
@@ -2970,7 +2970,7 @@ function MenuSearch({
             aria-label={t(
               "clearSearch"
             )}
-            className={`absolute top-1/2 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] ${
+            className={`absolute top-1/2 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition duration-200 hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] ${
               dir ===
               "rtl"
                 ? "left-3"
@@ -3185,17 +3185,17 @@ function SectionNavigation({
                     ? "true"
                     : undefined
                 }
-                className={`group flex shrink-0 cursor-pointer items-center gap-2 rounded-full border py-2 pe-4 ps-2 text-sm font-bold shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-95 ${
+                className={`group flex shrink-0 cursor-pointer items-center gap-2 rounded-full border py-2 pe-4 ps-2 text-sm font-bold shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 active:scale-95 ${
                   active
-                    ? "border-[var(--crtgo-primary)] bg-[var(--crtgo-primary)] text-[var(--crtgo-on-primary)] shadow-[0_8px_24px_var(--crtgo-primary-shadow)]"
-                    : "border-black/[0.07] bg-white text-neutral-700 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary)] hover:text-[var(--crtgo-primary)] hover:shadow-md"
+                    ? "border-[var(--crtrgo-primary)] bg-[var(--crtrgo-primary)] text-[var(--crtrgo-on-primary)] shadow-[0_8px_24px_var(--crtrgo-primary-shadow)]"
+                    : "border-black/[0.07] bg-white text-neutral-700 hover:-translate-y-0.5 hover:border-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-primary)] hover:shadow-md"
                 }`}
               >
                 <span
                   className={`flex size-9 items-center justify-center rounded-full transition duration-200 ${
                     active
-                      ? "bg-white/20 text-[var(--crtgo-on-primary)]"
-                      : "bg-neutral-100 text-neutral-700 group-hover:bg-[var(--crtgo-primary-soft)] group-hover:text-[var(--crtgo-primary)]"
+                      ? "bg-white/20 text-[var(--crtrgo-on-primary)]"
+                      : "bg-neutral-100 text-neutral-700 group-hover:bg-[var(--crtrgo-primary-soft)] group-hover:text-[var(--crtrgo-primary)]"
                   }`}
                 >
                   <SectionIcon
@@ -3361,12 +3361,12 @@ function MenuSections({
                     section
                   )
                 }
-                className="group/section scroll-mt-6 rounded-[28px] border border-black/[0.055] bg-white/60 p-3 shadow-[0_8px_35px_rgba(0,0,0,0.025)] transition duration-300 hover:border-[var(--crtgo-primary-border)] sm:rounded-[32px] sm:p-5"
+                className="group/section scroll-mt-6 rounded-[28px] border border-black/[0.055] bg-white/60 p-3 shadow-[0_8px_35px_rgba(0,0,0,0.025)] transition duration-300 hover:border-[var(--crtrgo-primary-border)] sm:rounded-[32px] sm:p-5"
               >
                 <div className="mb-4 flex items-end justify-between gap-4 px-1 sm:mb-5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)] transition duration-200 group-hover/section:bg-[var(--crtgo-primary)] group-hover/section:text-[var(--crtgo-on-primary)]">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-[var(--crtrgo-primary-soft)] text-[var(--crtrgo-primary)] transition duration-200 group-hover/section:bg-[var(--crtrgo-primary)] group-hover/section:text-[var(--crtrgo-on-primary)]">
                         <SectionIcon
                           section={
                             section
@@ -3405,7 +3405,7 @@ function MenuSections({
                   </div>
 
 
-                  <span className="hidden shrink-0 rounded-full bg-[var(--crtgo-primary-soft)] px-3 py-1.5 text-[11px] font-bold text-[var(--crtgo-primary)] sm:inline-flex">
+                  <span className="hidden shrink-0 rounded-full bg-[var(--crtrgo-primary-soft)] px-3 py-1.5 text-[11px] font-bold text-[var(--crtrgo-primary)] sm:inline-flex">
                     {getItemCountText(
                       filteredItems.length,
                       language
@@ -3470,7 +3470,7 @@ function MenuSections({
                               filteredItems,
                           })
                         }
-                        className="mt-3 flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[17px] border border-[var(--crtgo-primary-border)] bg-[var(--crtgo-primary-soft)] px-5 text-sm font-black text-[var(--crtgo-primary)] shadow-sm transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] hover:shadow-[0_10px_28px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.99] sm:hidden"
+                        className="mt-3 flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[17px] border border-[var(--crtrgo-primary-border)] bg-[var(--crtrgo-primary-soft)] px-5 text-sm font-black text-[var(--crtrgo-primary)] shadow-sm transition duration-200 hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] hover:shadow-[0_10px_28px_var(--crtrgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 active:scale-[0.99] sm:hidden"
                       >
                         {t(
                           "showAll"
@@ -3567,7 +3567,7 @@ function EmptyState({
   return (
     <div className="mx-auto my-12 max-w-md rounded-[26px] border border-black/[0.05] bg-white px-6 py-12 text-center shadow-sm">
       {Icon && (
-        <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)]">
+        <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-[var(--crtrgo-primary-soft)] text-[var(--crtrgo-primary)]">
           <Icon className="size-5" />
         </div>
       )}
@@ -3687,7 +3687,7 @@ function MenuItem({
       onClick={
         onOpen
       }
-      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[21px] border border-black/[0.055] bg-white text-start shadow-[0_5px_22px_rgba(0,0,0,0.035)] transition duration-300 hover:-translate-y-1 hover:border-[var(--crtgo-primary)] hover:shadow-[0_18px_42px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.985] sm:rounded-[24px]"
+      className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-[21px] border border-black/[0.055] bg-white text-start shadow-[0_5px_22px_rgba(0,0,0,0.035)] transition duration-300 hover:-translate-y-1 hover:border-[var(--crtrgo-primary)] hover:shadow-[0_18px_42px_var(--crtrgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 active:scale-[0.985] sm:rounded-[24px]"
     >
       <div className="relative aspect-[1/0.92] w-full overflow-hidden bg-neutral-100">
         {image ? (
@@ -3714,7 +3714,7 @@ function MenuItem({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[11px] font-black tracking-[0.14em] text-neutral-300">
-            CRTGO
+            CRTRGO
           </div>
         )}
 
@@ -3739,7 +3739,7 @@ function MenuItem({
 
 
         <span
-          className={`absolute bottom-2.5 flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/90 text-neutral-900 shadow-md backdrop-blur transition duration-200 group-hover:scale-110 group-hover:border-[var(--crtgo-primary)] group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)] ${
+          className={`absolute bottom-2.5 flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/90 text-neutral-900 shadow-md backdrop-blur transition duration-200 group-hover:scale-110 group-hover:border-[var(--crtrgo-primary)] group-hover:bg-[var(--crtrgo-primary)] group-hover:text-[var(--crtrgo-on-primary)] ${
             dir ===
             "rtl"
               ? "left-2.5"
@@ -3752,7 +3752,7 @@ function MenuItem({
 
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h3 className="line-clamp-2 text-[14px] font-black leading-5 text-neutral-950 transition duration-200 group-hover:text-[var(--crtgo-primary)] sm:text-[16px] sm:leading-6">
+        <h3 className="line-clamp-2 text-[14px] font-black leading-5 text-neutral-950 transition duration-200 group-hover:text-[var(--crtrgo-primary)] sm:text-[16px] sm:leading-6">
           {
             name
           }
@@ -3771,7 +3771,7 @@ function MenuItem({
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
           {price !==
             null ? (
-            <strong className="rounded-full border border-[var(--crtgo-primary-border)] bg-[var(--crtgo-primary-soft)] px-2.5 py-1 text-[13px] font-black text-[var(--crtgo-primary)] transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)] sm:text-sm">
+            <strong className="rounded-full border border-[var(--crtrgo-primary-border)] bg-[var(--crtrgo-primary-soft)] px-2.5 py-1 text-[13px] font-black text-[var(--crtrgo-primary)] transition duration-200 group-hover:bg-[var(--crtrgo-primary)] group-hover:text-[var(--crtrgo-on-primary)] sm:text-sm">
               ₪
               {
                 price
@@ -3833,12 +3833,12 @@ function WorkingHoursModal({
           }
           className="w-full overflow-hidden rounded-[30px] bg-white text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.40)]"
         >
-          <div className="h-1 w-full bg-[var(--crtgo-primary)]" />
+          <div className="h-1 w-full bg-[var(--crtrgo-primary)]" />
 
 
           <header className="flex items-start justify-between gap-5 px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
             <div>
-              <div className="flex size-11 items-center justify-center rounded-[15px] bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)]">
+              <div className="flex size-11 items-center justify-center rounded-[15px] bg-[var(--crtrgo-primary-soft)] text-[var(--crtrgo-primary)]">
                 <Clock3 className="size-5" />
               </div>
 
@@ -3864,7 +3864,7 @@ function WorkingHoursModal({
               aria-label={t(
                 "close"
               )}
-              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95"
+              className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] active:scale-95"
             >
               <X className="size-[18px]" />
             </button>
@@ -3948,7 +3948,7 @@ function WorkingHours({
                 </span>
 
                 {isToday && (
-                  <span className="rounded-full bg-[var(--crtgo-primary)] px-2 py-1 text-[9px] font-black text-[var(--crtgo-on-primary)]">
+                  <span className="rounded-full bg-[var(--crtrgo-primary)] px-2 py-1 text-[9px] font-black text-[var(--crtrgo-on-primary)]">
                     {t(
                       "today"
                     )}
@@ -4054,7 +4054,7 @@ function SectionItemsModal({
           }
           className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[30px] bg-[#f7f7f7] text-neutral-950 shadow-[0_35px_120px_rgba(0,0,0,0.40)] sm:rounded-[32px]"
         >
-          <div className="h-1 w-full shrink-0 bg-[var(--crtgo-primary)]" />
+          <div className="h-1 w-full shrink-0 bg-[var(--crtrgo-primary)]" />
 
 
           <div className="flex justify-center bg-white pt-3 sm:hidden">
@@ -4066,7 +4066,7 @@ function SectionItemsModal({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-[var(--crtgo-primary-soft)] text-[var(--crtgo-primary)]">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-[15px] bg-[var(--crtrgo-primary-soft)] text-[var(--crtrgo-primary)]">
                     <SectionIcon
                       section={
                         section.section
@@ -4084,7 +4084,7 @@ function SectionItemsModal({
                       }
                     </h2>
 
-                    <p className="mt-0.5 text-xs font-semibold text-[var(--crtgo-primary)]">
+                    <p className="mt-0.5 text-xs font-semibold text-[var(--crtrgo-primary)]">
                       {getItemCountText(
                         section.items.length,
                         language
@@ -4112,7 +4112,7 @@ function SectionItemsModal({
                 aria-label={t(
                   "close"
                 )}
-                className="flex size-10 cursor-pointer shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95"
+                className="flex size-10 cursor-pointer shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition duration-200 hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] active:scale-95"
               >
                 <X className="size-[18px]" />
               </button>
@@ -4219,7 +4219,7 @@ function SectionListItem({
       onClick={
         onOpen
       }
-      className="group flex w-full cursor-pointer gap-3 rounded-[22px] border border-black/[0.05] bg-white p-3 text-start shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtgo-primary)] hover:shadow-[0_12px_30px_var(--crtgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-2 active:scale-[0.99] sm:gap-4"
+      className="group flex w-full cursor-pointer gap-3 rounded-[22px] border border-black/[0.05] bg-white p-3 text-start shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--crtrgo-primary)] hover:shadow-[0_12px_30px_var(--crtrgo-primary-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-2 active:scale-[0.99] sm:gap-4"
     >
       <div className="relative size-27 shrink-0 overflow-hidden rounded-[17px] bg-neutral-100 sm:size-32">
         {image ? (
@@ -4246,7 +4246,7 @@ function SectionListItem({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[10px] font-black tracking-[0.12em] text-neutral-300">
-            CRTGO
+            CRTRGO
           </div>
         )}
       </div>
@@ -4254,7 +4254,7 @@ function SectionListItem({
 
       <div className="flex min-w-0 flex-1 flex-col py-1">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-[15px] font-black leading-6 text-neutral-950 transition group-hover:text-[var(--crtgo-primary)] sm:text-base">
+          <h3 className="text-[15px] font-black leading-6 text-neutral-950 transition group-hover:text-[var(--crtrgo-primary)] sm:text-base">
             {
               name
             }
@@ -4263,7 +4263,7 @@ function SectionListItem({
 
           {price !==
             null && (
-            <strong className="shrink-0 rounded-full bg-[var(--crtgo-primary-soft)] px-2.5 py-1 text-sm font-black text-[var(--crtgo-primary)]">
+            <strong className="shrink-0 rounded-full bg-[var(--crtrgo-primary-soft)] px-2.5 py-1 text-sm font-black text-[var(--crtrgo-primary)]">
               ₪
               {
                 price
@@ -4308,7 +4308,7 @@ function SectionListItem({
           </span>
 
 
-          <span className="flex size-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-300 transition duration-200 group-hover:bg-[var(--crtgo-primary)] group-hover:text-[var(--crtgo-on-primary)]">
+          <span className="flex size-8 items-center justify-center rounded-full bg-neutral-50 text-neutral-300 transition duration-200 group-hover:bg-[var(--crtrgo-primary)] group-hover:text-[var(--crtrgo-on-primary)]">
             <Maximize2 className="size-4" />
           </span>
         </div>
@@ -4435,7 +4435,7 @@ function ItemDetailsModal({
               <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/35 to-transparent" />
 
 
-              <div className="absolute inset-x-0 bottom-0 h-1 bg-[var(--crtgo-primary)]" />
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-[var(--crtrgo-primary)]" />
 
 
               <button
@@ -4446,7 +4446,7 @@ function ItemDetailsModal({
                 aria-label={t(
                   "close"
                 )}
-                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/60 bg-white/90 text-neutral-950 shadow-lg backdrop-blur-xl transition duration-200 hover:scale-105 hover:border-[var(--crtgo-primary)] hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95 ${
+                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full border border-white/60 bg-white/90 text-neutral-950 shadow-lg backdrop-blur-xl transition duration-200 hover:scale-105 hover:border-[var(--crtrgo-primary)] hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] active:scale-95 ${
                   dir ===
                   "rtl"
                     ? "left-4"
@@ -4457,9 +4457,9 @@ function ItemDetailsModal({
               </button>
             </div>
           ) : (
-            <div className="relative flex h-28 items-center justify-center rounded-t-[30px] border-b-[3px] border-[var(--crtgo-primary)] bg-[var(--crtgo-primary-soft)] sm:rounded-t-[34px]">
-              <span className="text-xs font-black tracking-[0.15em] text-[var(--crtgo-primary)]">
-                CRTGO
+            <div className="relative flex h-28 items-center justify-center rounded-t-[30px] border-b-[3px] border-[var(--crtrgo-primary)] bg-[var(--crtrgo-primary-soft)] sm:rounded-t-[34px]">
+              <span className="text-xs font-black tracking-[0.15em] text-[var(--crtrgo-primary)]">
+                CRTRGO
               </span>
 
               <button
@@ -4470,7 +4470,7 @@ function ItemDetailsModal({
                 aria-label={t(
                   "close"
                 )}
-                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full bg-white text-neutral-950 shadow transition duration-200 hover:bg-[var(--crtgo-primary)] hover:text-[var(--crtgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] active:scale-95 ${
+                className={`absolute top-4 flex size-11 cursor-pointer items-center justify-center rounded-full bg-white text-neutral-950 shadow transition duration-200 hover:bg-[var(--crtrgo-primary)] hover:text-[var(--crtrgo-on-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] active:scale-95 ${
                   dir ===
                   "rtl"
                     ? "left-4"
@@ -4494,7 +4494,7 @@ function ItemDetailsModal({
 
               {price !==
                 null && (
-                <strong className="shrink-0 rounded-full border border-[var(--crtgo-primary-border)] bg-[var(--crtgo-primary-soft)] px-3 py-1.5 text-lg font-black text-[var(--crtgo-primary)]">
+                <strong className="shrink-0 rounded-full border border-[var(--crtrgo-primary-border)] bg-[var(--crtrgo-primary-soft)] px-3 py-1.5 text-lg font-black text-[var(--crtrgo-primary)]">
                   ₪
                   {
                     price
@@ -4563,15 +4563,15 @@ function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr] md:gap-14">
           <div className="max-w-sm">
             <a
-              href="https://ws.crtgo.com"
+              href="https://ws.crtrgo.com"
               target="_blank"
               rel="noreferrer"
-              aria-label="CRTGO Web Services"
-              className="group inline-block cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)] focus-visible:ring-offset-4"
+              aria-label="CRTRGO Web Services"
+              className="group inline-block cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)] focus-visible:ring-offset-4"
             >
               <Image
                 src="https://cdn.sanity.io/images/gcqd797l/production/0c5e88596ed93c207cc800ed61eee3bc2a9f4d00-3750x3750.png"
-                alt="CRTGO Web Services"
+                alt="CRTRGO Web Services"
                 width={
                   250
                 }
@@ -4600,7 +4600,7 @@ function Footer() {
             links={[
               {
                 href:
-                  "https://crtgo.com",
+                  "https://crtrgo.com",
 
                 label:
                   t(
@@ -4610,7 +4610,7 @@ function Footer() {
 
               {
                 href:
-                  "https://ws.crtgo.com",
+                  "https://ws.crtrgo.com",
 
                 label:
                   t(
@@ -4628,7 +4628,7 @@ function Footer() {
             links={[
               {
                 href:
-                  "https://crtgo.com/terms",
+                  "https://crtrgo.com/terms",
 
                 label:
                   t(
@@ -4638,7 +4638,7 @@ function Footer() {
 
               {
                 href:
-                  "https://crtgo.com/privacy",
+                  "https://crtrgo.com/privacy",
 
                 label:
                   t(
@@ -4648,7 +4648,7 @@ function Footer() {
 
               {
                 href:
-                  "https://crtgo.com/contact",
+                  "https://crtrgo.com/contact",
 
                 label:
                   t(
@@ -4665,7 +4665,7 @@ function Footer() {
 
         <div className="mt-5 flex flex-col gap-3 text-xs font-medium text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {year} CRTGO.{" "}
+            © {year} CRTRGO.{" "}
             {t(
               "footerCopyright"
             )}
@@ -4673,14 +4673,14 @@ function Footer() {
 
 
           <a
-            href="https://ws.crtgo.com"
+            href="https://ws.crtrgo.com"
             target="_blank"
             rel="noreferrer"
-            className="group flex w-fit cursor-pointer items-center gap-2 rounded-full px-2 py-1 font-bold text-neutral-500 transition duration-200 hover:bg-[var(--crtgo-primary-soft)] hover:text-[var(--crtgo-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)]"
+            className="group flex w-fit cursor-pointer items-center gap-2 rounded-full px-2 py-1 font-bold text-neutral-500 transition duration-200 hover:bg-[var(--crtrgo-primary-soft)] hover:text-[var(--crtrgo-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)]"
           >
-            <span className="size-1.5 rounded-full bg-[var(--crtgo-primary)]" />
+            <span className="size-1.5 rounded-full bg-[var(--crtrgo-primary)]" />
 
-            CRTGO Web Services
+            CRTRGO Web Services
           </a>
         </div>
       </div>
@@ -4738,9 +4738,9 @@ function FooterLink({
       }
       target="_blank"
       rel="noreferrer"
-      className="group relative cursor-pointer rounded-lg py-1.5 pe-3 ps-0 text-sm font-semibold text-neutral-600 transition duration-200 hover:ps-2 hover:text-[var(--crtgo-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtgo-primary)]"
+      className="group relative cursor-pointer rounded-lg py-1.5 pe-3 ps-0 text-sm font-semibold text-neutral-600 transition duration-200 hover:ps-2 hover:text-[var(--crtrgo-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--crtrgo-primary)]"
     >
-      <span className="absolute start-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-full bg-[var(--crtgo-primary)] transition-all duration-200 group-hover:h-4" />
+      <span className="absolute start-0 top-1/2 h-0 w-[3px] -translate-y-1/2 rounded-full bg-[var(--crtrgo-primary)] transition-all duration-200 group-hover:h-4" />
 
       {
         children

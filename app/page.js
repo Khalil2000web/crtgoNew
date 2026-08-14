@@ -1,13 +1,13 @@
 export const metadata = {
-  title: "CRTGO Web Services",
+  title: "CRTRGO Web Services",
   description:
-    "Premium web services, digital menus, websites, and business web systems by CRTGO.",
+    "Premium web services, digital menus, websites, and business web systems by CRTRGO.",
   openGraph: {
-    title: "CRTGO Web Services",
+    title: "CRTRGO Web Services",
     description:
-      "Premium web services, digital menus, websites, and business web systems by CRTGO.",
-    url: "https://ws.crtgo.com",
-    siteName: "CRTGO Web Services",
+      "Premium web services, digital menus, websites, and business web systems by CRTRGO.",
+    url: "https://ws.crtrgo.com",
+    siteName: "CRTRGO Web Services",
     type: "website",
   },
 };

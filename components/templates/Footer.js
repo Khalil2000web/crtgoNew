@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import Image from "next/image";
 
-const CRTGO_LOGO_URL =
+const CRTRGO_LOGO_URL =
   "https://cdn.sanity.io/images/gcqd797l/production/b37fe145147e56bf8907cd6006e8f6c3f28a1461-4096x2048.png";
 
 export default function Footer({ className = "" }) {
@@ -20,16 +20,16 @@ export default function Footer({ className = "" }) {
             </p>
 
             <a
-              href="https://ws.crtgo.com"
+              href="https://ws.crtrgo.com"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open CRTGO Web Services"
+              aria-label="Open CRTRGO Web Services"
               className="group mt-3 inline-flex max-w-full items-center gap-3 rounded-2xl border border-white/10 px-4 py-3 transition hover:border-white/25 hover:bg-white/[0.08]"
             >
               <span className="relative block h-14 w-40 overflow-hidden sm:h-12 sm:w-48">
                 <Image
-                  src={CRTGO_LOGO_URL}
-                  alt="CRTGO Web Services Logo"
+                  src={CRTRGO_LOGO_URL}
+                  alt="CRTRGO Web Services Logo"
                   fill
                   sizes="(max-width: 640px) 160px, 192px"
                   className="pointer-events-none object-contain object-left"
@@ -43,25 +43,25 @@ export default function Footer({ className = "" }) {
             </a>
 
             <p className="mt-4 max-w-md text-xs font-bold leading-6 text-white/38">
-              Digital menus and web experiences crafted by CRTGO Web Services.
+              Digital menus and web experiences crafted by CRTRGO Web Services.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 md:min-w-[330px]">
             <p className="hidden text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
-              CRTGO
+              CRTRGO
             </p>
 
             <p className="mt-2 text-sm font-bold text-white/70">
-              © {year} CRTGO. All rights reserved.
+              © {year} CRTRGO. All rights reserved.
             </p>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <FooterLink href="https://ws.crtgo.com/terms-of-service">
+              <FooterLink href="https://ws.crtrgo.com/terms-of-service">
                 Terms
               </FooterLink>
 
-              <FooterLink href="https://ws.crtgo.com/privacy-policy">
+              <FooterLink href="https://ws.crtrgo.com/privacy-policy">
                 Privacy
               </FooterLink>
             </div>
@@ -70,7 +70,7 @@ export default function Footer({ className = "" }) {
 
         <div className="mt-8 border-t border-white/10 pt-4">
           <p className="text-center text-[10px] font-black uppercase tracking-[0.28em] text-white/25">
-            CRTGO Web Services
+            CRTRGO Web Services
           </p>
         </div>
       </div>

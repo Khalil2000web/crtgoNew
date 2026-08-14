@@ -167,7 +167,7 @@ function t(translations, fallbackText = "") {
 }, []);
 
 useEffect(() => {
-  const savedLanguage = localStorage.getItem(`crtgo-language-${menu.id}`);
+  const savedLanguage = localStorage.getItem(`crtrgo-language-${menu.id}`);
 
   if (savedLanguage && enabledLanguages.includes(savedLanguage)) {
     setSelectedLanguage(savedLanguage);
@@ -183,7 +183,7 @@ useEffect(() => {
 
   function changeLanguage(languageCode) {
   setSelectedLanguage(languageCode);
-  localStorage.setItem(`crtgo-language-${menu.id}`, languageCode);
+  localStorage.setItem(`crtrgo-language-${menu.id}`, languageCode);
 }
 
   const socials = [
@@ -302,7 +302,7 @@ useEffect(() => {
 
                 <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.25em] text-white/55 sm:text-sm">
-                    CRTGO MENU
+                    CRTRGO MENU
                   </p>
 
                   <h1 className="mt-2 break-words text-3xl font-black leading-tight sm:text-5xl">

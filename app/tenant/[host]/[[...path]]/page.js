@@ -20,7 +20,7 @@ export async function generateMetadata({
 
   if (!project) {
     return {
-      title: "CRTGO",
+      title: "CRTRGO",
     };
   }
 

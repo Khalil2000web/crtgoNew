@@ -2,145 +2,210 @@ import {
   NextResponse,
 } from "next/server";
 
-function cleanHost(value) {
-  return String(value || "")
-    .split(":")[0]
+
+function getHostname(
+  request
+) {
+  return String(
+    request.headers.get(
+      "host"
+    ) ||
+      ""
+  )
+    .split(
+      ":"
+    )[0]
     .trim()
     .toLowerCase();
 }
 
-function getTenantFromHost(
-  rawHost
-) {
-  const host =
-    cleanHost(rawHost);
 
-  if (!host) {
-    return null;
+function shouldIgnorePath(
+  pathname
+) {
+  if (
+    pathname ===
+    "/"
+  ) {
+    return true;
   }
 
-  /*
-   * LOCAL:
-   *
-   * test.localhost:3000
-   */
+
   if (
-    host.endsWith(
-      ".localhost"
+    pathname.startsWith(
+      "/api/"
+    ) ||
+    pathname ===
+      "/api"
+  ) {
+    return true;
+  }
+
+
+  if (
+    pathname.startsWith(
+      "/_next/"
     )
   ) {
-    const tenant =
-      host.slice(
-        0,
-        -".localhost".length
-      );
-
-    if (
-      tenant &&
-      !tenant.includes(".")
-    ) {
-      return tenant;
-    }
+    return true;
   }
 
-  /*
-   * PRODUCTION:
-   *
-   * test.w.crtgo.com
-   */
-  const suffix =
-    ".w.crtgo.com";
 
   if (
-    host.endsWith(suffix)
+    pathname.startsWith(
+      "/tenant/"
+    ) ||
+    pathname ===
+      "/tenant"
   ) {
-    const tenant =
-      host.slice(
-        0,
-        -suffix.length
-      );
-
-    if (
-      tenant &&
-      !tenant.includes(".")
-    ) {
-      return tenant;
-    }
+    return true;
   }
 
-  return null;
+
+  if (
+    pathname ===
+      "/favicon.ico" ||
+    pathname ===
+      "/robots.txt" ||
+    pathname ===
+      "/sitemap.xml"
+  ) {
+    return true;
+  }
+
+
+  /*
+   * Public/static files:
+   *
+   * /logo.png
+   * /fonts/font.woff2
+   * /manifest.webmanifest
+   * etc.
+   */
+  const lastSegment =
+    pathname
+      .split(
+        "/"
+      )
+      .pop() ||
+    "";
+
+
+  if (
+    lastSegment.includes(
+      "."
+    )
+  ) {
+    return true;
+  }
+
+
+  return false;
 }
+
 
 export function proxy(
   request
 ) {
+  const hostname =
+    getHostname(
+      request
+    );
+
+
   const {
     pathname,
-  } = request.nextUrl;
+  } =
+    request.nextUrl;
+
 
   /*
-   * Never rewrite Next internals,
-   * API handlers, or static files.
+   * Only the canonical CRTRGO
+   * menu hostname is tenant-routed.
+   *
+   * Production:
+   * menu.crtrgo.com
+   *
+   * Local:
+   * menu.localhost:3000
    */
+  const isMenuHostname =
+    hostname ===
+      "menu.crtrgo.com" ||
+    hostname ===
+      "menu.localhost";
+
+
   if (
-    pathname.startsWith(
-      "/_next"
-    ) ||
-    pathname.startsWith(
-      "/api"
-    ) ||
-    pathname ===
-      "/favicon.ico"
+    !isMenuHostname
   ) {
     return NextResponse.next();
   }
 
-  const host =
-    request.headers.get(
-      "host"
-    );
 
-  const tenant =
-    getTenantFromHost(
-      host
-    );
-
-  if (!tenant) {
-    return NextResponse.next();
-  }
-
-  /*
-   * Avoid recursively rewriting
-   * an already-internal tenant path.
-   */
   if (
-    pathname.startsWith(
-      "/tenant/"
+    shouldIgnorePath(
+      pathname
     )
   ) {
     return NextResponse.next();
   }
 
-  const url =
+
+  const segments =
+    pathname
+      .split(
+        "/"
+      )
+      .filter(
+        Boolean
+      );
+
+
+  const slug =
+    String(
+      segments[0] ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (
+    !slug
+  ) {
+    return NextResponse.next();
+  }
+
+
+  const remainingPath =
+    segments
+      .slice(
+        1
+      )
+      .join(
+        "/"
+      );
+
+
+  const rewriteUrl =
     request.nextUrl.clone();
 
-  const cleanPath =
-    pathname === "/"
-      ? ""
-      : pathname;
 
-  url.pathname =
-    `/tenant/${encodeURIComponent(
-      tenant
-    )}${cleanPath}`;
+  rewriteUrl.pathname =
+    remainingPath
+      ? `/tenant/${slug}/${remainingPath}`
+      : `/tenant/${slug}`;
+
 
   return NextResponse.rewrite(
-    url
+    rewriteUrl
   );
 }
 
+
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image).*)",
   ],
 };

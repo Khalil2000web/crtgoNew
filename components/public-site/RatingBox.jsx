@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 const DISMISS_KEY =
-  "crtgo_rating_prompt_dismissed";
+  "crtrgo_rating_prompt_dismissed";
 
 const DISMISS_DAYS = 7;
 
@@ -127,7 +127,7 @@ export default function RatingBox({
         );
       } catch (err) {
         console.error(
-          "[CRTGO ratings]",
+          "[crtrgo ratings]",
           err
         );
       } finally {
@@ -383,7 +383,7 @@ export default function RatingBox({
       );
     } catch (err) {
       console.error(
-        "[CRTGO rating save]",
+        "[crtrgo rating save]",
         err
       );
 
@@ -546,7 +546,7 @@ export default function RatingBox({
               <>
                 <div className="pt-4 text-center">
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-black/30">
-                    CRTGO
+                    CRTRGO
                   </p>
 
                   <h2 className="mt-3 text-2xl font-black tracking-[-0.04em]">

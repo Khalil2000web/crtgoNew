@@ -24,7 +24,7 @@ async function clearHost(host) {
       );
     } catch (error) {
       console.error(
-        "[CRTGO Redis] Cache invalidation failed:",
+        "[crtrgo Redis] Cache invalidation failed:",
         error
       );
     }

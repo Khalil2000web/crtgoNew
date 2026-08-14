@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const COOKIE_NAME = "crtgo_visitor";
+const COOKIE_NAME = "crtrgo_visitor";
 
 const COOKIE_MAX_AGE =
   60 * 60 * 24 * 365 * 2; // 2 years
@@ -263,7 +263,7 @@ export async function GET(
     );
   } catch (error) {
     console.error(
-      "[CRTGO ratings GET]",
+      "[CRTRGO ratings GET]",
       error
     );
 
@@ -401,7 +401,7 @@ export async function POST(
     );
   } catch (error) {
     console.error(
-      "[CRTGO ratings POST]",
+      "[CRTRGO ratings POST]",
       error
     );
 

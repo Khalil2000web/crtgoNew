@@ -73,7 +73,7 @@ const UI = {
     instagram: "إنستغرام",
     facebook: "فيسبوك",
     tiktok: "تيك توك",
-    poweredBy: "مدعوم بواسطة CRTGO",
+    poweredBy: "مدعوم بواسطة CRTRGO",
     currentBranch: "الفرع الحالي",
     itemDetails: "تفاصيل الصنف",
     items: "أصناف",
@@ -109,7 +109,7 @@ const UI = {
     instagram: "אינסטגרם",
     facebook: "פייסבוק",
     tiktok: "טיקטוק",
-    poweredBy: "מופעל על ידי CRTGO",
+    poweredBy: "מופעל על ידי CRTRGO",
     currentBranch: "הסניף הנוכחי",
     itemDetails: "פרטי פריט",
     items: "פריטים",
@@ -145,7 +145,7 @@ const UI = {
     instagram: "Instagram",
     facebook: "Facebook",
     tiktok: "TikTok",
-    poweredBy: "Powered by CRTGO",
+    poweredBy: "Powered by CRTRGO",
     currentBranch: "Current branch",
     itemDetails: "Item details",
     items: "items",
@@ -422,7 +422,7 @@ export default function TemplateCleanCards({
       </BottomSheet>
 
       <style>{`
-        @keyframes crtgoRise {
+        @keyframes crtrgoRise {
           from {
             opacity: 0;
             transform: translateY(14px);
@@ -433,7 +433,7 @@ export default function TemplateCleanCards({
           }
         }
 
-        @keyframes crtgoSheet {
+        @keyframes crtrgoSheet {
           from {
             opacity: 0;
             transform: translateY(24px);
@@ -444,12 +444,12 @@ export default function TemplateCleanCards({
           }
         }
 
-        .crtgo-rise {
-          animation: crtgoRise .42s ease both;
+        .crtrgo-rise {
+          animation: crtrgoRise .42s ease both;
         }
 
-        .crtgo-sheet {
-          animation: crtgoSheet .22s ease both;
+        .crtrgo-sheet {
+          animation: crtrgoSheet .22s ease both;
         }
       `}</style>
     </main>
@@ -499,7 +499,7 @@ function HomeView({
             <div className="relative z-10 flex min-h-[330px] flex-col justify-between p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/65 backdrop-blur-xl">
-                  CRTGO
+                  C
                 </div>
 
                 <LanguageSwitcher
@@ -719,7 +719,7 @@ function SectionCard({ section, business, branch, language, accent, index }) {
         getSectionHref(business.slug, branch.slug, section.slug),
         language
       )}
-      className="crtgo-rise group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+      className="crtrgo-rise group overflow-hidden rounded-[28px] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
       style={{
         animationDelay: `${index * 55}ms`,
       }}
@@ -778,7 +778,7 @@ function ItemRow({ item, language, accent, index, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="crtgo-rise grid min-h-[96px] w-full grid-cols-[76px_1fr] gap-3 rounded-[24px] border border-black/10 bg-white p-3 text-start shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="crtrgo-rise grid min-h-[96px] w-full grid-cols-[76px_1fr] gap-3 rounded-[24px] border border-black/10 bg-white p-3 text-start shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       style={{
         animationDelay: `${index * 45}ms`,
       }}
@@ -911,7 +911,7 @@ function BottomSheet({ open, title, onClose, children }) {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-end bg-black/45 p-3">
-      <div className="crtgo-sheet max-h-[86vh] w-full overflow-hidden rounded-[30px] bg-[#f7f4ef] text-black shadow-2xl">
+      <div className="crtrgo-sheet max-h-[86vh] w-full overflow-hidden rounded-[30px] bg-[#f7f4ef] text-black shadow-2xl">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-black/10 bg-[#f7f4ef]/90 p-4 backdrop-blur-xl">
           <h2 className="text-2xl font-black tracking-[-0.05em]">{title}</h2>
 

@@ -16,7 +16,7 @@ img {
 
 
 
-        @keyframes crtgoRise {
+        @keyframes crtrgoRise {
           from {
             opacity: 0;
             transform: translateY(14px);

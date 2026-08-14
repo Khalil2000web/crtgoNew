@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "CRTGO Menu",
-  description: "Digital menus powered by CRTGO.",
+  title: "CRTRGO Menu",
+  description: "Digital menus powered by CRTRGO.",
 };
 
 export default function RootLayout({ children }) {
