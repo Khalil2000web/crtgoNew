@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Globe2,
-  Instagram,
   MapPin,
   MessageCircle,
   Phone,
   UtensilsCrossed,
 } from "lucide-react";
+import { FaInstagram } from "react-icons/fa";
 
 import { PUBLIC_FONT_CLASS } from "./publicFonts";
 
@@ -120,13 +120,6 @@ export default function MenuWebsite({ website }) {
       style={{
         backgroundColor: palette.background,
         color: palette.text,
-        "--menu-accent": palette.accent,
-        "--menu-bg": palette.background,
-        "--menu-text": palette.text,
-        "--menu-muted": palette.muted,
-        "--menu-surface": palette.surface,
-        "--menu-surface-strong": palette.surfaceStrong,
-        "--menu-border": palette.border,
       }}
     >
       <header>
@@ -223,9 +216,7 @@ export default function MenuWebsite({ website }) {
             )}
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {location && (
-                <InfoPill icon={MapPin} text={location} palette={palette} />
-              )}
+              {location && <InfoPill icon={MapPin} text={location} palette={palette} />}
               {website?.phone && (
                 <InfoPill
                   icon={Phone}
@@ -244,7 +235,7 @@ export default function MenuWebsite({ website }) {
               )}
               {website?.instagram && (
                 <InfoPill
-                  icon={Instagram}
+                  icon={FaInstagram}
                   text="Instagram"
                   href={instagramHref(website.instagram)}
                   palette={palette}
@@ -332,7 +323,10 @@ export default function MenuWebsite({ website }) {
                       {sectionName}
                     </h2>
                     {sectionDescription && (
-                      <p className="mt-2 max-w-2xl text-sm leading-6" style={{ color: palette.muted }}>
+                      <p
+                        className="mt-2 max-w-2xl text-sm leading-6"
+                        style={{ color: palette.muted }}
+                      >
                         {sectionDescription}
                       </p>
                     )}
@@ -382,7 +376,10 @@ export default function MenuWebsite({ website }) {
       </div>
 
       <footer className="mx-auto w-full max-w-6xl px-4 pb-9 pt-3 sm:px-6 lg:px-8">
-        <div className="border-t pt-6 text-center text-xs font-bold tracking-[0.18em]" style={{ borderColor: palette.border, color: palette.muted }}>
+        <div
+          className="border-t pt-6 text-center text-xs font-bold tracking-[0.18em]"
+          style={{ borderColor: palette.border, color: palette.muted }}
+        >
           POWERED BY CRTGO
         </div>
       </footer>
@@ -519,8 +516,8 @@ function buildPalette(website) {
     muted: mixHex(text, background, dark ? 0.42 : 0.48),
     surface: mixHex(background, text, dark ? 0.045 : 0.025),
     surfaceStrong: mixHex(background, text, dark ? 0.075 : 0.01),
-    border: withAlpha(text, dark ? 0.14 : 0.10),
-    heroFallback: mixHex(background, accent, dark ? 0.22 : 0.10),
+    border: withAlpha(text, dark ? 0.14 : 0.1),
+    heroFallback: mixHex(background, accent, dark ? 0.22 : 0.1),
   };
 }
 
