@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 
+const RESERVED_SUBDOMAINS = new Set([
+  "www",
+  "admin",
+  "ws",
+  "menu",
+  "api",
+  "app",
+  "accounts",
+]);
+
 function getHostname(request) {
   return String(request.headers.get("host") || "")
     .split(":")[0]
@@ -8,8 +18,6 @@ function getHostname(request) {
 }
 
 function shouldIgnorePath(pathname) {
-  if (pathname === "/") return true;
-
   if (pathname.startsWith("/api/") || pathname === "/api") return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname.startsWith("/tenant/") || pathname === "/tenant") return true;
@@ -28,18 +36,59 @@ function shouldIgnorePath(pathname) {
   return false;
 }
 
+function tenantSlugFromHostname(hostname) {
+  if (hostname.endsWith(".crtgo.com")) {
+    const labels = hostname.split(".");
+
+    if (labels.length === 3) {
+      const slug = labels[0];
+      return RESERVED_SUBDOMAINS.has(slug) ? null : slug;
+    }
+  }
+
+  if (hostname.endsWith(".localhost")) {
+    const slug = hostname.slice(0, -".localhost".length);
+    return slug && !RESERVED_SUBDOMAINS.has(slug) ? slug : null;
+  }
+
+  return null;
+}
+
 export function proxy(request) {
   const hostname = getHostname(request);
   const { pathname } = request.nextUrl;
 
+  if (shouldIgnorePath(pathname)) {
+    return NextResponse.next();
+  }
+
+  const hostnameSlug = tenantSlugFromHostname(hostname);
+
   /*
-   * CRTGO menu routing.
+   * Canonical tenant URLs:
+   *   demo.crtgo.com
+   *   restaurant-name.crtgo.com
    *
-   * Production: menu.crtgo.com
-   * Legacy domain stays supported during migration: menu.crtrgo.com
-   * Local: localhost:3000/demo or menu.localhost:3000/demo
+   * Local equivalent:
+   *   demo.localhost:3000
    */
-  const isMenuHostname = [
+  if (hostnameSlug) {
+    const rewriteUrl = request.nextUrl.clone();
+
+    rewriteUrl.pathname = pathname === "/"
+      ? `/tenant/${hostnameSlug}`
+      : `/tenant/${hostnameSlug}${pathname}`;
+
+    return NextResponse.rewrite(rewriteUrl);
+  }
+
+  /*
+   * Temporary compatibility routes while migrating:
+   *   menu.crtgo.com/demo
+   *   menu.crtrgo.com/demo
+   *   localhost:3000/demo
+   */
+  const isPathBasedMenuHost = [
     "menu.crtgo.com",
     "menu.crtrgo.com",
     "menu.localhost",
@@ -47,7 +96,7 @@ export function proxy(request) {
     "127.0.0.1",
   ].includes(hostname);
 
-  if (!isMenuHostname || shouldIgnorePath(pathname)) {
+  if (!isPathBasedMenuHost || pathname === "/") {
     return NextResponse.next();
   }
 
