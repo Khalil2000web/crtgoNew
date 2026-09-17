@@ -1,211 +1,71 @@
-import {
-  NextResponse,
-} from "next/server";
+import { NextResponse } from "next/server";
 
-
-function getHostname(
-  request
-) {
-  return String(
-    request.headers.get(
-      "host"
-    ) ||
-      ""
-  )
-    .split(
-      ":"
-    )[0]
+function getHostname(request) {
+  return String(request.headers.get("host") || "")
+    .split(":")[0]
     .trim()
     .toLowerCase();
 }
 
+function shouldIgnorePath(pathname) {
+  if (pathname === "/") return true;
 
-function shouldIgnorePath(
-  pathname
-) {
+  if (pathname.startsWith("/api/") || pathname === "/api") return true;
+  if (pathname.startsWith("/_next/")) return true;
+  if (pathname.startsWith("/tenant/") || pathname === "/tenant") return true;
+
   if (
-    pathname ===
-    "/"
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml"
   ) {
     return true;
   }
 
-
-  if (
-    pathname.startsWith(
-      "/api/"
-    ) ||
-    pathname ===
-      "/api"
-  ) {
-    return true;
-  }
-
-
-  if (
-    pathname.startsWith(
-      "/_next/"
-    )
-  ) {
-    return true;
-  }
-
-
-  if (
-    pathname.startsWith(
-      "/tenant/"
-    ) ||
-    pathname ===
-      "/tenant"
-  ) {
-    return true;
-  }
-
-
-  if (
-    pathname ===
-      "/favicon.ico" ||
-    pathname ===
-      "/robots.txt" ||
-    pathname ===
-      "/sitemap.xml"
-  ) {
-    return true;
-  }
-
-
-  /*
-   * Public/static files:
-   *
-   * /logo.png
-   * /fonts/font.woff2
-   * /manifest.webmanifest
-   * etc.
-   */
-  const lastSegment =
-    pathname
-      .split(
-        "/"
-      )
-      .pop() ||
-    "";
-
-
-  if (
-    lastSegment.includes(
-      "."
-    )
-  ) {
-    return true;
-  }
-
+  const lastSegment = pathname.split("/").pop() || "";
+  if (lastSegment.includes(".")) return true;
 
   return false;
 }
 
-
-export function proxy(
-  request
-) {
-  const hostname =
-    getHostname(
-      request
-    );
-
-
-  const {
-    pathname,
-  } =
-    request.nextUrl;
-
+export function proxy(request) {
+  const hostname = getHostname(request);
+  const { pathname } = request.nextUrl;
 
   /*
-   * Only the canonical CRTRGO
-   * menu hostname is tenant-routed.
+   * CRTGO menu routing.
    *
-   * Production:
-   * menu.crtrgo.com
-   *
-   * Local:
-   * menu.localhost:3000
+   * Production: menu.crtgo.com
+   * Legacy domain stays supported during migration: menu.crtrgo.com
+   * Local: localhost:3000/demo or menu.localhost:3000/demo
    */
-  const isMenuHostname =
-    hostname ===
-      "menu.crtrgo.com" ||
-    hostname ===
-      "menu.localhost";
+  const isMenuHostname = [
+    "menu.crtgo.com",
+    "menu.crtrgo.com",
+    "menu.localhost",
+    "localhost",
+    "127.0.0.1",
+  ].includes(hostname);
 
-
-  if (
-    !isMenuHostname
-  ) {
+  if (!isMenuHostname || shouldIgnorePath(pathname)) {
     return NextResponse.next();
   }
 
+  const segments = pathname.split("/").filter(Boolean);
+  const slug = String(segments[0] || "").trim().toLowerCase();
 
-  if (
-    shouldIgnorePath(
-      pathname
-    )
-  ) {
-    return NextResponse.next();
-  }
+  if (!slug) return NextResponse.next();
 
+  const remainingPath = segments.slice(1).join("/");
+  const rewriteUrl = request.nextUrl.clone();
 
-  const segments =
-    pathname
-      .split(
-        "/"
-      )
-      .filter(
-        Boolean
-      );
+  rewriteUrl.pathname = remainingPath
+    ? `/tenant/${slug}/${remainingPath}`
+    : `/tenant/${slug}`;
 
-
-  const slug =
-    String(
-      segments[0] ||
-        ""
-    )
-      .trim()
-      .toLowerCase();
-
-
-  if (
-    !slug
-  ) {
-    return NextResponse.next();
-  }
-
-
-  const remainingPath =
-    segments
-      .slice(
-        1
-      )
-      .join(
-        "/"
-      );
-
-
-  const rewriteUrl =
-    request.nextUrl.clone();
-
-
-  rewriteUrl.pathname =
-    remainingPath
-      ? `/tenant/${slug}/${remainingPath}`
-      : `/tenant/${slug}`;
-
-
-  return NextResponse.rewrite(
-    rewriteUrl
-  );
+  return NextResponse.rewrite(rewriteUrl);
 }
 
-
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image).*)"],
 };
