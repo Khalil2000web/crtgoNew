@@ -30,14 +30,26 @@ const SEARCH_LABELS = {
   ar: {
     placeholder: "ابحث في القائمة...",
     noResults: "لم نجد أي نتائج.",
+    call: "اتصال",
+    whatsapp: "واتساب",
+    instagram: "إنستغرام",
+    location: "الموقع",
   },
   he: {
     placeholder: "חיפוש בתפריט...",
     noResults: "לא נמצאו תוצאות.",
+    call: "התקשר",
+    whatsapp: "וואטסאפ",
+    instagram: "אינסטגרם",
+    location: "מיקום",
   },
   en: {
     placeholder: "Search the menu...",
     noResults: "No results found.",
+    call: "Call",
+    whatsapp: "WhatsApp",
+    instagram: "Instagram",
+    location: "Location",
   },
 };
 
@@ -320,19 +332,27 @@ export default function MenuWebsite({ website }) {
             )}
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {location && <InfoPill icon={MapPin} text={location} palette={palette} />}
+              {location && (
+                <InfoPill
+                  icon={MapPin}
+                  text={location}
+                  href={mapsHref(location)}
+                  palette={palette}
+                />
+              )}
               {website?.phone && (
                 <InfoPill
                   icon={Phone}
-                  text={website.phone}
+                  text={SEARCH_LABELS[language]?.call || SEARCH_LABELS.en.call}
                   href={`tel:${String(website.phone).replace(/[^+\d]/g, "")}`}
                   palette={palette}
+                  external={false}
                 />
               )}
               {website?.whatsapp && (
                 <InfoPill
                   icon={MessageCircle}
-                  text="WhatsApp"
+                  text={SEARCH_LABELS[language]?.whatsapp || SEARCH_LABELS.en.whatsapp}
                   href={whatsappHref(website.whatsapp)}
                   palette={palette}
                 />
@@ -340,7 +360,7 @@ export default function MenuWebsite({ website }) {
               {website?.instagram && (
                 <InfoPill
                   icon={FaInstagram}
-                  text="Instagram"
+                  text={SEARCH_LABELS[language]?.instagram || SEARCH_LABELS.en.instagram}
                   href={instagramHref(website.instagram)}
                   palette={palette}
                 />
@@ -351,89 +371,90 @@ export default function MenuWebsite({ website }) {
       </header>
 
       {sections.length > 0 && (
-        <div className="mx-auto w-full max-w-6xl px-4 pb-4 sm:px-6 lg:px-8">
-          <div
-            className="flex items-center gap-3 rounded-2xl border px-4 py-3"
-            style={{
-              backgroundColor: palette.surfaceStrong,
-              borderColor: palette.border,
-            }}
-          >
-            <Search size={18} style={{ color: palette.muted }} />
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={
-                SEARCH_LABELS[language]?.placeholder ||
-                SEARCH_LABELS.en.placeholder
-              }
-              aria-label={
-                SEARCH_LABELS[language]?.placeholder ||
-                SEARCH_LABELS.en.placeholder
-              }
-              className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-60"
-              style={{ color: palette.text }}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-full transition hover:opacity-70"
-                style={{ backgroundColor: palette.surface }}
-              >
-                <X size={15} />
-              </button>
+        <div
+          className="sticky top-0 z-30 border-y backdrop-blur-xl"
+          style={{
+            backgroundColor: withAlpha(palette.background, 0.96),
+            borderColor: palette.border,
+          }}
+        >
+          <div className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+            <div
+              className="flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-[0_10px_32px_rgba(0,0,0,0.04)]"
+              style={{
+                backgroundColor: palette.surfaceStrong,
+                borderColor: palette.border,
+              }}
+            >
+              <Search size={18} style={{ color: palette.muted }} />
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={
+                  SEARCH_LABELS[language]?.placeholder ||
+                  SEARCH_LABELS.en.placeholder
+                }
+                aria-label={
+                  SEARCH_LABELS[language]?.placeholder ||
+                  SEARCH_LABELS.en.placeholder
+                }
+                className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-60"
+                style={{ color: palette.text }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full transition hover:opacity-70"
+                  style={{ backgroundColor: palette.surface }}
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+
+            {visibleSections.length > 0 && (
+              <nav className="mt-2.5" aria-label="Menu categories">
+                <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                  {visibleSections.map((section) => {
+                    const selected = activeSection === section.id;
+                    const title = localized(
+                      section.nameI18n,
+                      section.name,
+                      language,
+                      website?.defaultLanguage
+                    );
+
+                    return (
+                      <button
+                        key={section.id}
+                        type="button"
+                        onClick={() => scrollToSection(section.id)}
+                        className="shrink-0 rounded-full border px-4 py-2 text-sm font-extrabold transition active:scale-[0.98]"
+                        style={
+                          selected
+                            ? {
+                                backgroundColor: palette.accent,
+                                borderColor: palette.accent,
+                                color: palette.accentText,
+                              }
+                            : {
+                                backgroundColor: palette.surface,
+                                borderColor: palette.border,
+                                color: palette.text,
+                              }
+                        }
+                      >
+                        {title}
+                      </button>
+                    );
+                  })}
+                </div>
+              </nav>
             )}
           </div>
         </div>
-      )}
-
-      {visibleSections.length > 0 && (
-        <nav
-          className="sticky top-0 z-30 border-y backdrop-blur-xl"
-          style={{
-            backgroundColor: withAlpha(palette.background, 0.94),
-            borderColor: palette.border,
-          }}
-          aria-label="Menu categories"
-        >
-          <div className="mx-auto flex w-full max-w-6xl gap-2 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8">
-            {visibleSections.map((section) => {
-              const selected = activeSection === section.id;
-              const title = localized(
-                section.nameI18n,
-                section.name,
-                language,
-                website?.defaultLanguage
-              );
-
-              return (
-                <button
-                  key={section.id}
-                  type="button"
-                  onClick={() => scrollToSection(section.id)}
-                  className="shrink-0 rounded-full border px-4 py-2 text-sm font-extrabold transition"
-                  style={
-                    selected
-                      ? {
-                          backgroundColor: palette.accent,
-                          borderColor: palette.accent,
-                          color: palette.accentText,
-                        }
-                      : {
-                          backgroundColor: palette.surface,
-                          borderColor: palette.border,
-                          color: palette.text,
-                        }
-                  }
-                >
-                  {title}
-                </button>
-              );
-            })}
-          </div>
-        </nav>
       )}
 
       <div className="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
@@ -459,7 +480,7 @@ export default function MenuWebsite({ website }) {
                   key={section.id}
                   id={sectionAnchor(section.id)}
                   data-section-id={section.id}
-                  className="scroll-mt-28"
+                  className="scroll-mt-40 sm:scroll-mt-44"
                 >
                   <div className="mb-5 sm:mb-6">
                     <h2 className="text-2xl font-black tracking-[-0.035em] sm:text-3xl">
@@ -525,7 +546,14 @@ export default function MenuWebsite({ website }) {
           className="border-t pt-6 text-center text-xs font-bold tracking-[0.18em]"
           style={{ borderColor: palette.border, color: palette.muted }}
         >
-          POWERED BY CRTGO
+          <a
+            href="https://crtgo.com"
+            target="_blank"
+            rel="noreferrer"
+            className="transition hover:opacity-70"
+          >
+            POWERED BY CRTGO
+          </a>
         </div>
       </footer>
     </main>
@@ -543,33 +571,47 @@ function MenuItem({ item, language, defaultLanguage, currency, palette }) {
 
   return (
     <article
-      className="flex min-h-32 overflow-hidden rounded-[24px] border shadow-[0_8px_30px_rgba(0,0,0,0.035)]"
+      className="group flex min-h-36 overflow-hidden rounded-[26px] border shadow-[0_12px_38px_rgba(0,0,0,0.045)] transition duration-200 md:hover:-translate-y-0.5 md:hover:shadow-[0_18px_46px_rgba(0,0,0,0.07)]"
       style={{ backgroundColor: palette.surfaceStrong, borderColor: palette.border }}
     >
       <div className="min-w-0 flex-1 p-4 sm:p-5">
         <div className="flex h-full flex-col">
-          <h3 className="text-base font-black leading-6 sm:text-lg">{name}</h3>
+          <h3 className="text-[17px] font-black leading-6 tracking-[-0.02em] sm:text-lg">
+            {name}
+          </h3>
 
           {description && (
-            <p className="mt-1.5 text-sm leading-6" style={{ color: palette.muted }}>
+            <p
+              className="mt-1.5 line-clamp-3 text-sm leading-6"
+              style={{ color: palette.muted }}
+            >
               {description}
             </p>
           )}
 
-          <div className="mt-auto pt-4 text-sm font-black" style={{ color: palette.accent }}>
-            {formatPrice(item.price, currency, language)}
+          <div className="mt-auto pt-4">
+            <span
+              className="inline-flex rounded-full px-3 py-1.5 text-sm font-black"
+              style={{
+                backgroundColor: palette.accentSoft,
+                color: palette.accent,
+              }}
+            >
+              {formatPrice(item.price, currency, language)}
+            </span>
           </div>
         </div>
       </div>
 
       {item.imageUrl && (
-        <div className="w-28 shrink-0 sm:w-36">
+        <div className="relative w-32 shrink-0 overflow-hidden sm:w-40">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={item.imageUrl}
             alt={name || ""}
             loading="lazy"
-            className="h-full min-h-32 w-full object-cover"
+            decoding="async"
+            className="h-full min-h-36 w-full object-cover transition duration-300 md:group-hover:scale-[1.025]"
           />
         </div>
       )}
@@ -577,7 +619,7 @@ function MenuItem({ item, language, defaultLanguage, currency, palette }) {
   );
 }
 
-function InfoPill({ icon: Icon, text, href, palette }) {
+function InfoPill({ icon: Icon, text, href, palette, external = true }) {
   const classes = "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold";
   const style = {
     backgroundColor: palette.surface,
@@ -587,7 +629,13 @@ function InfoPill({ icon: Icon, text, href, palette }) {
 
   if (href) {
     return (
-      <a className={classes} style={style} href={href} target="_blank" rel="noreferrer">
+      <a
+        className={`${classes} transition hover:opacity-75 active:scale-[0.98]`}
+        style={style}
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+      >
         <Icon size={14} />
         <span>{text}</span>
       </a>
@@ -635,6 +683,13 @@ function formatPrice(value, currency, language) {
   } catch {
     return `${amount} ${currency || "ILS"}`;
   }
+}
+
+function mapsHref(value) {
+  const query = String(value || "").trim();
+  return query
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+    : undefined;
 }
 
 function whatsappHref(value) {
