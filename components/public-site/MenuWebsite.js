@@ -6,7 +6,9 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  Search,
   UtensilsCrossed,
+  X,
 } from "lucide-react";
 import { FaInstagram } from "react-icons/fa";
 
@@ -24,6 +26,21 @@ const EMPTY_LABELS = {
   en: "There are no menu items yet.",
 };
 
+const SEARCH_LABELS = {
+  ar: {
+    placeholder: "ابحث في القائمة...",
+    noResults: "لم نجد أي نتائج.",
+  },
+  he: {
+    placeholder: "חיפוש בתפריט...",
+    noResults: "לא נמצאו תוצאות.",
+  },
+  en: {
+    placeholder: "Search the menu...",
+    noResults: "No results found.",
+  },
+};
+
 export default function MenuWebsite({ website }) {
   const enabledLanguages = useMemo(() => {
     const clean = Array.isArray(website?.enabledLanguages)
@@ -38,10 +55,67 @@ export default function MenuWebsite({ website }) {
     : enabledLanguages[0] || "ar";
 
   const [language, setLanguage] = useState(initialLanguage);
+  const [languagePreferenceReady, setLanguagePreferenceReady] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const sections = useMemo(
     () => (Array.isArray(website?.sections) ? website.sections : []),
     [website]
   );
+
+  const visibleSections = useMemo(() => {
+    const query = normalizeSearch(searchQuery);
+
+    if (!query) return sections;
+
+    return sections
+      .map((section) => {
+        const sectionName = localized(
+          section.nameI18n,
+          section.name,
+          language,
+          website?.defaultLanguage
+        );
+        const sectionDescription = localized(
+          section.descriptionI18n,
+          section.description,
+          language,
+          website?.defaultLanguage
+        );
+
+        const sectionMatches = normalizeSearch(
+          `${sectionName} ${sectionDescription}`
+        ).includes(query);
+
+        const items = Array.isArray(section.items) ? section.items : [];
+        const filteredItems = sectionMatches
+          ? items
+          : items.filter((item) => {
+              const itemName = localized(
+                item.nameI18n,
+                item.name,
+                language,
+                website?.defaultLanguage
+              );
+              const itemDescription = localized(
+                item.descriptionI18n,
+                item.description,
+                language,
+                website?.defaultLanguage
+              );
+
+              return normalizeSearch(
+                `${itemName} ${itemDescription}`
+              ).includes(query);
+            });
+
+        return {
+          ...section,
+          items: filteredItems,
+        };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [language, searchQuery, sections, website?.defaultLanguage]);
+
   const [activeSection, setActiveSection] = useState(sections[0]?.id || null);
 
   const direction = language === "en" ? "ltr" : "rtl";
@@ -74,14 +148,44 @@ export default function MenuWebsite({ website }) {
   }, [enabledLanguages, language]);
 
   useEffect(() => {
-    if (!sections.length) {
+    try {
+      const storageKey = `crtgo:menu-language:${website?.slug || "default"}`;
+      const savedLanguage = window.localStorage.getItem(storageKey);
+
+      if (savedLanguage && enabledLanguages.includes(savedLanguage)) {
+        setLanguage(savedLanguage);
+      }
+    } catch {
+      // Local storage may be unavailable in private/restricted browser contexts.
+    } finally {
+      setLanguagePreferenceReady(true);
+    }
+  }, [enabledLanguages, website?.slug]);
+
+  useEffect(() => {
+    if (!languagePreferenceReady) return;
+
+    try {
+      const storageKey = `crtgo:menu-language:${website?.slug || "default"}`;
+      window.localStorage.setItem(storageKey, language);
+    } catch {
+      // Keep language switching functional even when storage is unavailable.
+    }
+  }, [language, languagePreferenceReady, website?.slug]);
+
+  useEffect(() => {
+    if (!visibleSections.length) {
       setActiveSection(null);
       return undefined;
     }
 
-    setActiveSection((current) => current || sections[0].id);
+    setActiveSection((current) =>
+      visibleSections.some((section) => section.id === current)
+        ? current
+        : visibleSections[0].id
+    );
 
-    const nodes = sections
+    const nodes = visibleSections
       .map((section) => document.getElementById(sectionAnchor(section.id)))
       .filter(Boolean);
 
@@ -103,7 +207,7 @@ export default function MenuWebsite({ website }) {
 
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
-  }, [sections, language]);
+  }, [visibleSections, language]);
 
   function scrollToSection(id) {
     const node = document.getElementById(sectionAnchor(id));
@@ -247,6 +351,45 @@ export default function MenuWebsite({ website }) {
       </header>
 
       {sections.length > 0 && (
+        <div className="mx-auto w-full max-w-6xl px-4 pb-4 sm:px-6 lg:px-8">
+          <div
+            className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+            style={{
+              backgroundColor: palette.surfaceStrong,
+              borderColor: palette.border,
+            }}
+          >
+            <Search size={18} style={{ color: palette.muted }} />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={
+                SEARCH_LABELS[language]?.placeholder ||
+                SEARCH_LABELS.en.placeholder
+              }
+              aria-label={
+                SEARCH_LABELS[language]?.placeholder ||
+                SEARCH_LABELS.en.placeholder
+              }
+              className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:opacity-60"
+              style={{ color: palette.text }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full transition hover:opacity-70"
+                style={{ backgroundColor: palette.surface }}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {visibleSections.length > 0 && (
         <nav
           className="sticky top-0 z-30 border-y backdrop-blur-xl"
           style={{
@@ -256,7 +399,7 @@ export default function MenuWebsite({ website }) {
           aria-label="Menu categories"
         >
           <div className="mx-auto flex w-full max-w-6xl gap-2 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8">
-            {sections.map((section) => {
+            {visibleSections.map((section) => {
               const selected = activeSection === section.id;
               const title = localized(
                 section.nameI18n,
@@ -294,9 +437,9 @@ export default function MenuWebsite({ website }) {
       )}
 
       <div className="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
-        {sections.length ? (
+        {visibleSections.length ? (
           <div className="space-y-12 sm:space-y-14">
-            {sections.map((section) => {
+            {visibleSections.map((section) => {
               const sectionName = localized(
                 section.nameI18n,
                 section.name,
@@ -370,7 +513,9 @@ export default function MenuWebsite({ website }) {
               color: palette.muted,
             }}
           >
-            {EMPTY_LABELS[language] || EMPTY_LABELS.en}
+            {searchQuery
+              ? SEARCH_LABELS[language]?.noResults || SEARCH_LABELS.en.noResults
+              : EMPTY_LABELS[language] || EMPTY_LABELS.en}
           </div>
         )}
       </div>
@@ -455,6 +600,13 @@ function InfoPill({ icon: Icon, text, href, palette }) {
       <span>{text}</span>
     </span>
   );
+}
+
+function normalizeSearch(value) {
+  return String(value || "")
+    .trim()
+    .toLocaleLowerCase()
+    .normalize("NFKD");
 }
 
 function localized(translations, fallback, language, defaultLanguage) {
