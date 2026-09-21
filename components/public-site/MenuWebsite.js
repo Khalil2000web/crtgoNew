@@ -551,7 +551,7 @@ export default function MenuWebsite({ website }) {
           style={{ borderColor: palette.border, color: palette.muted }}
         >
           <a
-            href="https://crtgo.com"
+            href="https://crtrgo.com"
             target="_blank"
             rel="noreferrer"
             className="transition hover:opacity-70"
