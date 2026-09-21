@@ -77,7 +77,11 @@ export default function MenuWebsite({ website }) {
   const visibleSections = useMemo(() => {
     const query = normalizeSearch(searchQuery);
 
-    if (!query) return sections;
+    if (!query) {
+      return sections.filter((section) =>
+        Array.isArray(section.items) && section.items.length > 0
+      );
+    }
 
     return sections
       .map((section) => {
