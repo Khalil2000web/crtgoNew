@@ -25,7 +25,7 @@ export async function getPublicProject(slug) {
   const cleanSlug = String(slug || "").trim().toLowerCase();
   if (!cleanSlug) return null;
 
-  cacheTag(`crtrgo-menu-${cleanSlug}`);
+  cacheTag(`crtgo-menu-${cleanSlug}`);
   cacheLife({ stale: 60, revalidate: 60, expire: 300 });
 
   const supabase = createPublicSupabase();
