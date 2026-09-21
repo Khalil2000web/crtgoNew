@@ -8,7 +8,7 @@ function safeEqual(first, second) {
 }
 
 export async function POST(request) {
-  const secret = String(process.env.CRTRGO_REVALIDATION_SECRET || "").trim();
+  const secret = String(process.env.CRTGO_REVALIDATION_SECRET || process.env.CRTRGO_REVALIDATION_SECRET || "").trim();
   if (!secret) return Response.json({ error: "Revalidation is not configured" }, { status: 503 });
 
   const auth = request.headers.get("authorization") || "";
@@ -21,7 +21,9 @@ export async function POST(request) {
   const slug = String(body?.slug || "").trim().toLowerCase();
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return Response.json({ error: "Invalid menu slug" }, { status: 400 });
 
-  const tag = `crtrgo-menu-${slug}`;
+  const tag = `crtgo-menu-${slug}`;
+  const legacyTag = `crtrgo-menu-${slug}`;
   revalidateTag(tag, { expire: 0 });
+  revalidateTag(legacyTag, { expire: 0 });
   return Response.json({ revalidated: true, slug, tag, revalidatedAt: new Date().toISOString() });
 }
