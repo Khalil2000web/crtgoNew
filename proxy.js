@@ -37,7 +37,7 @@ function shouldIgnorePath(pathname) {
 }
 
 function tenantSlugFromHostname(hostname) {
-  if (hostname.endsWith(".crtgo.com")) {
+  if (hostname.endsWith(".crtrgo.com")) {
     const labels = hostname.split(".");
 
     if (labels.length === 3) {
@@ -66,8 +66,8 @@ export function proxy(request) {
 
   /*
    * Canonical tenant URLs:
-   *   demo.crtgo.com
-   *   restaurant-name.crtgo.com
+   *   demo.crtrgo.com
+   *   restaurant-name.crtrgo.com
    *
    * Local equivalent:
    *   demo.localhost:3000
@@ -84,12 +84,10 @@ export function proxy(request) {
 
   /*
    * Temporary compatibility routes while migrating:
-   *   menu.crtgo.com/demo
    *   menu.crtrgo.com/demo
    *   localhost:3000/demo
    */
   const isPathBasedMenuHost = [
-    "menu.crtgo.com",
     "menu.crtrgo.com",
     "menu.localhost",
     "localhost",
